@@ -13,6 +13,7 @@ import FinancePage from '@/pages/FinancePage';
 import FlowDetailPage from '@/pages/FlowDetailPage';
 import FlowsPage from '@/pages/FlowsPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import HealthPage from '@/pages/HealthPage';
 import IntegrationsPage from '@/pages/IntegrationsPage';
 import LoginPage from '@/pages/LoginPage';
 import McpConsolePage from '@/pages/McpConsolePage';
@@ -22,6 +23,7 @@ import PaymentDetailPage from '@/pages/PaymentDetailPage';
 import PaymentsPage from '@/pages/PaymentsPage';
 import RegisterPage from '@/pages/RegisterPage';
 import SettingsPage from '@/pages/SettingsPage';
+import StatusPage from '@/pages/StatusPage';
 import TeamPage from '@/pages/TeamPage';
 import TemplatesPage from '@/pages/TemplatesPage';
 import WebhooksPage from '@/pages/WebhooksPage';
@@ -48,6 +50,8 @@ export default function App() {
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="finance" element={<FinancePage />} />
+            <Route path="health" element={<HealthPage />} />
+            <Route path="status" element={<StatusPage />} />
             <Route path="team" element={<TeamPage />} />
             <Route path="ops-dashboard" element={<DashboardPage />} />
             <Route path="devices" element={<DevicesPage />} />

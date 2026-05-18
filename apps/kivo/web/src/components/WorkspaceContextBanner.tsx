@@ -1,6 +1,7 @@
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
+import { statusLabel } from '@/utils/format';
 
 interface WorkspaceContextAction {
   to: string;
@@ -39,7 +40,7 @@ export function WorkspaceContextBanner({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">{eyebrow}</p>
-              <Badge tone={tone}>{tone}</Badge>
+              <Badge tone={tone}>{statusLabel(tone)}</Badge>
             </div>
             <h2 className="mt-2 font-bricolage text-2xl font-bold text-white">{title}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-400">{description}</p>

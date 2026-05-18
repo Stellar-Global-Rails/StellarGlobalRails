@@ -20,6 +20,8 @@ const navGroups = [
       { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Checkout' },
       { to: '/operations', icon: 'solar:devices-bold-duotone', label: 'Operacao' },
       { to: '/finance', icon: 'solar:chart-square-bold-duotone', label: 'Financeiro' },
+      { to: '/health', icon: 'solar:heart-pulse-bold-duotone', label: 'Saude' },
+      { to: '/status', icon: 'solar:pulse-2-bold-duotone', label: 'Status' },
     ],
   },
 ];

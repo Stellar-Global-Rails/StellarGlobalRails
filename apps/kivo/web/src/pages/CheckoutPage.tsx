@@ -314,7 +314,7 @@ export default function CheckoutPage() {
     <div className="space-y-8">
       <PageHeader
         eyebrow="Checkout real"
-        title="Validar pagamento do flow"
+        title="Testar checkout do flow"
         icon="solar:card-transfer-bold-duotone"
         description="Valide funding, challenge x402, assinatura Stellar e liberacao do recurso antes de publicar para clientes."
         action={<Link to="/x402" className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/5">Regras x402</Link>}
@@ -330,7 +330,7 @@ export default function CheckoutPage() {
             </div>
             <h2 className="mt-3 font-bricolage text-2xl font-bold text-white">Funding via Etherfuse</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-400">
-              Este fluxo chama os endpoints reais `/v1/etherfuse/*` no backend. A chave da Etherfuse fica no servidor; se o provedor negar customer, bank account ou quote, o erro aparece aqui sem marcar sucesso artificial.
+              Este fluxo usa a integracao real no backend. A chave da Etherfuse fica no servidor; se o provedor negar cadastro, conta bancaria ou cotacao, o erro aparece aqui sem marcar sucesso artificial.
             </p>
           </div>
           <div className="rounded-2xl border border-white/5 bg-black/25 p-4 xl:w-72">
@@ -440,7 +440,7 @@ export default function CheckoutPage() {
             </div>
           </div>
           <details className="rounded-2xl border border-white/5 bg-black/25 p-4">
-            <summary className="cursor-pointer text-sm font-bold text-white">Ver payload tecnico</summary>
+            <summary className="cursor-pointer text-sm font-bold text-white">Ver dados da integracao</summary>
             <pre className="mt-4 max-h-52 overflow-auto whitespace-pre-wrap break-all rounded-2xl border border-white/5 bg-black/35 p-4 text-xs text-emerald-100">
               {previewEtherfuseJson(anchorPreview)}
             </pre>
@@ -551,11 +551,11 @@ export default function CheckoutPage() {
             <div className="mt-6 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-amber-400">HTTP 402 Payment Required</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-amber-400">Pagamento necessario</p>
                   <p className="mt-1 text-sm text-neutral-300">
                     {challenge.amount} {asset?.label} para {previewPublicKey(challenge.payTo)}
                   </p>
-                  <p className="mt-1 text-xs text-neutral-500">Issuer {asset?.issuerPreview} - nonce {challenge.nonce}</p>
+                  <p className="mt-1 text-xs text-neutral-500">Ativo {asset?.issuerPreview} - prova {challenge.nonce}</p>
                 </div>
                 <CopyButton value={challenge.requiredHeader} label="Copiar challenge" />
               </div>
@@ -567,17 +567,17 @@ export default function CheckoutPage() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">Pagamento real</p>
-                <h3 className="mt-1 font-bricolage text-xl font-bold text-white">Carteira ou SDK assina a transacao</h3>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-400">Kivo nao marca sucesso sozinho: a API so libera o recurso quando recebe um txXDR assinado, com pagamento exato e memo do nonce, aceito pela Stellar testnet.</p>
+                <h3 className="mt-1 font-bricolage text-xl font-bold text-white">Carteira assina a transacao</h3>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-400">Kivo nao marca sucesso sozinho: a API so libera o recurso quando recebe uma transacao assinada, com pagamento exato e prova do desafio, aceita pela Stellar testnet.</p>
               </div>
               {paid && <Badge tone="processing">ledger {paid.stellarLedger}</Badge>}
             </div>
 
-            <label className="mt-5 block text-xs font-bold uppercase tracking-wider text-neutral-500">XDR assinado retornado pela carteira</label>
+            <label className="mt-5 block text-xs font-bold uppercase tracking-wider text-neutral-500">Comprovante assinado da carteira</label>
             <textarea
               value={txXDR}
               onChange={(event) => setTxXDR(event.target.value)}
-              placeholder="Cole aqui o txXDR assinado pela carteira/SDK Stellar"
+              placeholder="Cole aqui a transacao assinada pela carteira Stellar"
               className="mt-2 min-h-28 w-full rounded-xl border border-white/10 bg-black/40 p-3 font-mono text-xs text-emerald-100 outline-none focus:border-emerald-500"
             />
             <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -585,7 +585,7 @@ export default function CheckoutPage() {
                 Enviar pagamento e liberar
                 <Icon icon="solar:lock-keyhole-unlocked-bold" />
               </button>
-              <p className="text-xs text-neutral-500">A transacao deve pagar destino, valor e asset do challenge, com memo text do nonce ou memo hash SHA-256 do nonce.</p>
+              <p className="text-xs text-neutral-500">A transacao deve bater com destino, valor, ativo e prova gerados pelo Kivo.</p>
             </div>
           </div>
 
@@ -596,9 +596,9 @@ export default function CheckoutPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Pagamento aceito</p>
-                  <p className="mt-1 text-sm text-neutral-300">Hash {paid.stellarHash}</p>
+                  <p className="mt-1 text-sm text-neutral-300">Confirmado na Stellar: {paid.stellarHash}</p>
                 </div>
-                <CopyButton value={paid.paymentHeader} label="Copiar X-PAYMENT" />
+                <CopyButton value={paid.paymentHeader} label="Copiar comprovante" />
               </div>
               <pre className="mt-4 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded-xl bg-black/35 p-3 text-xs text-emerald-100">{unlocked ? JSON.stringify(unlocked, null, 2) : JSON.stringify(paid.data, null, 2)}</pre>
             </div>

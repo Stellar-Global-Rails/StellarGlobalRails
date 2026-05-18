@@ -54,7 +54,7 @@ const loaderLabels = {
   summary: 'Resumo',
   payments: 'Pagamentos',
   devices: 'Devices',
-  pricingRules: 'Regras x402',
+  pricingRules: 'Precos',
 } as const;
 
 export default function WorkspaceHomePage() {
@@ -125,7 +125,7 @@ export default function WorkspaceHomePage() {
             to="/create-flow"
             className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition hover:bg-emerald-400"
           >
-            Create Flow
+            Criar flow
             <Icon icon="solar:add-circle-bold-duotone" className="text-lg" />
           </Link>
         }
@@ -147,7 +147,7 @@ export default function WorkspaceHomePage() {
               <p className="mt-2 text-sm leading-6 text-neutral-400">
                 {hasLoadErrors
                   ? 'Mantivemos os dados parciais visiveis, mas receita, flows ou pagamentos podem estar incompletos.'
-                  : 'Buscando resumo, pagamentos, devices e regras x402 antes de calcular os indicadores.'}
+                  : 'Buscando resumo, pagamentos, devices e regras de preco antes de calcular os indicadores.'}
               </p>
               {hasLoadErrors && (
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -213,9 +213,9 @@ export default function WorkspaceHomePage() {
           tone={setupComplete ? 'emerald' : 'amber'}
         />
         <StatCard
-          title="API"
+          title="Sistema"
           value={statusLabel(apiLabelStatus)}
-          detail={`v${summaryData?.health.version ?? 'local'}`}
+          detail={apiStatus === 'ok' ? 'Kivo pronto para cobrar' : 'Verifique conexoes'}
           icon="solar:server-square-cloud-bold-duotone"
           tone={apiTone[apiStatus]}
         />
@@ -292,7 +292,7 @@ export default function WorkspaceHomePage() {
             >
               <span className="flex items-center gap-3">
                 <Icon icon="solar:card-transfer-bold-duotone" className="text-xl text-blue-300" />
-                Testar pagamento x402
+                Testar checkout
               </span>
               <Icon icon="solar:arrow-right-linear" className="text-neutral-500" />
             </Link>
@@ -302,7 +302,7 @@ export default function WorkspaceHomePage() {
             >
               <span className="flex items-center gap-3">
                 <Icon icon="solar:settings-bold-duotone" className="text-xl text-violet-300" />
-                Abrir configuracoes avancadas
+                Abrir integracoes
               </span>
               <Icon icon="solar:arrow-right-linear" className="text-neutral-500" />
             </Link>
@@ -315,7 +315,7 @@ export default function WorkspaceHomePage() {
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
               <h2 className="font-bricolage text-xl font-bold text-white">Flows recentes</h2>
-              <p className="mt-1 text-sm text-neutral-500">Recursos monetizados a partir dos seus devices e regras x402.</p>
+              <p className="mt-1 text-sm text-neutral-500">Recursos monetizados a partir dos seus devices e regras de preco.</p>
             </div>
             <Link to="/flows" className="text-xs font-bold text-emerald-400 hover:text-emerald-300">
               Ver todos
@@ -357,7 +357,7 @@ export default function WorkspaceHomePage() {
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
               <h2 className="font-bricolage text-xl font-bold text-white">Pagamentos recentes</h2>
-              <p className="mt-1 text-sm text-neutral-500">Pagamentos x402 e Stellar que alimentam sua receita.</p>
+              <p className="mt-1 text-sm text-neutral-500">Pagamentos confirmados que alimentam sua receita.</p>
             </div>
             <Link to="/payments" className="text-xs font-bold text-emerald-400 hover:text-emerald-300">
               Ver todos

@@ -119,15 +119,15 @@ if (initial.status === 402) {
         eyebrow="HTTP 402"
         title="Regras x402"
         icon="solar:shield-keyhole-bold-duotone"
-        description="Configure recursos pagos, gere challenges e valide o retry com X-PAYMENT."
+        description="Configure recursos pagos, gere desafios de pagamento e valide a liberacao do acesso."
       />
       <WorkspaceContextBanner
         eyebrow="Ponte usuario final + integrador"
         title="Regra de preco por recurso, com checkout real separado"
         icon="solar:shield-keyhole-bold-duotone"
         tone="active"
-        description="O usuario final usa Checkout. Aqui o integrador configura recurso, preco, timeout, asset e os headers que o cliente precisa implementar."
-        checkpoints={['Pricing rule', 'HTTP 402', 'Retry com X-PAYMENT']}
+        description="O usuario final usa Checkout. Aqui o integrador configura recurso, preco, tempo de expiracao e ativo aceito."
+        checkpoints={['Regra de preco', 'Pagamento necessario', 'Acesso liberado']}
         primaryAction={{ to: '/checkout', label: 'Testar pagamento' }}
         secondaryAction={{ to: '/integrations', label: 'Hub integrador' }}
       />
@@ -137,11 +137,11 @@ if (initial.status === 402) {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Fluxo de validacao</p>
-              <h2 className="mt-2 font-bricolage text-2xl font-bold text-white">Payment Required ate recurso liberado</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-400">Esse fluxo nao cria sucesso falso: sem txXDR assinado e compatível com destino, valor, asset e memo do nonce, o backend responde erro. Com XDR aceito, ele devolve X-PAYMENT e a proxima chamada ao recurso retorna 200.</p>
+              <h2 className="mt-2 font-bricolage text-2xl font-bold text-white">Do pagamento necessario ao acesso liberado</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-400">Esse fluxo nao cria sucesso falso: sem transacao assinada e compativel com destino, valor, ativo e prova do desafio, o backend responde erro. Com pagamento aceito, a proxima chamada ao recurso libera o acesso.</p>
             </div>
             <Badge tone={unlocked ? 'confirmed' : paid ? 'processing' : challenge ? 'pending' : 'neutral'}>
-              {unlocked ? '200 liberado' : paid ? 'payment header' : challenge ? '402 emitido' : 'sem challenge'}
+              {unlocked ? 'acesso liberado' : paid ? 'pagamento aceito' : challenge ? 'pagamento solicitado' : 'sem desafio'}
             </Badge>
           </div>
 
@@ -164,17 +164,17 @@ if (initial.status === 402) {
 
           <div className="mt-5 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="rounded-2xl border border-white/5 bg-black/25 p-4">
-              <h3 className="font-bricolage text-xl font-bold text-white">Request</h3>
-              <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-neutral-500">Resource</label>
+              <h3 className="font-bricolage text-xl font-bold text-white">Teste da cobranca</h3>
+              <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-neutral-500">Recurso</label>
               <input value={resource} onChange={(event) => selectResource(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 font-mono text-xs outline-none focus:border-emerald-500" />
-              <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-neutral-500">txXDR assinado</label>
-              <textarea value={txXDR} onChange={(event) => setTxXDR(event.target.value)} placeholder="Cole o XDR retornado pela carteira/SDK Stellar" className="mt-2 min-h-32 w-full rounded-xl border border-white/10 bg-black/40 p-3 font-mono text-xs text-emerald-100 outline-none focus:border-emerald-500" />
+              <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-neutral-500">Comprovante assinado</label>
+              <textarea value={txXDR} onChange={(event) => setTxXDR(event.target.value)} placeholder="Cole a transacao assinada pela carteira Stellar" className="mt-2 min-h-32 w-full rounded-xl border border-white/10 bg-black/40 p-3 font-mono text-xs text-emerald-100 outline-none focus:border-emerald-500" />
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <button type="button" onClick={requestChallenge} disabled={busy === 'challenge'} className="rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black disabled:opacity-50">
-                  {busy === 'challenge' ? 'Chamando...' : 'Solicitar 402'}
+                  {busy === 'challenge' ? 'Gerando...' : 'Gerar desafio'}
                 </button>
                 <button type="button" onClick={pay} disabled={!challenge || !txXDR.trim() || busy === 'pay'} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-300 disabled:cursor-not-allowed disabled:opacity-40">
-                  {busy === 'pay' ? 'Confirmando...' : 'Enviar X-PAYMENT'}
+                  {busy === 'pay' ? 'Confirmando...' : 'Liberar acesso'}
                 </button>
               </div>
             </div>
@@ -183,7 +183,7 @@ if (initial.status === 402) {
               <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-amber-400">HTTP/1.1 402 Payment Required</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-amber-400">Pagamento necessario</p>
                     {challenge && (
                       <p className="mt-1 text-sm text-neutral-300">
                         {challenge.amount} {challengeAsset?.label} - destino {previewPublicKey(challenge.payTo)}
@@ -192,15 +192,15 @@ if (initial.status === 402) {
                   </div>
                   {challenge && <CopyButton value={challenge.requiredHeader} label="Copiar" />}
                 </div>
-                <pre className="mt-3 max-h-36 overflow-auto whitespace-pre-wrap break-all rounded-xl bg-black/35 p-3 text-xs text-amber-100">{challenge?.requiredHeader ?? 'X-PAYMENT-REQUIRED aparecera aqui depois do primeiro GET.'}</pre>
+                <pre className="mt-3 max-h-36 overflow-auto whitespace-pre-wrap break-all rounded-xl bg-black/35 p-3 text-xs text-amber-100">{challenge?.requiredHeader ?? 'O desafio de pagamento aparecera aqui depois do primeiro teste.'}</pre>
               </div>
               <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">HTTP/1.1 200 OK</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Acesso liberado</p>
                     {paid && <p className="mt-1 text-sm text-neutral-300">Ledger {paid.stellarLedger} - hash {paid.stellarHash}</p>}
                   </div>
-                  {paid && <CopyButton value={paid.paymentHeader} label="Copiar X-PAYMENT" />}
+                  {paid && <CopyButton value={paid.paymentHeader} label="Copiar comprovante" />}
                 </div>
                 <pre className="mt-3 max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-xl bg-black/35 p-3 text-xs text-emerald-100">{unlocked ? JSON.stringify(unlocked, null, 2) : paid ? JSON.stringify(paid.data, null, 2) : 'Resposta liberada aparecera aqui depois do retry pago.'}</pre>
               </div>

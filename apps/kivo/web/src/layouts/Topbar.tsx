@@ -12,6 +12,8 @@ const routeTitles: Record<string, { title: string; icon: string }> = {
   '/checkout': { title: 'Checkout', icon: 'solar:card-transfer-bold-duotone' },
   '/integrations': { title: 'Integracao', icon: 'solar:code-square-bold-duotone' },
   '/finance': { title: 'Financeiro', icon: 'solar:chart-square-bold-duotone' },
+  '/health': { title: 'Saude', icon: 'solar:heart-pulse-bold-duotone' },
+  '/status': { title: 'Status', icon: 'solar:pulse-2-bold-duotone' },
   '/ops-dashboard': { title: 'Ferramentas', icon: 'solar:widget-5-bold-duotone' },
   '/devices': { title: 'Devices', icon: 'solar:devices-bold-duotone' },
   '/payments': { title: 'Pagamentos', icon: 'solar:wallet-money-bold-duotone' },
@@ -44,7 +46,7 @@ export default function Topbar() {
         </div>
         <div className="min-w-0">
           <h1 className="hidden truncate font-bricolage text-xl font-bold text-white sm:block">{info.title}</h1>
-          <p className="hidden text-xs text-neutral-500 sm:block">Monetize machines, APIs and data streams with x402</p>
+          <p className="hidden text-xs text-neutral-500 sm:block">Cobre por uso em devices, APIs e dados conectados</p>
         </div>
       </div>
 

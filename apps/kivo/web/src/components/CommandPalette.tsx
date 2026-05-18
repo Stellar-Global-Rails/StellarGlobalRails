@@ -22,6 +22,8 @@ const commands = [
   { label: 'Operacao M2M', path: '/operations', icon: 'solar:devices-bold-duotone', keywords: 'operator devices health sessions' },
   { label: 'Hub de integracao', path: '/integrations', icon: 'solar:code-square-bold-duotone', keywords: 'builder api webhooks mcp templates' },
   { label: 'Financeiro', path: '/finance', icon: 'solar:chart-square-bold-duotone', keywords: 'recebiveis conciliacao settlement receita' },
+  { label: 'Saude dos flows', path: '/health', icon: 'solar:heart-pulse-bold-duotone', keywords: 'health saude flows recursos setup falhas' },
+  { label: 'Status do Kivo', path: '/status', icon: 'solar:pulse-2-bold-duotone', keywords: 'status sistema kivo plataforma disponibilidade' },
   { label: 'Time e escala', path: '/team', icon: 'solar:users-group-rounded-bold-duotone', keywords: 'workspace roles solo team enterprise' },
   { label: 'Ferramentas avancadas', path: '/ops-dashboard', icon: 'solar:widget-5-bold-duotone', keywords: 'metrics health dashboard advanced' },
   ...advancedCommands,

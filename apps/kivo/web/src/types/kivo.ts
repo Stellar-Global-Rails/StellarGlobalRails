@@ -12,7 +12,7 @@ export interface KivoTemplate {
   id: KivoTemplateId;
   name: string;
   shortName: string;
-  category: 'Device Pay' | 'API Pay' | 'Data Feed';
+  category: 'Device' | 'API' | 'Dados';
   icon: string;
   description: string;
   bestFor: string;

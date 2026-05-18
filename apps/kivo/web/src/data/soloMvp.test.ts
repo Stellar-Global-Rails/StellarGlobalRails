@@ -123,16 +123,16 @@ describe('soloMvp', () => {
   });
 
   it('finds templates by id', () => {
-    expect(getTemplateById('paid-api-endpoint').name).toBe('Paid API Endpoint');
+    expect(getTemplateById('paid-api-endpoint').name).toBe('Endpoint de API pago');
   });
 
   it('creates a default draft from a template', () => {
     const draft = createDefaultFlowDraft('device-pay-ev-charging');
 
-    expect(draft.name).toBe('Garage charger');
+    expect(draft.name).toBe('Carregador da garagem');
     expect(draft.price).toBe('0.50');
     expect(draft.unit).toBe('kWh');
-    expect(draft.resource).toBe('/devices/garage-charger/session');
+    expect(draft.resource).toBe('/devices/carregador-da-garagem/session');
   });
 
   it('builds template-aware create flow routes', () => {
