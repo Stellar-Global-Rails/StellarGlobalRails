@@ -5,6 +5,7 @@ import {
   Networks,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
+import { validatePaymentSettlementXdr } from "./settlementValidation.ts";
 
 const VERSION = "kivo-edge-transition-2026-05-17";
 
@@ -1256,7 +1257,75 @@ const handlePayments = async (req: Request, path: string) => {
     if (!input.txXDR?.trim()) {
       return apiError(req, 400, "missing_xdr", "Signed txXDR is required.");
     }
-    const settlement = await submitStellarXdr(input.txXDR.trim());
+    const payments = await selectRows<DbPayment>("kivo_payments", {
+      select: "*",
+      id: `eq.${detail[1]}`,
+      owner_id: `eq.${user.id}`,
+      limit: 1,
+    });
+    const payment = payments[0];
+    if (!payment) {
+      return apiError(req, 404, "payment_not_found", "Payment not found.");
+    }
+    if (payment.status === "confirmed") {
+      return apiError(
+        req,
+        409,
+        "payment_already_confirmed",
+        "Payment is already confirmed.",
+      );
+    }
+    if (payment.status !== "processing") {
+      return apiError(
+        req,
+        409,
+        "payment_not_ready",
+        "Payment conditions must be met before settlement.",
+      );
+    }
+    if (!payment.from_device_id || !payment.to_device_id) {
+      return apiError(
+        req,
+        400,
+        "payment_devices_required",
+        "Device payments require source and destination devices.",
+      );
+    }
+    const deviceRows = await selectRows<DbDevice>("kivo_devices", {
+      select: "id,stellar_public_key",
+      owner_id: `eq.${user.id}`,
+      id: `in.(${payment.from_device_id},${payment.to_device_id})`,
+    });
+    const fromDevice = deviceRows.find((device) =>
+      device.id === payment.from_device_id
+    );
+    const toDevice = deviceRows.find((device) =>
+      device.id === payment.to_device_id
+    );
+    if (!fromDevice || !toDevice) {
+      return apiError(
+        req,
+        400,
+        "invalid_payment_devices",
+        "Payment devices must belong to the current user.",
+      );
+    }
+    const txXDR = input.txXDR.trim();
+    const validation = validatePaymentSettlementXdr(txXDR, {
+      network: env("STELLAR_NETWORK", "testnet") === "mainnet"
+        ? "mainnet"
+        : "testnet",
+      source: fromDevice.stellar_public_key,
+      destination: toDevice.stellar_public_key,
+      amount: payment.amount,
+      assetCode: payment.asset_code,
+      assetIssuer: payment.asset_issuer,
+      memo: payment.memo,
+    });
+    if (!validation.ok) {
+      return apiError(req, 400, validation.code, validation.message);
+    }
+    const settlement = await submitStellarXdr(txXDR);
     const rows = await patchRows<DbPayment>("kivo_payments", {
       id: `eq.${detail[1]}`,
       owner_id: `eq.${user.id}`,

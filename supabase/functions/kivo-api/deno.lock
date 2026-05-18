@@ -428,6 +428,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@std/assert@1",
       "jsr:@supabase/functions-js@2.105.4",
       "npm:@stellar/stellar-sdk@15.1.0"
     ]

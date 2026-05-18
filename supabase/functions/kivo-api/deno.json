@@ -1,5 +1,6 @@
 {
   "imports": {
+    "@std/assert": "jsr:@std/assert@1",
     "@stellar/stellar-sdk": "npm:@stellar/stellar-sdk@15.1.0",
     "@supabase/functions-js/edge-runtime.d.ts": "jsr:@supabase/functions-js@2.105.4/edge-runtime.d.ts"
   }
