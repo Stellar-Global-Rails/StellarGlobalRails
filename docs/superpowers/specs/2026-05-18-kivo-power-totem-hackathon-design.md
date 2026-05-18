@@ -149,7 +149,28 @@ It should help the operator:
 - publish the flow;
 - monitor health and sessions.
 
-After the hackathon, Kivo Studio can become a Tauri app with AI guidance for modeling physical, virtual, and hybrid monetization flows.
+After the hackathon, Kivo Studio should become a Tauri app where AI agents help users build custom monetization solutions on top of the Kivo SDK. The user guides the agents by describing what they want to build, what resource they want to monetize, what hardware or software they already have, and what constraints matter. The agents then help model the solution, generate SDK-based code, configure gateway behavior, create tests, and explain the next decision.
+
+Studio is not only a form wizard. It is a guided build environment for custom Kivo flows:
+
+- the user describes the intended physical, virtual, or hybrid solution;
+- AI agents propose an architecture using Kivo API, Gateway, SDK, x402, Stellar, and Etherfuse;
+- the user accepts, rejects, or redirects the proposed solution;
+- Studio generates configuration, SDK code, gateway adapters, checkout links, and test plans;
+- the user validates the solution on testnet before deciding whether it should become private mainnet infrastructure.
+
+### Studio Monetization Model
+
+The Studio model should encourage experimentation without making every custom solution immediately private.
+
+The intended path:
+
+1. The user builds and iterates freely on testnet.
+2. The user validates that the flow works for their real use case.
+3. If the user wants to keep the working flow private and use it on mainnet, they pay Kivo for private mainnet usage.
+4. If the user does not pay, they either do not use the flow in production or they explicitly agree to publish a sanitized version as a public/community template that other users can access.
+
+Public template publication must require explicit consent. Kivo must remove secrets, private endpoints, customer data, wallet secrets, API keys, and sensitive business details before a template becomes public. A public template is a reusable blueprint, not a dump of the user's private implementation.
 
 ### Kivo SDK
 
@@ -208,16 +229,26 @@ Recommended presentation:
 
 ## Future Scope
 
-After the hackathon, Kivo can add more templates on the same architecture:
+After the hackathon, Kivo can add more templates on the same architecture. Power Totem is the first proof point, not the only product direction.
 
-- API Toll for paid endpoints;
-- Data Gate for paid IoT data feeds;
-- Agent Tool Paywall for AI agent tools;
-- Device Command for hybrid machine operations;
+Template roadmap:
+
+- **API Toll:** paid endpoints for H2S and M2M API access.
+- **Data Gate:** paid IoT data feeds, sensor readings, and datasets.
+- **Agent Tool Paywall:** AI agents paying for premium tools or actions.
+- **Device Command:** hybrid flows where software payment unlocks a device action.
+- **Compute Meter:** paid edge compute, model inference, or job execution.
+- **Storage Unlock:** paid access to files, reports, media, or signed URLs.
+- **Automation Trigger:** paid webhook, workflow, or business automation execution.
+- **Private Flow Template:** user-created Studio flows that can become private paid mainnet deployments or public community templates.
+
+Platform roadmap:
+
 - marketplace of reusable templates;
-- complete Tauri Studio with AI-guided solution modeling;
+- complete Tauri Studio with AI-agent solution building;
 - mainnet private flows and billing;
-- team, workspace, and governance flows.
+- team, workspace, and governance flows;
+- public/community template review and publishing.
 
 These future templates should reuse the same foundation:
 
@@ -252,6 +283,8 @@ The hackathon delivery is successful when:
 Kivo remains a general platform for monetizing physical, virtual, and hybrid resources through H2M, H2S, and M2M payment flows.
 
 For the hackathon, the only fully functional template is **Kivo Power Totem**.
+
+After the hackathon, Kivo expands through AI-assisted Studio flows, SDK-based custom builds, and additional templates for APIs, data, agents, compute, storage, automations, and hybrid device commands.
 
 Power Totem is the proof point:
 
