@@ -95,7 +95,12 @@ export default function X402Page() {
   const clientSnippet = `const initial = await fetch('${resource}');
 if (initial.status === 402) {
   const challenge = await initial.json();
-  const signedTransactionXdr = await wallet.sign(challenge);
+  const signedTransactionXdr = await wallet.signPayment({
+    destination: challenge.payTo,
+    amount: challenge.amount,
+    asset: challenge.asset,
+    memo: sha256(challenge.nonce)
+  });
 
   const paid = await fetch('/v1/x402/pay', {
     method: 'POST',
@@ -112,16 +117,16 @@ if (initial.status === 402) {
     <div className="space-y-8">
       <PageHeader
         eyebrow="HTTP 402"
-        title="x402 Rules"
+        title="Regras x402"
         icon="solar:shield-keyhole-bold-duotone"
-        description="Configure protected resources and inspect payment headers for advanced integrations."
+        description="Configure recursos pagos, gere challenges e valide o retry com X-PAYMENT."
       />
       <WorkspaceContextBanner
         eyebrow="Ponte usuario final + integrador"
         title="Regra de preco por recurso, com checkout real separado"
         icon="solar:shield-keyhole-bold-duotone"
         tone="active"
-        description="O usuario final usa Checkout. Aqui o integrador configura recurso, preco, timeout, asset USDC e inspeciona os headers que o cliente precisa implementar."
+        description="O usuario final usa Checkout. Aqui o integrador configura recurso, preco, timeout, asset e os headers que o cliente precisa implementar."
         checkpoints={['Pricing rule', 'HTTP 402', 'Retry com X-PAYMENT']}
         primaryAction={{ to: '/checkout', label: 'Testar pagamento' }}
         secondaryAction={{ to: '/integrations', label: 'Hub integrador' }}
@@ -133,7 +138,7 @@ if (initial.status === 402) {
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Fluxo de validacao</p>
               <h2 className="mt-2 font-bricolage text-2xl font-bold text-white">Payment Required ate recurso liberado</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-400">Esse fluxo nao cria sucesso falso: sem txXDR assinado, o backend responde erro. Com XDR aceito, ele devolve X-PAYMENT e a proxima chamada ao recurso retorna 200.</p>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-400">Esse fluxo nao cria sucesso falso: sem txXDR assinado e compatível com destino, valor, asset e memo do nonce, o backend responde erro. Com XDR aceito, ele devolve X-PAYMENT e a proxima chamada ao recurso retorna 200.</p>
             </div>
             <Badge tone={unlocked ? 'confirmed' : paid ? 'processing' : challenge ? 'pending' : 'neutral'}>
               {unlocked ? '200 liberado' : paid ? 'payment header' : challenge ? '402 emitido' : 'sem challenge'}
@@ -166,10 +171,10 @@ if (initial.status === 402) {
               <textarea value={txXDR} onChange={(event) => setTxXDR(event.target.value)} placeholder="Cole o XDR retornado pela carteira/SDK Stellar" className="mt-2 min-h-32 w-full rounded-xl border border-white/10 bg-black/40 p-3 font-mono text-xs text-emerald-100 outline-none focus:border-emerald-500" />
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <button type="button" onClick={requestChallenge} disabled={busy === 'challenge'} className="rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black disabled:opacity-50">
-                  {busy === 'challenge' ? 'Chamando...' : 'GET sem pagamento'}
+                  {busy === 'challenge' ? 'Chamando...' : 'Solicitar 402'}
                 </button>
                 <button type="button" onClick={pay} disabled={!challenge || !txXDR.trim() || busy === 'pay'} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-300 disabled:cursor-not-allowed disabled:opacity-40">
-                  {busy === 'pay' ? 'Confirmando...' : 'Retry com X-PAYMENT'}
+                  {busy === 'pay' ? 'Confirmando...' : 'Enviar X-PAYMENT'}
                 </button>
               </div>
             </div>
@@ -264,7 +269,7 @@ if (initial.status === 402) {
 
         <Card className="min-w-0">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="font-bricolage text-xl font-bold text-white">Client snippet</h2>
+          <h2 className="font-bricolage text-xl font-bold text-white">Snippet do cliente</h2>
             <CopyButton value={clientSnippet} label="Copiar" />
           </div>
           <pre className="mt-4 max-h-96 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-white/10 bg-black/50 p-4 text-xs text-blue-100">{clientSnippet}</pre>

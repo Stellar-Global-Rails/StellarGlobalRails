@@ -8,18 +8,18 @@ const navGroups = [
     title: 'Produto',
     items: [
       { to: '/dashboard', icon: 'solar:home-angle-bold-duotone', label: 'Home' },
-      { to: '/create-flow', icon: 'solar:add-circle-bold-duotone', label: 'Create Flow' },
+      { to: '/create-flow', icon: 'solar:add-circle-bold-duotone', label: 'Criar flow' },
       { to: '/flows', icon: 'solar:bolt-circle-bold-duotone', label: 'Flows' },
-      { to: '/payments', icon: 'solar:wallet-money-bold-duotone', label: 'Payments' },
-      { to: '/advanced', icon: 'solar:settings-bold-duotone', label: 'Advanced' },
+      { to: '/payments', icon: 'solar:wallet-money-bold-duotone', label: 'Pagamentos' },
+      { to: '/advanced', icon: 'solar:settings-bold-duotone', label: 'Integracoes' },
     ],
   },
   {
     title: 'Atalhos',
     items: [
-      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Test Payment' },
+      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Checkout' },
       { to: '/operations', icon: 'solar:devices-bold-duotone', label: 'Operacao' },
-      { to: '/finance', icon: 'solar:chart-square-bold-duotone', label: 'Finance' },
+      { to: '/finance', icon: 'solar:chart-square-bold-duotone', label: 'Financeiro' },
     ],
   },
 ];

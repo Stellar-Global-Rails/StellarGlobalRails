@@ -51,7 +51,7 @@ The payment layer for solo operators shipping machine-to-machine products. A use
 - Supabase Auth/Postgres for workspace, devices, payments, and webhooks
 
 ```
-apps/kivo/           → Go API + React/Vite product front
+apps/kivo/           → React/Vite product front + Supabase Edge API
 ```
 
 ---
@@ -63,7 +63,8 @@ StellarGlobalRails/
 ├── apps/
 │   ├── contractease/          # React + Vite frontend
 │   ├── socialpay/             # Next.js app
-│   └── kivo/                  # Kivo Go API + React/Vite front
+│   └── kivo/                  # Kivo React/Vite front
+├── supabase/functions/kivo-api/ # Kivo Supabase Edge API
 ├── landing-page-astro/        # Marketing site + documentation
 │   └── src/pages/doc/ai/
 │       ├── contractease/      # 10 ADR/Living docs
@@ -80,12 +81,12 @@ StellarGlobalRails/
 |---|---|
 | Frontend (ContractEase) | React 18 + Vite + TypeScript + Tailwind |
 | Frontend (SocialPay) | Next.js 15 + Supabase client |
-| Backend API (Kivo) | Go 1.23 + Fiber v2 + sqlc + pgx v5 |
+| Backend API (Kivo) | Supabase Edge Functions + TypeScript |
 | Auth | Supabase Auth (all 3 products) |
 | Database | PostgreSQL via Supabase (RLS per product) |
 | Blockchain | Stellar Mainnet + Testnet (Horizon + Soroban) |
 | Landing / Docs | Astro 5 + MDX + Tailwind + React islands |
-| Deploy | Cloudflare Pages (frontends) + Fly.io (Kivo API) |
+| Deploy | Vercel (frontends) + Supabase Edge Functions |
 
 ---
 
@@ -135,13 +136,9 @@ cp .env.example .env
 npm run dev
 ```
 
-### Kivo (Go API)
+### Kivo
 ```bash
-cd apps/kivo
-cp .env.example .env
-go run ./cmd/api      # http://localhost:8080
-
-cd web
+cd apps/kivo/web
 npm install
 npm run dev           # http://localhost:5174
 ```

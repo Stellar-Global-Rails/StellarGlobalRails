@@ -122,10 +122,10 @@ export default function LoginPage() {
             Infra de pagamento M2M pronta para producao.
           </h2>
           <p className="mx-auto mt-4 max-w-md text-center text-base text-neutral-400">
-            Supabase Auth, workers, Stellar testnet, x402 e Etherfuse trabalhando no mesmo console operacional.
+            Supabase Auth, Edge Functions, Stellar testnet, x402 e Etherfuse trabalhando no mesmo console operacional.
           </p>
           <div className="mt-10 grid grid-cols-3 gap-3">
-            {['Stellar ok', 'Redis ok', 'Etherfuse ok'].map((item) => (
+            {['Stellar ok', 'Supabase ok', 'Etherfuse ok'].map((item) => (
               <div key={item} className="rounded-2xl border border-white/10 bg-black/30 px-3 py-4 text-center text-xs font-semibold text-emerald-200">
                 {item}
               </div>

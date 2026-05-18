@@ -9,15 +9,10 @@ import { useAsyncData } from '@/hooks/useAsyncData';
 import { kivoClient } from '@/services/kivoClient';
 import { formatDateTime, statusLabel } from '@/utils/format';
 
-const envTemplate = `PORT=8080
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
-REDIS_URL=redis://localhost:6379
-KIVO_SECRET_ENCRYPTION_KEY=change-me-32-plus-random-chars
-SUPABASE_URL=http://127.0.0.1:54321
+const envTemplate = `# Supabase Edge Function secrets
+SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=...
-SUPABASE_ANON_KEY=...
-SUPABASE_JWT_SECRET=...
-KIVO_REQUIRE_AUTH=true
+CORS_ORIGINS=https://<your-vercel-domain>,http://localhost:5174,http://127.0.0.1:5174
 STELLAR_NETWORK=testnet
 STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
 X402_PLATFORM_KEY=G...
@@ -25,15 +20,17 @@ USDC_ISSUER=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
 ETHERFUSE_MODE=devnet
 ETHERFUSE_BASE_URL=https://api.sand.etherfuse.com
 ETHERFUSE_API_KEY=ef_sand_...
-ETHERFUSE_WEBHOOK_URL=https://api.kivo.pay/v1/etherfuse/webhook
+ETHERFUSE_WEBHOOK_URL=https://<project-ref>.supabase.co/functions/v1/kivo-api/v1/etherfuse/webhook
+ETHERFUSE_WEBHOOK_SECRET=...
 ETHERFUSE_WEBHOOK_VERIFY=true
 
-VITE_SUPABASE_URL=http://127.0.0.1:54321
+# Vercel frontend env
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=...
-VITE_KIVO_API_URL=http://localhost:8080`;
+VITE_KIVO_API_URL=https://<project-ref>.supabase.co/functions/v1/kivo-api`;
 
-const releaseCommands = `supabase db advisors --local --workdir .
-supabase db lint --local --workdir .
+const releaseCommands = `supabase functions deploy kivo-api --project-ref <project-ref> --use-api --no-verify-jwt
+cd apps/kivo/web
 npm install
 npm run lint
 npm test
@@ -44,8 +41,8 @@ const supabaseServices = [
   { name: 'Auth', value: 'profiles por trigger auth.users', icon: 'solar:user-check-bold-duotone' },
   { name: 'Realtime', value: 'payments, deliveries e orders', icon: 'solar:translation-2-bold-duotone' },
   { name: 'Storage', value: 'kivo-proofs e device-assets privados', icon: 'solar:cloud-storage-bold-duotone' },
-  { name: 'Edge Function', value: 'kivo-etherfuse-webhook', icon: 'solar:bolt-bold-duotone' },
-  { name: 'MCP', value: 'http://127.0.0.1:54321/mcp', icon: 'solar:cpu-bolt-bold-duotone' },
+  { name: 'Edge Function', value: 'kivo-api', icon: 'solar:bolt-bold-duotone' },
+  { name: 'MCP', value: 'kivo-api /mcp em migracao', icon: 'solar:cpu-bolt-bold-duotone' },
 ];
 
 const scopeIcon: Record<string, string> = {
@@ -68,7 +65,7 @@ export default function DeployPage() {
         eyebrow="Release ops"
         title="Deploy readiness"
         icon="solar:rocket-bold-duotone"
-        description="Checklist operacional para publicar o front MVP, API Go, Etherfuse e Supabase local."
+        description="Checklist operacional para publicar o front MVP, Supabase Edge API, Etherfuse e Supabase Cloud."
       />
 
       <WorkspaceContextBanner
@@ -76,8 +73,8 @@ export default function DeployPage() {
         title="Do ambiente local ao cliente"
         icon="solar:rocket-bold-duotone"
         tone="warning"
-        description="Deploy continua avancado, mas agora serve para provar que o workspace pode sair do modo solo e virar operacao real com secrets, API, Supabase e Etherfuse."
-        checkpoints={['Fly API', 'Supabase Auth/DB', 'Etherfuse anchor']}
+        description="Deploy continua avancado, mas agora serve para provar que o workspace pode sair do modo solo e virar operacao real com secrets, Supabase Edge, Auth/DB e Etherfuse."
+        checkpoints={['Supabase Edge API', 'Supabase Auth/DB', 'Etherfuse anchor']}
         primaryAction={{ to: '/team', label: 'Ver escala' }}
         secondaryAction={{ to: '/settings', label: 'Configuracoes' }}
       />

@@ -4,21 +4,21 @@ import { useAuthStore, useUIStore } from '@/stores';
 
 const routeTitles: Record<string, { title: string; icon: string }> = {
   '/dashboard': { title: 'Inicio', icon: 'solar:home-angle-bold-duotone' },
-  '/create-flow': { title: 'Create Flow', icon: 'solar:add-circle-bold-duotone' },
+  '/create-flow': { title: 'Criar flow', icon: 'solar:add-circle-bold-duotone' },
   '/flows': { title: 'Flows', icon: 'solar:bolt-circle-bold-duotone' },
-  '/advanced': { title: 'Advanced', icon: 'solar:settings-bold-duotone' },
+  '/advanced': { title: 'Integracoes', icon: 'solar:settings-bold-duotone' },
   '/team': { title: 'Time e escala', icon: 'solar:users-group-rounded-bold-duotone' },
   '/operations': { title: 'Operacao', icon: 'solar:devices-bold-duotone' },
-  '/checkout': { title: 'Test Payment', icon: 'solar:card-transfer-bold-duotone' },
+  '/checkout': { title: 'Checkout', icon: 'solar:card-transfer-bold-duotone' },
   '/integrations': { title: 'Integracao', icon: 'solar:code-square-bold-duotone' },
   '/finance': { title: 'Financeiro', icon: 'solar:chart-square-bold-duotone' },
-  '/ops-dashboard': { title: 'Advanced tools', icon: 'solar:widget-5-bold-duotone' },
+  '/ops-dashboard': { title: 'Ferramentas', icon: 'solar:widget-5-bold-duotone' },
   '/devices': { title: 'Devices', icon: 'solar:devices-bold-duotone' },
   '/payments': { title: 'Pagamentos', icon: 'solar:wallet-money-bold-duotone' },
   '/webhooks': { title: 'Webhooks', icon: 'solar:widget-2-bold-duotone' },
   '/api-keys': { title: 'API Keys', icon: 'solar:key-minimalistic-bold-duotone' },
   '/mcp': { title: 'MCP Console', icon: 'solar:cpu-bolt-bold-duotone' },
-  '/x402': { title: 'x402 Rules', icon: 'solar:shield-keyhole-bold-duotone' },
+  '/x402': { title: 'Regras x402', icon: 'solar:shield-keyhole-bold-duotone' },
   '/templates': { title: 'Templates', icon: 'solar:bolt-circle-bold-duotone' },
   '/workflows': { title: 'Workflows', icon: 'solar:routing-2-bold-duotone' },
   '/deploy': { title: 'Deploy', icon: 'solar:rocket-bold-duotone' },
@@ -43,7 +43,7 @@ export default function Topbar() {
           <Icon icon={info.icon} className="text-xl" />
         </div>
         <div className="min-w-0">
-          <h1 className="truncate font-bricolage text-xl font-bold text-white">{info.title}</h1>
+          <h1 className="hidden truncate font-bricolage text-xl font-bold text-white sm:block">{info.title}</h1>
           <p className="hidden text-xs text-neutral-500 sm:block">Monetize machines, APIs and data streams with x402</p>
         </div>
       </div>

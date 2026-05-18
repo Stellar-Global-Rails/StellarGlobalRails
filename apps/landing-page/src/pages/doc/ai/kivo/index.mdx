@@ -61,24 +61,24 @@ Kivo Pay is not a single library — it is a three-layer stack, each layer build
                               │
 ┌─────────────────────────────▼───────────────────────┐
 │  Layer 2 — Programmable Gateway (REST API)          │
-│  Go + Fiber HTTP API                                │
+│  Supabase Edge Function API                        │
 │  x402 middleware, webhooks, conditional payments    │
 └─────────────────────────────┬───────────────────────┘
                               │
 ┌─────────────────────────────▼───────────────────────┐
 │  Layer 1 — M2M SDK                                  │
 │  Developer library for device integration           │
-│  TypeScript (browser/Node) + Go client              │
+│  TypeScript client + embedded SDK                   │
 └─────────────────────────────────────────────────────┘
 ```
 
 ### Layer 1: M2M SDK
 
-The developer-facing library that device firmware or edge software embeds. It handles wallet generation, payment signing, condition evaluation, and communication with the Gateway. Available as a TypeScript package (`@kivo/sdk`) and a Go module (`github.com/kivo-pay/sdk`).
+The developer-facing library that device firmware or edge software embeds. It handles wallet generation, payment signing, condition evaluation, and communication with the Gateway. The MVP SDK target is TypeScript first so it can share contracts with the Supabase Edge runtime.
 
 ### Layer 2: Programmable Gateway
 
-The Go + Fiber HTTP API that orchestrates payments. It registers devices, manages API keys, stores payment records in Supabase PostgreSQL, submits transactions to Stellar Horizon, processes async jobs via Redis, and fires webhooks on payment events. This is the core of Kivo Pay.
+The Supabase Edge Function API that orchestrates payments. It registers devices, manages API keys, stores payment records in Supabase PostgreSQL, submits transactions to Stellar Horizon, proxies Etherfuse server-side, and fires webhooks on payment events. This is the core of the MVP runtime. The previous Go implementation is kept only as a temporary local fallback until TypeScript route parity is complete.
 
 ### Layer 3: MCP Server
 
@@ -156,7 +156,7 @@ All three products share the same Supabase PostgreSQL cluster. Kivo reuses the S
 
 ## Status
 
-Kivo Pay is in active architecture and scaffolding phase. The landing page and documentation are complete. The Go API scaffold, Supabase schema, and x402 middleware are under active development.
+Kivo Pay is in MVP delivery phase. The frontend is deployed on Vercel, the backend runtime is moving to Supabase Edge Functions, and the current focus is closing route parity for x402, Stellar settlement, Etherfuse Devnet, and product workflows.
 
 See [Roadmap](/doc/ai/kivo/roadmap) for the full implementation plan.
 
@@ -169,4 +169,4 @@ See [Roadmap](/doc/ai/kivo/roadmap) for the full implementation plan.
 - [API Reference](/doc/ai/kivo/api-reference) — REST endpoints and MCP tools
 - [Etherfuse Integration](/doc/ai/kivo/etherfuse-integration) — sandbox/testnet anchor, quotes, orders, webhooks, and ramp runbook
 - [x402 Protocol](/doc/ai/kivo/x402-protocol) — deep dive into machine payment headers
-- [Deployment Guide](/doc/ai/kivo/deployment) — run Kivo locally and on Fly.io
+- [Deployment Guide](/doc/ai/kivo/deployment) — run Kivo with Vercel and Supabase Edge Functions

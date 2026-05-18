@@ -46,12 +46,12 @@ export default function DashboardPage() {
               </p>
               {authHint ? (
                 <p className="mt-4 text-sm leading-6 text-neutral-400">
-                  Esse erro normalmente significa que o frontend esta autenticado no Supabase, mas a API do Fly nao conseguiu validar o token.
-                  Confira se `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` no Fly pertencem ao mesmo projeto usado em `VITE_SUPABASE_URL` e depois faca um novo login.
+                  Esse erro normalmente significa que o frontend esta autenticado no Supabase, mas a Kivo API nao conseguiu validar o token.
+                  Confira se `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` pertencem ao mesmo projeto usado em `VITE_SUPABASE_URL` e depois faca um novo login.
                 </p>
               ) : (
                 <p className="mt-4 text-sm leading-6 text-neutral-400">
-                  Recarregue a chamada; se persistir, confira a saude da API em `/v1/health` e os logs do Fly.
+                  Recarregue a chamada; se persistir, confira a saude da API em `/v1/health` e os logs da Supabase Edge Function.
                 </p>
               )}
             </div>
@@ -141,12 +141,15 @@ export default function DashboardPage() {
           <h2 className="font-bricolage text-xl font-bold text-white">Saúde do sistema</h2>
           <p className="mt-1 text-sm text-neutral-500">Status reportado diretamente pelo health check `/v1/health`.</p>
           <div className="mt-5 space-y-3">
-            {healthEntries.map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between rounded-xl bg-black/30 p-3">
-                <span className="text-sm capitalize text-neutral-300">{key}</span>
-                <Badge tone={value}>{statusLabel(value)}</Badge>
-              </div>
-            ))}
+            {healthEntries.map(([key, value]) => {
+              const healthTone = value ?? 'degraded';
+              return (
+                <div key={key} className="flex items-center justify-between rounded-xl bg-black/30 p-3">
+                  <span className="text-sm capitalize text-neutral-300">{key}</span>
+                  <Badge tone={healthTone}>{statusLabel(healthTone)}</Badge>
+                </div>
+              );
+            })}
           </div>
         </Card>
       </div>
@@ -154,8 +157,8 @@ export default function DashboardPage() {
       <Card>
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <h2 className="font-bricolage text-xl font-bold text-white">Worker queue</h2>
-            <p className="text-sm text-neutral-500">Redis workers agora, Temporal como visão futura de orquestração durável.</p>
+            <h2 className="font-bricolage text-xl font-bold text-white">Jobs e automações</h2>
+            <p className="text-sm text-neutral-500">Supabase Edge agora, Temporal como visão futura de orquestração durável.</p>
           </div>
           <Link to="/workflows" className="text-xs font-bold text-emerald-400">Abrir workflows</Link>
         </div>

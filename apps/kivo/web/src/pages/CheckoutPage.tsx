@@ -313,11 +313,11 @@ export default function CheckoutPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Test Payment"
-        title="Teste o pagamento do flow"
+        eyebrow="Checkout real"
+        title="Validar pagamento do flow"
         icon="solar:card-transfer-bold-duotone"
-        description="Use este passo para validar funding, challenge x402, assinatura Stellar e liberacao do recurso antes de publicar."
-        action={<Link to="/x402" className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/5">Advanced x402</Link>}
+        description="Valide funding, challenge x402, assinatura Stellar e liberacao do recurso antes de publicar para clientes."
+        action={<Link to="/x402" className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/5">Regras x402</Link>}
       />
 
       <Card className="min-w-0 overflow-hidden border-emerald-500/15">
@@ -328,15 +328,15 @@ export default function CheckoutPage() {
               <Badge tone="neutral">{etherfuse.data?.network ?? 'testnet'}</Badge>
               <Badge tone="neutral">{fiatCurrency} onramp</Badge>
             </div>
-            <h2 className="mt-3 font-bricolage text-2xl font-bold text-white">Anchor Etherfuse antes do x402</h2>
+            <h2 className="mt-3 font-bricolage text-2xl font-bold text-white">Funding via Etherfuse</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-400">
-              Este bloco chama os endpoints reais `/v1/etherfuse/*` no backend. A chave da Etherfuse fica no servidor; se o provedor negar customer, bank account ou quote, o erro aparece aqui sem marcar sucesso artificial.
+              Este fluxo chama os endpoints reais `/v1/etherfuse/*` no backend. A chave da Etherfuse fica no servidor; se o provedor negar customer, bank account ou quote, o erro aparece aqui sem marcar sucesso artificial.
             </p>
           </div>
           <div className="rounded-2xl border border-white/5 bg-black/25 p-4 xl:w-72">
             <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">Wallet destino</p>
             <p className="mt-2 break-all font-mono text-xs text-emerald-100">{anchorWallet}</p>
-            <p className="mt-2 text-xs text-neutral-500">A Etherfuse abastece esta wallet; o x402 cobra desta trilha na Stellar.</p>
+              <p className="mt-2 text-xs text-neutral-500">A Etherfuse abastece esta wallet; o x402 liquida na Stellar.</p>
           </div>
         </div>
 
@@ -568,7 +568,7 @@ export default function CheckoutPage() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">Pagamento real</p>
                 <h3 className="mt-1 font-bricolage text-xl font-bold text-white">Carteira ou SDK assina a transacao</h3>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-400">Kivo nao marca sucesso sozinho: a API so libera o recurso quando recebe um txXDR assinado e aceito pela Stellar testnet.</p>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-400">Kivo nao marca sucesso sozinho: a API so libera o recurso quando recebe um txXDR assinado, com pagamento exato e memo do nonce, aceito pela Stellar testnet.</p>
               </div>
               {paid && <Badge tone="processing">ledger {paid.stellarLedger}</Badge>}
             </div>
@@ -585,7 +585,7 @@ export default function CheckoutPage() {
                 Enviar pagamento e liberar
                 <Icon icon="solar:lock-keyhole-unlocked-bold" />
               </button>
-              <p className="text-xs text-neutral-500">Sem XDR assinado, o backend retorna erro em vez de marcar sucesso.</p>
+              <p className="text-xs text-neutral-500">A transacao deve pagar destino, valor e asset do challenge, com memo text do nonce ou memo hash SHA-256 do nonce.</p>
             </div>
           </div>
 

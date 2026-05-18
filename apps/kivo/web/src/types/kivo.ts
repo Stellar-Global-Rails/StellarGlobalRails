@@ -281,7 +281,7 @@ export interface Workflow {
   name: string;
   type: 'payment_worker' | 'webhook_worker' | 'x402_settlement' | 'temporal_future';
   status: 'healthy' | 'delayed' | 'paused' | 'future';
-  engine: 'redis-worker' | 'temporal-future';
+  engine: 'supabase-edge' | 'redis-worker' | 'temporal-future';
   trigger: string;
   relatedPaymentId?: string;
   steps: WorkflowStep[];
@@ -292,10 +292,12 @@ export interface Workflow {
 export interface SystemHealth {
   api: ApiHealth;
   db: ApiHealth;
-  redis: ApiHealth;
+  workers?: ApiHealth;
+  redis?: ApiHealth;
   stellar: ApiHealth;
   mcp: ApiHealth;
   version: string;
+  [key: string]: ApiHealth | string | undefined;
 }
 
 export interface DeployCheck {
@@ -311,8 +313,8 @@ export interface DeployCheck {
 export interface DeployServiceStatus {
   id: string;
   name: string;
-  environment: 'local' | 'staging' | 'production';
-  status: 'online' | 'degraded' | 'offline' | 'planned';
+  environment: 'local' | 'staging' | 'production' | 'supabase' | 'managed' | 'devnet' | 'sandbox';
+  status: 'online' | 'degraded' | 'offline' | 'planned' | 'ready' | 'warning';
   region?: string;
   url?: string;
   description: string;

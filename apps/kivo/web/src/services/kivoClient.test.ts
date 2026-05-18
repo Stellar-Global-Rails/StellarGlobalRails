@@ -8,7 +8,7 @@ describe('HttpKivoApiClient', () => {
       baseUrl: 'https://api.kivo.example',
       fetcher: async (input) => {
         requestedUrl = String(input);
-        return jsonResponse({ version: '0.1.0-real', api: 'ok', db: 'ok', redis: 'ok', stellar: 'ok', mcp: 'ok' });
+        return jsonResponse({ version: '0.1.0-real', api: 'ok', db: 'ok', workers: 'ok', stellar: 'ok', mcp: 'ok' });
       },
     });
 

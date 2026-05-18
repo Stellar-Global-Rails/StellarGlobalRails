@@ -15,7 +15,7 @@ export default function WorkflowsPage() {
         eyebrow="Orquestração"
         title="Workflows e workers"
         icon="solar:routing-2-bold-duotone"
-        description="Observabilidade dos workers Redis atuais e visão futura de Temporal para retries duráveis, signals e long-running sessions."
+        description="Observabilidade dos jobs atuais em Supabase e visão futura de Temporal para retries duráveis, signals e long-running sessions."
       />
       <WorkspaceContextBanner
         eyebrow="Readiness de operacao grande"
@@ -23,7 +23,7 @@ export default function WorkflowsPage() {
         icon="solar:routing-2-bold-duotone"
         tone="planned"
         description="Workflows nao sao so tecnologia interna: eles mostram para equipes maiores como pagamentos, webhooks e liquidacao continuam observaveis."
-        checkpoints={['Workers Redis hoje', 'Retries visiveis', 'Temporal como direcao futura']}
+        checkpoints={['Jobs Supabase hoje', 'Retries visiveis', 'Temporal como direcao futura']}
         primaryAction={{ to: '/operations', label: 'Ver operacao' }}
         secondaryAction={{ to: '/team', label: 'Ver escala' }}
       />

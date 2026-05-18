@@ -84,12 +84,15 @@ export default function OperationsPage() {
           <h2 className="font-bricolage text-xl font-bold text-white">Saude operacional</h2>
           <p className="mt-1 text-sm text-neutral-500">Servicos que sustentam checkout, liquidacao e webhooks.</p>
           <div className="mt-5 space-y-3">
-            {healthEntries.map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between rounded-xl bg-black/30 p-3">
-                <span className="text-sm capitalize text-neutral-300">{key}</span>
-                <Badge tone={value}>{statusLabel(value)}</Badge>
-              </div>
-            ))}
+            {healthEntries.map(([key, value]) => {
+              const healthTone = value ?? 'degraded';
+              return (
+                <div key={key} className="flex items-center justify-between rounded-xl bg-black/30 p-3">
+                  <span className="text-sm capitalize text-neutral-300">{key}</span>
+                  <Badge tone={healthTone}>{statusLabel(healthTone)}</Badge>
+                </div>
+              );
+            })}
           </div>
         </Card>
       </div>

@@ -14,16 +14,16 @@ const advancedCommands = advancedTools.map((tool) => ({
 
 const commands = [
   { label: 'Home', path: '/dashboard', icon: 'solar:home-angle-bold-duotone', keywords: 'home personas workspace' },
-  { label: 'Create Flow', path: '/create-flow', icon: 'solar:add-circle-bold-duotone', keywords: 'create flow monetizar template kivo' },
+  { label: 'Criar flow', path: '/create-flow', icon: 'solar:add-circle-bold-duotone', keywords: 'create flow monetizar template kivo' },
   { label: 'Flows', path: '/flows', icon: 'solar:bolt-circle-bold-duotone', keywords: 'flows recursos monetizados devices apis data feeds' },
-  { label: 'Payments', path: '/payments', icon: 'solar:wallet-money-bold-duotone', keywords: 'payment payments stellar usdc' },
-  { label: 'Test Payment', path: '/checkout', icon: 'solar:card-transfer-bold-duotone', keywords: 'test payer usuario payment required checkout x402' },
-  { label: 'Advanced', path: '/advanced', icon: 'solar:settings-bold-duotone', keywords: 'advanced x402 etherfuse mcp webhooks deploy diagnosticos tecnicos' },
+  { label: 'Pagamentos', path: '/payments', icon: 'solar:wallet-money-bold-duotone', keywords: 'payment payments stellar usdc' },
+  { label: 'Checkout real', path: '/checkout', icon: 'solar:card-transfer-bold-duotone', keywords: 'payer usuario payment required checkout x402' },
+  { label: 'Integracoes', path: '/advanced', icon: 'solar:settings-bold-duotone', keywords: 'advanced x402 etherfuse mcp webhooks deploy diagnosticos tecnicos' },
   { label: 'Operacao M2M', path: '/operations', icon: 'solar:devices-bold-duotone', keywords: 'operator devices health sessions' },
   { label: 'Hub de integracao', path: '/integrations', icon: 'solar:code-square-bold-duotone', keywords: 'builder api webhooks mcp templates' },
   { label: 'Financeiro', path: '/finance', icon: 'solar:chart-square-bold-duotone', keywords: 'recebiveis conciliacao settlement receita' },
   { label: 'Time e escala', path: '/team', icon: 'solar:users-group-rounded-bold-duotone', keywords: 'workspace roles solo team enterprise' },
-  { label: 'Advanced tools', path: '/ops-dashboard', icon: 'solar:widget-5-bold-duotone', keywords: 'metrics health dashboard advanced' },
+  { label: 'Ferramentas avancadas', path: '/ops-dashboard', icon: 'solar:widget-5-bold-duotone', keywords: 'metrics health dashboard advanced' },
   ...advancedCommands,
 ];
 
@@ -69,7 +69,7 @@ export default function CommandPalette() {
           >
             <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
               <Icon icon="solar:magnifer-linear" className="text-xl text-neutral-500" />
-              <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar comando, rota ou acao..." className="w-full bg-transparent text-white outline-none placeholder:text-neutral-600" />
+              <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar flow, pagamento ou integracao..." className="w-full bg-transparent text-white outline-none placeholder:text-neutral-600" />
               <span className="rounded bg-white/5 px-2 py-1 text-[10px] text-neutral-500">ESC</span>
             </div>
             <div className="max-h-[50vh] overflow-y-auto p-2">

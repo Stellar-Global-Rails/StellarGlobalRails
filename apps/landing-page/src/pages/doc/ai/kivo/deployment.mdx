@@ -1,499 +1,127 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo Pay — Deployment Guide"
-description: "Local development, Docker, Fly.io production deployment, Cloudflare Pages dashboard, environment variables, and free tier cost breakdown."
+title: "Kivo Pay — Deployment"
+description: "Current MVP deployment plan for Kivo Pay using Vercel, Supabase Edge Functions, Supabase Auth/Postgres/Realtime/Storage, Stellar testnet, and Etherfuse Devnet."
 ---
 
-# Deployment Guide
+# Deployment
 
-This guide covers running Kivo Pay locally with a full stack (Go API + Supabase + Redis) and deploying to production on Fly.io (API), Cloudflare Pages (dashboard), and Supabase (database).
+Kivo no longer uses Fly.io for the MVP backend. The deployment target is:
 
----
-
-## Prerequisites
-
-| Tool | Version | Install |
+| Layer | Provider | Path |
 |---|---|---|
-| Go | 1.22+ | `https://go.dev/dl` |
-| sqlc | 1.26+ | `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest` |
-| Supabase CLI | 1.176+ | `npm install -g supabase` |
-| Fly.io CLI | latest | `https://fly.io/docs/hands-on/install-flyctl` |
-| Docker | 24+ | `https://docs.docker.com/get-docker` |
-| Node.js | 20+ | Dashboard only |
+| Frontend | Vercel | `apps/kivo/web` |
+| API runtime | Supabase Edge Functions | `supabase/functions/kivo-api` |
+| Auth | Supabase Auth | same Supabase project |
+| Data | Supabase Postgres | `public.kivo_*` tables |
+| Realtime | Supabase Realtime | payment/order/delivery updates |
+| Storage | Supabase Storage | proofs and device assets |
+| Settlement | Stellar testnet | Horizon |
+| Anchor/ramp | Etherfuse Devnet | server-side proxy |
 
----
+The Go backend remains in the repository only as a temporary local fallback until the TypeScript Edge Function reaches route parity.
 
-## Project Structure
+## Frontend
 
-```
-apps/kivo/
-├── cmd/server/main.go        # Application entry point
-├── internal/                 # Private packages
-│   ├── config/config.go      # Env var loader
-│   ├── db/                   # sqlc generated code
-│   ├── handlers/             # HTTP route handlers
-│   ├── middleware/           # Auth, x402, rate limiting
-│   ├── stellar/              # Stellar SDK wrappers
-│   ├── workers/              # Redis consumers (goroutines)
-│   └── mcp/                  # MCP server
-├── queries/                  # Raw SQL for sqlc
-├── migrations/               # PostgreSQL schema migrations
-├── web/                      # React + Vite dashboard
-│   ├── src/
-│   ├── index.html
-│   └── vite.config.ts
-├── sqlc.yaml
-├── go.mod
-├── Dockerfile
-└── fly.toml
+Set these on Vercel:
+
+```txt
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=...
+VITE_KIVO_API_URL=https://<project-ref>.supabase.co/functions/v1/kivo-api
 ```
 
----
-
-## Go Module Setup
+Build command:
 
 ```bash
-mkdir -p apps/kivo && cd apps/kivo
-go mod init github.com/kivo-pay/kivo
-
-# Core dependencies
-go get github.com/gofiber/fiber/v2
-go get github.com/jackc/pgx/v5
-go get github.com/jackc/pgx/v5/pgxpool
-go get github.com/redis/go-redis/v9
-go get github.com/stellar/go/clients/horizonclient
-go get github.com/stellar/go/keypair
-go get github.com/stellar/go/txnbuild
-go get github.com/stellar/go/network
-go get github.com/google/uuid
-go get github.com/shopspring/decimal
-go get github.com/golang-jwt/jwt/v5
-go get github.com/gofiber/fiber/v2/middleware/cors
-go get github.com/gofiber/fiber/v2/middleware/logger
-go get github.com/gofiber/fiber/v2/middleware/recover
+cd apps/kivo/web
+npm install
+npm run build
 ```
 
----
+## Supabase Edge Function
 
-## Entry Point
-
-```go
-// cmd/server/main.go
-
-package main
-
-import (
-    "context"
-    "log"
-    "os"
-    "os/signal"
-    "syscall"
-
-    "github.com/gofiber/fiber/v2"
-    "github.com/gofiber/fiber/v2/middleware/cors"
-    "github.com/gofiber/fiber/v2/middleware/logger"
-    "github.com/gofiber/fiber/v2/middleware/recover"
-
-    "github.com/kivo-pay/kivo/internal/config"
-    "github.com/kivo-pay/kivo/internal/db"
-    "github.com/kivo-pay/kivo/internal/handlers"
-    "github.com/kivo-pay/kivo/internal/middleware"
-    "github.com/kivo-pay/kivo/internal/stellar"
-    "github.com/kivo-pay/kivo/internal/workers"
-)
-
-func main() {
-    ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-    defer cancel()
-
-    cfg := config.Load()
-
-    // Database
-    pool, err := config.NewPool(ctx)
-    if err != nil {
-        log.Fatalf("db: %v", err)
-    }
-    defer pool.Close()
-    queries := db.New(pool)
-
-    // Redis
-    rdb := config.NewRedis(cfg.RedisURL)
-    defer rdb.Close()
-
-    // Stellar
-    stellarClient := stellar.New()
-
-    // Start background workers
-    go workers.StartPaymentWorker(ctx, rdb, queries, stellarClient)
-    go workers.StartWebhookWorker(ctx, rdb, queries)
-
-    // Fiber app
-    app := fiber.New(fiber.Config{
-        AppName:      "Kivo Pay API v0.1.0",
-        ErrorHandler: handlers.ErrorHandler,
-    })
-
-    app.Use(recover.New())
-    app.Use(logger.New())
-    app.Use(cors.New(cors.Config{
-        AllowOrigins: cfg.CORSOrigins,
-        AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-API-Key, X-PAYMENT",
-    }))
-
-    // Routes
-    v1 := app.Group("/v1")
-    v1.Get("/health", handlers.Health(pool, rdb))
-
-    // Device endpoints (Dashboard JWT auth)
-    dash := v1.Group("/", middleware.DashboardAuth(cfg.SupabaseJWTSecret))
-    dash.Post("/devices", handlers.RegisterDevice(queries, stellarClient))
-
-    // Device-authenticated endpoints
-    device := v1.Group("/", middleware.DeviceAuth(queries))
-    device.Use(middleware.RateLimit(rdb, 1000, time.Minute))
-    device.Get("/devices/:id",  handlers.GetDevice(queries, stellarClient))
-    device.Post("/payments",    handlers.CreatePayment(queries, rdb))
-    device.Get("/payments/:id", handlers.GetPayment(queries))
-    device.Post("/payments/:id/execute",   handlers.ExecutePayment(queries, rdb))
-    device.Post("/payments/:id/condition", handlers.SubmitCondition(queries, rdb))
-    device.Get("/payments/:id/status",     handlers.GetPaymentStatus(queries, stellarClient))
-
-    // Webhook endpoints (Dashboard JWT)
-    app.Post("/v1/webhooks",     middleware.DashboardAuth(cfg.SupabaseJWTSecret), handlers.CreateWebhook(queries))
-    app.Delete("/v1/webhooks/:id", middleware.DashboardAuth(cfg.SupabaseJWTSecret), handlers.DeleteWebhook(queries))
-
-    // x402-protected endpoint example
-    app.Get("/api/x402/data",
-        middleware.X402(rdb, stellarClient, "0.10", "USDC:"+cfg.USDCIssuer),
-        handlers.PremiumData,
-    )
-
-    // Start server
-    go func() {
-        port := cfg.Port
-        if port == "" {
-            port = "8080"
-        }
-        log.Printf("kivo: listening on :%s", port)
-        if err := app.Listen(":" + port); err != nil {
-            log.Fatalf("fiber: %v", err)
-        }
-    }()
-
-    <-ctx.Done()
-    log.Println("kivo: shutting down...")
-    app.Shutdown()
-}
-```
-
----
-
-## Environment Variables
-
-Create `.env` for local development (never commit):
+Deploy without Docker:
 
 ```bash
-# .env
+supabase functions deploy kivo-api --project-ref <project-ref> --use-api --no-verify-jwt
+```
 
-# Supabase
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=eyJhbGc...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
-SUPABASE_JWT_SECRET=your-supabase-jwt-secret
-DATABASE_URL=postgresql://postgres:password@db.your-project.supabase.co:5432/postgres
+The API base URL is:
 
-# Redis (Upstash)
-REDIS_URL=rediss://default:password@your-redis.upstash.io:6379
+```txt
+https://<project-ref>.supabase.co/functions/v1/kivo-api
+```
 
-# Stellar
+The Etherfuse webhook URL is:
+
+```txt
+https://<project-ref>.supabase.co/functions/v1/kivo-api/v1/etherfuse/webhook
+```
+
+`verify_jwt` is disabled for the function because the same runtime receives public x402 challenges and third-party Etherfuse webhooks. The function must enforce auth route-by-route and keep all service credentials server-side.
+
+## Edge Function Secrets
+
+Set these in Supabase:
+
+```txt
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...
+CORS_ORIGINS=https://<your-vercel-domain>,http://localhost:5174,http://127.0.0.1:5174
 STELLAR_NETWORK=testnet
-PLATFORM_STELLAR_SECRET=SABC123...  # Platform account for x402 settlement
-STELLAR_ENCRYPTION_KEY=64-hex-chars-aes256-key
-X402_PLATFORM_KEY=GDQP2KPQ...      # Platform public key (receives x402 payments)
-
-# USDC (testnet)
+STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
+X402_PLATFORM_KEY=G...
 USDC_ISSUER=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-
-# Etherfuse anchor / ramp
-ETHERFUSE_MODE=sandbox # mock | sandbox | production
+ETHERFUSE_MODE=devnet
 ETHERFUSE_BASE_URL=https://api.sand.etherfuse.com
-ETHERFUSE_API_KEY=ef_sand_...
-ETHERFUSE_WEBHOOK_URL=https://api.kivo.pay/v1/etherfuse/webhook
-ETHERFUSE_WEBHOOK_SECRET=base64-secret-returned-by-etherfuse
+ETHERFUSE_API_KEY=...
+ETHERFUSE_WEBHOOK_URL=https://<project-ref>.supabase.co/functions/v1/kivo-api/v1/etherfuse/webhook
+ETHERFUSE_WEBHOOK_SECRET=...
 ETHERFUSE_WEBHOOK_VERIFY=true
 ETHERFUSE_DEFAULT_FIAT=MXN
 ETHERFUSE_ALLOWED_ASSETS=USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-
-# App
-PORT=8080
-CORS_ORIGINS=http://localhost:5173,https://dashboard.kivo.pay
 ```
 
-Load in Go:
+Never expose `SUPABASE_SERVICE_ROLE_KEY`, `ETHERFUSE_API_KEY`, `ETHERFUSE_WEBHOOK_SECRET`, or any Stellar secret key in Vercel.
 
-```go
-// internal/config/config.go
+## Route Parity
 
-package config
+Active in `kivo-api` now:
 
-type Config struct {
-    DatabaseURL             string
-    RedisURL                string
-    SupabaseJWTSecret       string
-    StellarNetwork          string
-    PlatformSecret          string
-    StellarEncryptKey       string
-    X402PlatformKey         string
-    USDCIssuer              string
-    EtherfuseMode           string
-    EtherfuseBaseURL        string
-    EtherfuseAPIKey         string
-    EtherfuseWebhookURL     string
-    EtherfuseWebhookSecret  string
-    EtherfuseWebhookVerify  bool
-    EtherfuseDefaultFiat    string
-    EtherfuseAllowedAssets  string
-    Port                    string
-    CORSOrigins             string
-}
+- `GET /v1/health`
+- `GET /v1/deploy/checks`
+- `GET /v1/deploy/services`
+- `GET /v1/etherfuse/status`
+- `GET /v1/etherfuse/assets`
+- `POST /v1/etherfuse/onboarding-url`
+- `POST /v1/etherfuse/quotes`
+- `POST /v1/etherfuse/orders`
+- `GET /v1/etherfuse/orders/:id`
+- `POST /v1/etherfuse/orders/:id/fiat-received`
+- `POST /v1/etherfuse/webhook`
 
-func Load() *Config {
-    return &Config{
-        DatabaseURL:              requireEnv("DATABASE_URL"),
-        RedisURL:                 requireEnv("REDIS_URL"),
-        SupabaseJWTSecret:        requireEnv("SUPABASE_JWT_SECRET"),
-        StellarNetwork:           getEnv("STELLAR_NETWORK", "testnet"),
-        PlatformSecret:           requireEnv("PLATFORM_STELLAR_SECRET"),
-        StellarEncryptKey:        requireEnv("STELLAR_ENCRYPTION_KEY"),
-        X402PlatformKey:          requireEnv("X402_PLATFORM_KEY"),
-        USDCIssuer:               getEnv("USDC_ISSUER", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"),
-        EtherfuseMode:            getEnv("ETHERFUSE_MODE", "mock"),
-        EtherfuseBaseURL:         getEnv("ETHERFUSE_BASE_URL", "https://api.sand.etherfuse.com"),
-        EtherfuseAPIKey:          getEnv("ETHERFUSE_API_KEY", ""),
-        EtherfuseWebhookURL:      getEnv("ETHERFUSE_WEBHOOK_URL", ""),
-        EtherfuseWebhookSecret:  getEnv("ETHERFUSE_WEBHOOK_SECRET", ""),
-        EtherfuseWebhookVerify:  getEnv("ETHERFUSE_WEBHOOK_VERIFY", "true") == "true",
-        EtherfuseDefaultFiat:    getEnv("ETHERFUSE_DEFAULT_FIAT", "MXN"),
-        EtherfuseAllowedAssets:  getEnv("ETHERFUSE_ALLOWED_ASSETS", "USDC:"+getEnv("USDC_ISSUER", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")),
-        Port:                    getEnv("PORT", "8080"),
-        CORSOrigins:             getEnv("CORS_ORIGINS", "http://localhost:5173"),
-    }
-}
+Pending migration from the temporary Go fallback:
+
+- dashboard summary
+- devices
+- payments and conditional payment proof
+- x402 challenge persistence and `X-PAYMENT` validation
+- webhooks and API keys
+- MCP tool calls
+
+## Preflight
+
+```powershell
+powershell -ExecutionPolicy Bypass -File apps/kivo/scripts/preflight.ps1 -ApiUrl https://<project-ref>.supabase.co/functions/v1/kivo-api
 ```
 
----
+Go/no-go:
 
-## sqlc Code Generation
-
-```bash
-# Regenerate DB types after any schema or query change
-cd apps/kivo
-sqlc generate
-```
-
----
-
-## Local Development
-
-```bash
-# Start Supabase locally
-supabase start
-
-# Apply migrations
-supabase db push
-
-# Start Redis (Docker)
-docker run -d --name redis -p 6379:6379 redis:7-alpine
-
-# Run Go API
-cd apps/kivo
-go run cmd/server/main.go
-
-# Run dashboard
-cd apps/kivo/web
-npm install
-npm run dev
-```
-
----
-
-## Docker — Multi-Stage Build
-
-```dockerfile
-# Dockerfile
-
-# Stage 1: Build
-FROM golang:1.22-alpine AS builder
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o kivo ./cmd/server/main.go
-
-# Stage 2: Distroless runtime (minimal attack surface)
-FROM gcr.io/distroless/static-debian12
-COPY --from=builder /app/kivo /kivo
-EXPOSE 8080
-ENTRYPOINT ["/kivo"]
-```
-
-Build and run locally:
-
-```bash
-docker build -t kivo-api .
-docker run -p 8080:8080 --env-file .env kivo-api
-```
-
-Docker Compose for the full local stack:
-
-```yaml
-# docker-compose.yml
-version: '3.9'
-services:
-  api:
-    build: .
-    ports: ["8080:8080"]
-    env_file: .env
-    depends_on: [redis]
-
-  redis:
-    image: redis:7-alpine
-    ports: ["6379:6379"]
-```
-
----
-
-## Fly.io Deployment
-
-```bash
-# Initial setup
-fly auth login
-cd apps/kivo
-fly launch --name kivo-api --region iad --no-deploy
-```
-
-```toml
-# fly.toml
-
-app = "kivo-api"
-primary_region = "iad"
-
-[build]
-
-[env]
-  PORT = "8080"
-  STELLAR_NETWORK = "mainnet"
-  ETHERFUSE_MODE = "production"
-  ETHERFUSE_BASE_URL = "https://api.etherfuse.com"
-  ETHERFUSE_DEFAULT_FIAT = "MXN"
-
-[http_service]
-  internal_port = 8080
-  force_https = true
-  auto_stop_machines = true
-  auto_start_machines = true
-  min_machines_running = 0
-
-  [http_service.concurrency]
-    type = "requests"
-    hard_limit = 250
-    soft_limit = 200
-
-[[vm]]
-  memory = "256mb"
-  cpu_kind = "shared"
-  cpus = 1
-
-[checks]
-  [checks.health]
-    grace_period = "10s"
-    interval = "30s"
-    method = "GET"
-    path = "/v1/health"
-    port = 8080
-    timeout = "5s"
-    type = "http"
-```
-
-Set secrets:
-
-```bash
-fly secrets set \
-  DATABASE_URL="postgresql://..." \
-  REDIS_URL="rediss://..." \
-  SUPABASE_JWT_SECRET="..." \
-  PLATFORM_STELLAR_SECRET="SABC123..." \
-  STELLAR_ENCRYPTION_KEY="64hexchars..." \
-  X402_PLATFORM_KEY="GDQP2KPQ..." \
-  ETHERFUSE_API_KEY="ef_live_or_sand_..." \
-  ETHERFUSE_WEBHOOK_SECRET="base64-secret..."
-```
-
-Deploy:
-
-```bash
-fly deploy
-fly status
-fly logs
-```
-
----
-
-## React Dashboard — Cloudflare Pages
-
-```bash
-cd apps/kivo/web
-npm run build
-
-# Deploy to Cloudflare Pages
-npx wrangler pages deploy dist --project-name kivo-dashboard
-```
-
-Set environment variables in Cloudflare Pages dashboard:
-- `VITE_API_URL` = `https://kivo-api.fly.dev`
-- `VITE_SUPABASE_URL` = your Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` = your Supabase anon key
-
----
-
-## Free Tier Cost Breakdown
-
-| Service | Free Tier | Kivo Usage | Cost |
-|---|---|---|---|
-| Fly.io | 3 shared VMs (sleep when idle) | 1 Go API instance | $0 |
-| Supabase | 500 MB, 2 CPU, 50k MAU | DB + Auth | $0 |
-| Upstash Redis | 10,000 commands/day | Job queue | $0 |
-| Cloudflare Pages | Unlimited deployments | React dashboard | $0 |
-| Stellar Testnet | Free | Development | $0 |
-| Stellar Mainnet | $0.00001/tx | Per payment | ~$0 |
-| **Total** | | | **$0/month** |
-
-Scale thresholds:
-- Supabase: upgrade at ~800k payment records (~$25/month for 8 GB)
-- Upstash: upgrade at ~2,000 payments/day (~$0.20 per 100k commands)
-- Fly.io: upgrade when sustained traffic requires non-sleeping machines
-
----
-
-## Monitoring
-
-```bash
-# Fly.io metrics (CPU, memory, request rate)
-fly metrics show
-
-# Live logs
-fly logs --app kivo-api
-
-# Grafana Cloud (free 50 GB logs/month)
-# Ship logs via Fly.io log shipper → Grafana Loki
-
-# Supabase dashboard
-# https://app.supabase.com/project/your-project/logs/edge-logs
-```
-
-Recommended Grafana dashboards to build:
-- Payment throughput (payments/minute)
-- Stellar submission success rate
-- Redis queue depth (payment_jobs, webhook_events)
-- x402 hit rate (402 vs 200 ratio)
-- p95 API latency by endpoint
+- `GET /v1/health` returns `200`.
+- `GET /v1/etherfuse/status` returns `configured: true`.
+- `GET /v1/etherfuse/assets` returns a Stellar asset for the selected wallet.
+- Etherfuse webhook verifies `X-Signature` and persists the event.
+- x402 returns a persisted nonce, submits signed Stellar XDR to Horizon, and unlocks the protected resource.
+- Vercel frontend points to the Supabase Edge Function.
+- Supabase Auth login works in production.
