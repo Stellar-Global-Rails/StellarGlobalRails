@@ -52,6 +52,11 @@ export function buildPowerTotemResource(totemIdOrSlug: string): string {
   if (!value) {
     throw new Error("Power Totem identifier is required.");
   }
+  if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
+    throw new Error(
+      "Power Totem identifier must contain only letters, numbers, dashes, and underscores.",
+    );
+  }
   return `/power-totem/${encodeURIComponent(value)}/session`;
 }
 
