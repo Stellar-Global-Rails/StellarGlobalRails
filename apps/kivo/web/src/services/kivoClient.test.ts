@@ -16,6 +16,21 @@ describe('HttpKivoApiClient', () => {
     expect(requestedUrl).toBe('https://api.kivo.example/v1/health');
   });
 
+  it('preserves path-based Edge Function base URLs', async () => {
+    let requestedUrl = '';
+    const client = createKivoClient({
+      baseUrl: 'https://project.supabase.co/functions/v1/kivo-api',
+      fetcher: async (input) => {
+        requestedUrl = String(input);
+        return jsonResponse({ version: '0.1.0-real', api: 'ok', db: 'ok', workers: 'ok', stellar: 'ok', mcp: 'ok' });
+      },
+    });
+
+    await client.getHealth();
+
+    expect(requestedUrl).toBe('https://project.supabase.co/functions/v1/kivo-api/v1/health');
+  });
+
   it('submits payment execution with a real Stellar XDR payload', async () => {
     let body = '';
     const client = createKivoClient({

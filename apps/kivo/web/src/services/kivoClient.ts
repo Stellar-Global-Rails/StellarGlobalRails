@@ -292,10 +292,11 @@ export class HttpKivoApiClient implements KivoApiClient {
     if (/^https?:\/\//.test(path)) {
       return path;
     }
+    const normalizedPath = path.replace(/^\//, '');
     if (/^https?:\/\//.test(this.baseUrl)) {
-      return new URL(path, `${this.baseUrl.replace(/\/$/, '')}/`).toString();
+      return new URL(normalizedPath, `${this.baseUrl.replace(/\/$/, '')}/`).toString();
     }
-    return `${this.baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+    return `${this.baseUrl.replace(/\/$/, '')}/${normalizedPath}`;
   }
 }
 
