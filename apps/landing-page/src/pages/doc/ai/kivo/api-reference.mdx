@@ -41,7 +41,7 @@ These objects sit on top of the existing device, payment, webhook, Etherfuse, an
 
 ### Studio routes
 
-Studio routes are the AI-agent creation path. They turn user intent into a flow, validation run, launch checklist, and SDK export.
+Studio routes are the AI-agent creation path. They turn user intent into a flow, validation run, and launch checklist.
 
 | Endpoint | Auth | Purpose |
 |---|---|---|
@@ -51,7 +51,7 @@ Studio routes are the AI-agent creation path. They turn user intent into a flow,
 | `GET /v1/studio/flows/:flowId/launch-options` | Dashboard JWT | Return launch options for validated or pending flows |
 | `GET /v1/studio/templates` | Public | List Studio templates; only Power Totem is functional for the hackathon |
 
-Additional SDK-facing Studio routes currently exposed by the client are `GET /v1/studio/flows/:flowId/validation-runs/:runId`, `PUT /v1/studio/flows/:flowId/gateway-mode`, and `GET /v1/studio/flows/:flowId/sdk-export`.
+Future Studio API candidates include validation-run detail lookup, gateway-mode updates, and SDK export downloads. They are not current Edge routes.
 
 ### Power Totem and Gateway routes
 
@@ -119,7 +119,7 @@ The current REST contract keeps lower-level primitives for SDK users and operati
 
 ### `POST /v1/devices`
 
-Register a new device. Generates a Stellar keypair and a device API key. The raw API key is returned **once** — store it securely.
+Register a dashboard-owned device through the Supabase Edge API. The current client receives a `DeviceRegistrationResult` with the `device` object and an optional one-time `apiKey`.
 
 **Auth:** Dashboard JWT
 
@@ -137,69 +137,22 @@ Register a new device. Generates a Stellar keypair and a device API key. The raw
 **Response `201`:**
 ```json
 {
-  "id": "d5e3f1a2-...",
-  "name": "EV Charger — Station A12",
-  "stellar_public_key": "GDQP2KPQGKIHYJGXNUIYOMHARUSXL4HXJZP...",
-  "status": "active",
-  "api_key": "kivo_live_a8f3e2c1b9d4...",
-  "created_at": "2025-06-01T12:00:00Z"
-}
-```
-
-**Go Handler:**
-```go
-// internal/handlers/devices.go
-
-func RegisterDevice(q *db.Queries, sc *stellar.Client) fiber.Handler {
-    return func(c *fiber.Ctx) error {
-        userID := c.Locals("user_id").(uuid.UUID)
-
-        var req struct {
-            Name     string          `json:"name" validate:"required,min=1,max=255"`
-            Metadata json.RawMessage `json:"metadata"`
-        }
-        if err := c.BodyParser(&req); err != nil {
-            return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
-        }
-
-        // Generate Stellar keypair
-        kp, err := sc.GenerateKeypair()
-        if err != nil {
-            return c.Status(500).JSON(fiber.Map{"error": "keypair generation failed"})
-        }
-
-        // Generate API key: 32 random bytes, hex-encoded
-        rawKey, keyHash, err := generateAPIKey()
-        if err != nil {
-            return c.Status(500).JSON(fiber.Map{"error": "key generation failed"})
-        }
-
-        // Encrypt the Stellar secret
-        encryptedSecret, err := sc.EncryptSecret(kp.Seed())
-        if err != nil {
-            return c.Status(500).JSON(fiber.Map{"error": "encryption failed"})
-        }
-
-        device, err := q.CreateDevice(c.Context(), db.CreateDeviceParams{
-            Name:              req.Name,
-            OwnerID:           userID,
-            APIKeyHash:        keyHash,
-            StellarPublicKey:  kp.Address(),
-            EncryptedSecret:   encryptedSecret,
-        })
-        if err != nil {
-            return c.Status(500).JSON(fiber.Map{"error": "database error"})
-        }
-
-        return c.Status(201).JSON(fiber.Map{
-            "id":                 device.ID,
-            "name":               device.Name,
-            "stellar_public_key": device.StellarPublicKey,
-            "status":             device.Status,
-            "api_key":            rawKey, // shown once
-            "created_at":         device.CreatedAt,
-        })
-    }
+  "device": {
+    "id": "dev_...",
+    "name": "EV Charger — Station A12",
+    "ownerId": "user_...",
+    "apiKeyPreview": "kivo_...abcd",
+    "stellarPublicKey": "GDQP2KPQGKIHYJGXNUIYOMHARUSXL4HXJZP...",
+    "status": "active",
+    "metadata": {
+      "location": "San Francisco, CA",
+      "model": "ABB Terra 360"
+    },
+    "balances": [],
+    "createdAt": "2026-05-19T12:00:00Z",
+    "updatedAt": "2026-05-19T12:00:00Z"
+  },
+  "apiKey": "kivo_..."
 }
 ```
 
@@ -207,23 +160,25 @@ func RegisterDevice(q *db.Queries, sc *stellar.Client) fiber.Handler {
 
 ### `GET /v1/devices/:id`
 
-Get device information including current Stellar balance.
+Get device information for the authenticated dashboard user.
 
-**Auth:** Dashboard JWT or Device API key (own device only)
+**Auth:** Dashboard JWT
 
 **Response `200`:**
 ```json
 {
-  "id": "d5e3f1a2-...",
-  "name": "EV Charger — Station A12",
-  "stellar_public_key": "GDQP2KPQGKIHYJGXNUIYOMHARUSXL4HXJZP...",
-  "status": "active",
-  "balance": {
-    "XLM": "9.9999600",
-    "USDC": "100.0000000"
-  },
-  "metadata": { "location": "San Francisco, CA" },
-  "created_at": "2025-06-01T12:00:00Z"
+  "device": {
+    "id": "dev_...",
+    "name": "EV Charger — Station A12",
+    "ownerId": "user_...",
+    "apiKeyPreview": "kivo_...abcd",
+    "stellarPublicKey": "GDQP2KPQGKIHYJGXNUIYOMHARUSXL4HXJZP...",
+    "status": "active",
+    "metadata": { "location": "San Francisco, CA" },
+    "balances": [{ "assetCode": "USDC", "amount": "100.0000000" }],
+    "createdAt": "2026-05-19T12:00:00Z",
+    "updatedAt": "2026-05-19T12:00:00Z"
+  }
 }
 ```
 
@@ -231,19 +186,20 @@ Get device information including current Stellar balance.
 
 ### `POST /v1/payments`
 
-Create a new M2M payment, optionally with a condition that must be met before execution.
+Create a new payment record for the authenticated dashboard user. The Edge API expects explicit `fromDeviceId`, `toDeviceId`, `amount`, `assetCode`, `conditionType`, and optional condition/timeout/memo fields.
 
-**Auth:** Device API key
+**Auth:** Dashboard JWT
 
 **Request:**
 ```json
 {
-  "to_device_id": "a1b2c3d4-...",
+  "fromDeviceId": "dev_from...",
+  "toDeviceId": "dev_to...",
   "amount": "10.0000000",
-  "asset_code": "USDC",
-  "condition_type": "energy_kwh",
-  "condition_value": "10.5",
-  "timeout_seconds": 3600,
+  "assetCode": "USDC",
+  "conditionType": "energy_kwh",
+  "conditionValue": "10.5",
+  "timeoutSeconds": 3600,
   "memo": "EV session #4892"
 }
 ```
@@ -251,70 +207,17 @@ Create a new M2M payment, optionally with a condition that must be met before ex
 **Response `201`:**
 ```json
 {
-  "id": "pay_9f3e2c1b-...",
-  "from_device_id": "d5e3f1a2-...",
-  "to_device_id": "a1b2c3d4-...",
+  "id": "pay_...",
+  "fromDeviceId": "dev_from...",
+  "toDeviceId": "dev_to...",
   "amount": "10.0000000",
-  "asset_code": "USDC",
-  "condition_type": "energy_kwh",
-  "condition_value": "10.5",
+  "assetCode": "USDC",
+  "conditionType": "energy_kwh",
+  "conditionValue": "10.5",
   "status": "pending",
-  "timeout_at": "2025-06-01T13:00:00Z",
-  "created_at": "2025-06-01T12:00:00Z"
-}
-```
-
-**Go Handler:**
-```go
-func CreatePayment(q *db.Queries, rdb *redis.Client) fiber.Handler {
-    return func(c *fiber.Ctx) error {
-        deviceID := c.Locals("device_id").(uuid.UUID)
-
-        var req struct {
-            ToDeviceID     uuid.UUID `json:"to_device_id"   validate:"required"`
-            Amount         string    `json:"amount"         validate:"required"`
-            AssetCode      string    `json:"asset_code"     validate:"required,oneof=USDC XLM"`
-            ConditionType  string    `json:"condition_type"`
-            ConditionValue string    `json:"condition_value"`
-            TimeoutSeconds int       `json:"timeout_seconds"`
-            Memo           string    `json:"memo"           validate:"max=28"`
-        }
-        if err := c.BodyParser(&req); err != nil {
-            return c.Status(400).JSON(fiber.Map{"error": "invalid body"})
-        }
-
-        amount, err := decimal.NewFromString(req.Amount)
-        if err != nil || amount.LessThanOrEqual(decimal.Zero) {
-            return c.Status(400).JSON(fiber.Map{"error": "invalid amount"})
-        }
-
-        var timeoutAt *time.Time
-        if req.TimeoutSeconds > 0 {
-            t := time.Now().Add(time.Duration(req.TimeoutSeconds) * time.Second)
-            timeoutAt = &t
-        }
-
-        payment, err := q.CreatePayment(c.Context(), db.CreatePaymentParams{
-            FromDeviceID:   deviceID,
-            ToDeviceID:     req.ToDeviceID,
-            Amount:         amount,
-            AssetCode:      req.AssetCode,
-            ConditionType:  req.ConditionType,
-            ConditionValue: &req.ConditionValue,
-            TimeoutAt:      timeoutAt,
-        })
-        if err != nil {
-            return c.Status(500).JSON(fiber.Map{"error": "database error"})
-        }
-
-        // If no condition, enqueue immediately
-        if req.ConditionType == "" || req.ConditionType == "none" {
-            jobJSON, _ := json.Marshal(map[string]string{"payment_id": payment.ID.String()})
-            rdb.LPush(c.Context(), "payment_jobs", jobJSON)
-        }
-
-        return c.Status(201).JSON(payment)
-    }
+  "timeoutAt": "2026-05-19T13:00:00Z",
+  "createdAt": "2026-05-19T12:00:00Z",
+  "events": []
 }
 ```
 
@@ -324,16 +227,22 @@ func CreatePayment(q *db.Queries, rdb *redis.Client) fiber.Handler {
 
 Get payment status and details.
 
-**Auth:** Device API key (participant device only)
+**Auth:** Dashboard JWT
 
 **Response `200`:**
 ```json
 {
-  "id": "pay_9f3e2c1b-...",
+  "id": "pay_...",
+  "fromDeviceId": "dev_from...",
+  "toDeviceId": "dev_to...",
+  "amount": "10.0000000",
+  "assetCode": "USDC",
+  "conditionType": "energy_kwh",
   "status": "confirmed",
-  "stellar_hash": "8a3f1e2b9c4d...",
-  "confirmed_at": "2025-06-01T12:00:05Z",
-  "ledger_explorer": "https://stellar.expert/explorer/testnet/tx/8a3f1e2b9c4d..."
+  "stellarHash": "8a3f1e2b9c4d...",
+  "stellarLedger": 49823041,
+  "confirmedAt": "2026-05-19T12:00:05Z",
+  "events": []
 }
 ```
 
@@ -341,29 +250,38 @@ Get payment status and details.
 
 ### `POST /v1/payments/:id/execute`
 
-Manually trigger execution of a pending payment (for `condition_type: none` payments not auto-enqueued, or for testing).
+Submit a signed Stellar transaction XDR for a pending payment.
 
-**Auth:** Device API key (from_device only)
+**Auth:** Dashboard JWT
+
+**Request:**
+```json
+{ "txXDR": "AAAA..." }
+```
 
 **Response `200`:**
 ```json
-{ "status": "processing", "queued_at": "2025-06-01T12:00:01Z" }
+{
+  "id": "pay_...",
+  "status": "processing",
+  "events": []
+}
 ```
 
 ---
 
 ### `POST /v1/payments/:id/condition-proof`
 
-Submit proof that a payment condition has been met. Triggers execution if the condition passes validation.
+Submit proof that a payment condition has been met.
 
-**Auth:** Device API key (either party)
+**Auth:** Dashboard JWT
 
 **Request:**
 ```json
 {
-  "condition_key": "energy_kwh",
-  "actual_value": "10.5",
-  "proof_data": {
+  "conditionKey": "energy_kwh",
+  "actualValue": "10.5",
+  "proofData": {
     "signed_reading": "base64-encoded-meter-signature",
     "timestamp": "2025-06-01T12:55:00Z"
   }
@@ -373,28 +291,16 @@ Submit proof that a payment condition has been met. Triggers execution if the co
 **Response `200`:**
 ```json
 {
-  "condition_met": true,
-  "payment_status": "processing"
-}
-```
-
----
-
-### `GET /v1/payments/:id`
-
-Detailed status including Stellar ledger information.
-
-**Response `200`:**
-```json
-{
-  "id": "pay_9f3e2c1b-...",
-  "status": "confirmed",
-  "stellar_hash": "8a3f1e2b9c4d...",
-  "stellar_ledger": 49823041,
-  "stellar_created_at": "2025-06-01T12:00:05Z",
-  "explorer_url": "https://stellar.expert/explorer/testnet/tx/8a3f1e2b9c4d...",
-  "fee_charged": "100",
-  "memo": "EV session #4892"
+  "conditionMet": true,
+  "payment": {
+    "id": "pay_...",
+    "status": "processing"
+  },
+  "condition": {
+    "id": "cond_...",
+    "conditionKey": "energy_kwh",
+    "actualValue": "10.5"
+  }
 }
 ```
 
@@ -417,11 +323,15 @@ Register a webhook endpoint to receive payment events.
 **Response `201`:**
 ```json
 {
-  "id": "wh_3a1b2c-...",
+  "id": "wh_...",
   "url": "https://myapp.example.com/webhooks/kivo",
   "events": ["payment.confirmed", "payment.failed"],
-  "secret": "whsec_d3f2e1a9b8c7...",
-  "active": true
+  "secretPreview": "whsec_...abcd",
+  "active": true,
+  "createdAt": "2026-05-19T12:00:00Z",
+  "deliveryCount": 0,
+  "lastDeliveryStatus": "pending",
+  "secret": "whsec_..."
 }
 ```
 
@@ -439,16 +349,16 @@ Deactivate and remove a webhook.
 
 ### `GET /v1/health`
 
-Health check. Returns 200 if the API, database, and Redis are reachable.
+Health check for the current Supabase Edge runtime. It reports API/runtime state, Supabase configuration, Stellar status, MCP surface status, and version. Etherfuse configuration is exposed through `GET /v1/etherfuse/status`, while gateway health is visible through heartbeat, authorization, session, and deploy-status routes. Redis workers are not part of the active Edge MVP runtime.
 
 **Response `200`:**
 ```json
 {
-  "status": "ok",
+  "api": "ok",
   "db": "ok",
-  "redis": "ok",
   "stellar": "ok",
-  "version": "0.1.0"
+  "mcp": "degraded",
+  "version": "kivo-edge-transition-2026-05-17"
 }
 ```
 
@@ -684,7 +594,7 @@ All error responses follow a consistent shape:
 | HTTP Status | Code | Meaning |
 |---|---|---|
 | 400 | `INVALID_REQUEST` | Malformed body or invalid parameters |
-| 401 | `UNAUTHORIZED` | Missing or invalid API key / JWT |
+| 401 | `UNAUTHORIZED` | Missing or invalid dashboard JWT, gateway token, or payment proof |
 | 402 | `PAYMENT_REQUIRED` | x402 endpoint — payment header required |
 | 403 | `FORBIDDEN` | Valid auth but insufficient scope |
 | 404 | `NOT_FOUND` | Resource not found |
