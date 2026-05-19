@@ -3,27 +3,22 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore, useUIStore } from '@/stores';
 
 const routeTitles: Record<string, { title: string; icon: string }> = {
-  '/dashboard': { title: 'Inicio', icon: 'solar:home-angle-bold-duotone' },
-  '/create-flow': { title: 'Criar flow', icon: 'solar:add-circle-bold-duotone' },
-  '/flows': { title: 'Flows', icon: 'solar:bolt-circle-bold-duotone' },
-  '/advanced': { title: 'Integracoes', icon: 'solar:settings-bold-duotone' },
+  '/dashboard': { title: 'Power Totem Home', icon: 'solar:home-2-bold-duotone' },
+  '/studio': { title: 'Kivo Studio', icon: 'solar:electric-refueling-bold-duotone' },
+  '/totems': { title: 'Power Totems', icon: 'solar:electric-refueling-bold-duotone' },
+  '/totem': { title: 'Power Totem', icon: 'solar:electric-refueling-bold-duotone' },
+  '/totem-simulator': { title: 'Simulador do totem', icon: 'solar:bolt-circle-bold-duotone' },
+  '/create-flow': { title: 'Roadmap de templates', icon: 'solar:map-arrow-right-bold-duotone' },
+  '/flows': { title: 'Recursos legados', icon: 'solar:bolt-circle-bold-duotone' },
   '/team': { title: 'Time e escala', icon: 'solar:users-group-rounded-bold-duotone' },
-  '/operations': { title: 'Operacao', icon: 'solar:devices-bold-duotone' },
   '/checkout': { title: 'Checkout', icon: 'solar:card-transfer-bold-duotone' },
-  '/integrations': { title: 'Integracao', icon: 'solar:code-square-bold-duotone' },
+  '/integrations': { title: 'Power Totem Gateway SDK', icon: 'solar:code-square-bold-duotone' },
   '/finance': { title: 'Financeiro', icon: 'solar:chart-square-bold-duotone' },
   '/health': { title: 'Saude', icon: 'solar:heart-pulse-bold-duotone' },
   '/status': { title: 'Status', icon: 'solar:pulse-2-bold-duotone' },
-  '/ops-dashboard': { title: 'Ferramentas', icon: 'solar:widget-5-bold-duotone' },
-  '/devices': { title: 'Devices', icon: 'solar:devices-bold-duotone' },
   '/payments': { title: 'Pagamentos', icon: 'solar:wallet-money-bold-duotone' },
   '/webhooks': { title: 'Webhooks', icon: 'solar:widget-2-bold-duotone' },
   '/api-keys': { title: 'API Keys', icon: 'solar:key-minimalistic-bold-duotone' },
-  '/mcp': { title: 'MCP Console', icon: 'solar:cpu-bolt-bold-duotone' },
-  '/x402': { title: 'Regras x402', icon: 'solar:shield-keyhole-bold-duotone' },
-  '/templates': { title: 'Templates', icon: 'solar:bolt-circle-bold-duotone' },
-  '/workflows': { title: 'Workflows', icon: 'solar:routing-2-bold-duotone' },
-  '/deploy': { title: 'Deploy', icon: 'solar:rocket-bold-duotone' },
   '/settings': { title: 'Configuracoes', icon: 'solar:settings-bold-duotone' },
 };
 
@@ -46,7 +41,7 @@ export default function Topbar() {
         </div>
         <div className="min-w-0">
           <h1 className="hidden truncate font-bricolage text-xl font-bold text-white sm:block">{info.title}</h1>
-          <p className="hidden text-xs text-neutral-500 sm:block">Cobre por uso em devices, APIs e dados conectados</p>
+          <p className="hidden text-xs text-neutral-500 sm:block">Configure, cobre e libere energia pelo gateway Power Totem</p>
         </div>
       </div>
 

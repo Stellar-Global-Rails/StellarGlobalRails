@@ -7,21 +7,21 @@ const navGroups = [
   {
     title: 'Produto',
     items: [
-      { to: '/dashboard', icon: 'solar:home-angle-bold-duotone', label: 'Home' },
-      { to: '/create-flow', icon: 'solar:add-circle-bold-duotone', label: 'Criar flow' },
-      { to: '/flows', icon: 'solar:bolt-circle-bold-duotone', label: 'Flows' },
+      { to: '/dashboard', icon: 'solar:home-2-bold-duotone', label: 'Home' },
+      { to: '/studio', icon: 'solar:electric-refueling-bold-duotone', label: 'Studio' },
+      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Checkout' },
+      { to: '/totem-simulator', icon: 'solar:bolt-circle-bold-duotone', label: 'Simulador' },
       { to: '/payments', icon: 'solar:wallet-money-bold-duotone', label: 'Pagamentos' },
-      { to: '/advanced', icon: 'solar:settings-bold-duotone', label: 'Integracoes' },
     ],
   },
   {
-    title: 'Atalhos',
+    title: 'Operacao',
     items: [
-      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Checkout' },
-      { to: '/operations', icon: 'solar:devices-bold-duotone', label: 'Operacao' },
+      { to: '/integrations', icon: 'solar:code-square-bold-duotone', label: 'Gateway SDK' },
       { to: '/finance', icon: 'solar:chart-square-bold-duotone', label: 'Financeiro' },
       { to: '/health', icon: 'solar:heart-pulse-bold-duotone', label: 'Saude' },
       { to: '/status', icon: 'solar:pulse-2-bold-duotone', label: 'Status' },
+      { to: '/settings', icon: 'solar:settings-bold-duotone', label: 'Configuracoes' },
     ],
   },
 ];

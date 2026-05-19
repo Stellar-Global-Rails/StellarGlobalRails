@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatCard } from '@/components/ui/StatCard';
-import { createFlowRoute, deriveSoloFlows, soloMvpTemplates } from '@/data/soloMvp';
+import { deriveSoloFlows } from '@/data/soloMvp';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { kivoClient } from '@/services/kivoClient';
 import { useAuthStore } from '@/stores';
@@ -56,6 +56,24 @@ const loaderLabels = {
   devices: 'Devices',
   pricingRules: 'Precos',
 } as const;
+
+const roadmapItems = [
+  {
+    title: 'API Toll',
+    description: 'Mesmo contrato x402 aplicado a rotas premium depois do Power Totem estar validado.',
+    icon: 'solar:code-square-bold-duotone',
+  },
+  {
+    title: 'Data Gate',
+    description: 'Leituras de sensores e feeds autenticados entram como expansao do gateway operacional.',
+    icon: 'solar:database-bold-duotone',
+  },
+  {
+    title: 'Agent Tool Paywall',
+    description: 'Ferramentas de agentes podem cobrar por uso quando o fluxo fisico estiver fechado.',
+    icon: 'solar:magic-stick-3-bold-duotone',
+  },
+];
 
 export default function WorkspaceHomePage() {
   const user = useAuthStore((state) => state.user);
@@ -116,18 +134,27 @@ export default function WorkspaceHomePage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Solo workspace"
-        title={`Monetize seu primeiro recurso no ${workspaceName}`}
-        icon="solar:home-angle-bold-duotone"
-        description="Crie um flow, teste um pagamento x402 real e acompanhe receita sem entrar em detalhes de protocolo."
+        eyebrow="Power Totem workspace"
+        title={`Controle seu primeiro totem em ${workspaceName}`}
+        icon="solar:home-2-bold-duotone"
+        description="Configure um Power Totem, teste pagamento x402 e libere um recurso fisico pelo gateway."
         action={
-          <Link
-            to="/create-flow"
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition hover:bg-emerald-400"
-          >
-            Criar flow
-            <Icon icon="solar:add-circle-bold-duotone" className="text-lg" />
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/studio"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition hover:bg-emerald-400"
+            >
+              Abrir Kivo Studio
+              <Icon icon="solar:electric-refueling-bold-duotone" className="text-lg" />
+            </Link>
+            <Link
+              to="/totem-simulator"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+            >
+              Ver simulador
+              <Icon icon="solar:bolt-circle-bold-duotone" className="text-lg" />
+            </Link>
+          </div>
         }
       />
 
@@ -146,7 +173,7 @@ export default function WorkspaceHomePage() {
               </div>
               <p className="mt-2 text-sm leading-6 text-neutral-400">
                 {hasLoadErrors
-                  ? 'Mantivemos os dados parciais visiveis, mas receita, flows ou pagamentos podem estar incompletos.'
+                  ? 'Mantivemos os dados parciais visiveis, mas receita, recursos ou pagamentos podem estar incompletos.'
                   : 'Buscando resumo, pagamentos, devices e regras de preco antes de calcular os indicadores.'}
               </p>
               {hasLoadErrors && (
@@ -185,10 +212,10 @@ export default function WorkspaceHomePage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard
-          title="Flows ativos"
+          title="Totens ativos"
           value={flowsUnavailable ? 'Indisponivel' : activeFlows.length.toString()}
-          detail={flowsUnavailable ? 'Falha ao carregar flows' : `${flows.length} flows no total`}
-          icon="solar:bolt-circle-bold-duotone"
+          detail={flowsUnavailable ? 'Falha ao carregar recursos' : `${flows.length} recursos operacionais`}
+          icon="solar:electric-refueling-bold-duotone"
           tone={flowsUnavailable ? 'amber' : 'emerald'}
         />
         <StatCard
@@ -208,7 +235,7 @@ export default function WorkspaceHomePage() {
         <StatCard
           title="Setup"
           value={totalSetupItems ? `${completedSetupItems}/${totalSetupItems}` : '0/0'}
-          detail={setupComplete ? 'Tudo pronto' : 'Próximos checks pendentes'}
+          detail={setupComplete ? 'Tudo pronto' : 'Proximos checks pendentes'}
           icon="solar:checklist-minimalistic-bold-duotone"
           tone={setupComplete ? 'emerald' : 'amber'}
         />
@@ -225,37 +252,33 @@ export default function WorkspaceHomePage() {
         <Card>
           <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="font-bricolage text-xl font-bold text-white">Comece por um template</h2>
+              <h2 className="font-bricolage text-xl font-bold text-white">MVP primeiro: Power Totem</h2>
               <p className="mt-1 text-sm leading-6 text-neutral-500">
-                Escolha o recurso que voce quer monetizar e crie o flow em poucos passos.
+                O hackathon foca em um totem fisico: configurar preco, parear gateway, testar x402 e simular liberacao.
               </p>
             </div>
-            <Badge tone="active">Solo MVP</Badge>
+            <Badge tone="active">Hackathon MVP</Badge>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
-            {soloMvpTemplates.map((template) => (
-              <Link
-                key={template.id}
-                to={createFlowRoute(template.id)}
-                className="group rounded-2xl border border-white/5 bg-black/25 p-4 transition hover:border-emerald-400/35 hover:bg-white/[0.04]"
+            {roadmapItems.map((item) => (
+              <div
+                key={item.title}
+                className="rounded-2xl border border-white/5 bg-black/25 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
-                    <Icon icon={template.icon} className="text-2xl" />
+                    <Icon icon={item.icon} className="text-2xl" />
                   </div>
-                  <Icon
-                    icon="solar:arrow-right-up-linear"
-                    className="text-lg text-neutral-600 transition group-hover:text-emerald-300"
-                  />
+                  <Badge tone="paused">Roadmap</Badge>
                 </div>
                 <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-400">
-                  {template.category}
+                  Depois do MVP
                 </p>
-                <h3 className="mt-2 text-lg font-bold text-white">{template.shortName}</h3>
-                <p className="mt-2 text-sm leading-6 text-neutral-400">{template.description}</p>
-                <p className="mt-4 text-xs font-semibold text-neutral-500">{template.primaryActionLabel}</p>
-              </Link>
+                <h3 className="mt-2 text-lg font-bold text-white">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-neutral-400">{item.description}</p>
+                <p className="mt-4 text-xs font-semibold text-neutral-500">Nao e fluxo primario do hackathon.</p>
+              </div>
             ))}
           </div>
         </Card>
@@ -263,13 +286,13 @@ export default function WorkspaceHomePage() {
         <Card>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="font-bricolage text-xl font-bold text-white">Próximo melhor passo</h2>
+              <h2 className="font-bricolage text-xl font-bold text-white">Proximo melhor passo</h2>
               <p className="mt-1 text-sm leading-6 text-neutral-500">
                 {hasFlows
                   ? hasPayments
-                    ? 'Acompanhe seus flows ativos e ajuste configuracoes avancadas quando precisar escalar.'
-                    : 'Seu primeiro flow ja existe. Agora valide a experiencia com um pagamento x402 real.'
-                  : 'Crie seu primeiro flow para transformar um device, API ou data feed em recurso pago.'}
+                    ? 'Acompanhe o totem, revise pagamentos e mantenha o gateway pronto para a demo.'
+                    : 'Seu Power Totem ja esta modelado. Agora valide a experiencia com um pagamento x402 real.'
+                  : 'Abra o Studio para configurar o Power Totem antes de testar checkout e simulador.'}
               </p>
             </div>
             <Badge tone={hasFlows ? 'ready' : 'warning'}>{hasFlows ? 'Em progresso' : 'Comecar'}</Badge>
@@ -277,12 +300,12 @@ export default function WorkspaceHomePage() {
 
           <div className="mt-6 space-y-3">
             <Link
-              to="/create-flow"
+              to="/studio"
               className="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-bold text-white transition hover:border-emerald-400/50"
             >
               <span className="flex items-center gap-3">
                 <Icon icon="solar:add-circle-bold-duotone" className="text-xl text-emerald-300" />
-                Criar ou editar flow
+                Abrir Kivo Studio
               </span>
               <Icon icon="solar:arrow-right-linear" className="text-neutral-500" />
             </Link>
@@ -297,12 +320,12 @@ export default function WorkspaceHomePage() {
               <Icon icon="solar:arrow-right-linear" className="text-neutral-500" />
             </Link>
             <Link
-              to="/advanced"
+              to="/integrations"
               className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-black/25 p-4 text-sm font-bold text-neutral-200 transition hover:border-white/15 hover:bg-white/[0.04]"
             >
               <span className="flex items-center gap-3">
-                <Icon icon="solar:settings-bold-duotone" className="text-xl text-violet-300" />
-                Abrir integracoes
+                <Icon icon="solar:code-square-bold-duotone" className="text-xl text-violet-300" />
+                Instalar Gateway SDK
               </span>
               <Icon icon="solar:arrow-right-linear" className="text-neutral-500" />
             </Link>
@@ -314,20 +337,19 @@ export default function WorkspaceHomePage() {
         <Card>
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
-              <h2 className="font-bricolage text-xl font-bold text-white">Flows recentes</h2>
-              <p className="mt-1 text-sm text-neutral-500">Recursos monetizados a partir dos seus devices e regras de preco.</p>
+              <h2 className="font-bricolage text-xl font-bold text-white">Recursos operacionais</h2>
+              <p className="mt-1 text-sm text-neutral-500">Sinais de configuracao que ajudam a acompanhar o Power Totem.</p>
             </div>
-            <Link to="/flows" className="text-xs font-bold text-emerald-400 hover:text-emerald-300">
-              Ver todos
+            <Link to="/studio" className="text-xs font-bold text-emerald-400 hover:text-emerald-300">
+              Abrir Studio
             </Link>
           </div>
           <div className="space-y-3">
             {recentFlows.length ? (
               recentFlows.map((flow) => (
-                <Link
+                <div
                   key={flow.id}
-                  to={`/flows/${flow.id}`}
-                  className="flex flex-col gap-3 rounded-xl border border-white/5 bg-black/25 p-4 transition hover:bg-white/5 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 rounded-xl border border-white/5 bg-black/25 p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -343,11 +365,11 @@ export default function WorkspaceHomePage() {
                     <p className="text-sm font-bold text-emerald-300">{formatCurrency(flow.revenueUsdc)}</p>
                     <p className="mt-1 text-xs text-neutral-500">{flow.paymentsCount} pagamentos</p>
                   </div>
-                </Link>
+                </div>
               ))
             ) : (
               <div className="rounded-xl border border-dashed border-white/10 bg-black/25 p-5 text-sm leading-6 text-neutral-500">
-                Nenhum flow criado ainda. Comece por um template para publicar seu primeiro recurso pago.
+                Nenhum recurso operacional antigo encontrado. Use o Studio para configurar o Power Totem do hackathon.
               </div>
             )}
           </div>
@@ -385,7 +407,7 @@ export default function WorkspaceHomePage() {
               ))
             ) : (
               <div className="rounded-xl border border-dashed border-white/10 bg-black/25 p-5 text-sm leading-6 text-neutral-500">
-                Nenhum pagamento registrado ainda. Use o checkout para testar o primeiro pagamento real.
+                Nenhum pagamento registrado ainda. Use o checkout para testar o primeiro pagamento x402 do totem.
               </div>
             )}
           </div>
