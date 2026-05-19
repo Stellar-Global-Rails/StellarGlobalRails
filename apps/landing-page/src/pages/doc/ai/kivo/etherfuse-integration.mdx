@@ -1,14 +1,20 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo Pay — Etherfuse Integration"
-description: "Sandbox/testnet anchor integration with Etherfuse FX API for Kivo Pay, including onboarding, assets, quotes, orders, webhooks, Stellar claim transactions, x402 funding, and deployment."
+title: "Kivo — Etherfuse Integration"
+description: "Sandbox/testnet anchor integration with Etherfuse FX API for Kivo, including onboarding, assets, quotes, orders, webhooks, Stellar claim transactions, x402 funding, and deployment."
 ---
 
 # Etherfuse Integration
 
-This document specifies how Kivo Pay integrates with the Etherfuse FX API as the fiat/stablecoin anchor layer for Stellar testnet demos and future production ramps.
+This document specifies how Kivo integrates with the Etherfuse FX API as the fiat/stablecoin anchor layer for Stellar testnet demos and future production ramps.
 
 Kivo's core M2M flow still settles on Stellar. Etherfuse is not replacing x402, device wallets, conditional payments, or the Kivo payment worker. Etherfuse adds the missing bridge around those flows: customer onboarding, fiat funding, fiat payout, stablecoin/stablebond discovery, quotes, orders, and webhook-driven ramp status.
+
+## Role In Kivo
+
+Etherfuse is the visible anchor/funding rail in the Kivo payment path.
+
+Etherfuse does not turn hardware on and does not replace Kivo Gateway. The gateway releases access only after the Kivo payment engine validates payment state and issues an authorization. Etherfuse gives the user, operator, and demo reviewer a clearer funding/anchor story around the asset used in the flow.
 
 **Last verified:** 2026-05-16 against the public Etherfuse docs.
 

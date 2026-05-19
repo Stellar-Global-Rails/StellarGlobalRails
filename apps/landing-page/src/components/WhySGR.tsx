@@ -25,7 +25,7 @@ export default function WhySGR() {
       tech: 'SMART_LOGIC'
     },
     {
-      id: 'KivoPay',
+      id: 'Kivo',
       title: t('whysgr.p3.title'),
       desc: t('whysgr.p3.desc'),
       icon: 'solar:flash-drive-bold-duotone',

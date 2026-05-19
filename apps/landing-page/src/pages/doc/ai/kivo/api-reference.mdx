@@ -1,14 +1,27 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo Pay — API Reference"
-description: "Complete REST API reference for the Kivo Pay Go/Fiber gateway, plus MCP tool specifications for AI agent integration."
+title: "Kivo — API Reference"
+description: "Complete REST API reference for the Kivo Go/Fiber gateway, plus MCP tool specifications for AI agent integration."
 ---
 
 # API Reference
 
-Kivo Pay exposes a REST API built with Go + Fiber and a Model Context Protocol (MCP) server for AI agent integration. All REST endpoints require either a device API key (`X-API-Key`) or a Supabase Auth JWT (`Authorization: Bearer <token>`).
+Kivo exposes a REST API built with Go + Fiber and a Model Context Protocol (MCP) server for AI agent integration. All REST endpoints require either a device API key (`X-API-Key`) or a Supabase Auth JWT (`Authorization: Bearer <token>`).
 
 **Base URL:** `https://api.kivo.pay/v1` (production) | `http://localhost:8080/v1` (local)
+
+---
+
+## Resource Model
+
+Kivo APIs should be read through four core objects:
+
+- `resource`: the physical or digital thing being protected, such as a power totem, API route, automation, sidecar, queue consumer, or agent tool;
+- `policy`: the price, asset, duration, scope, and access conditions attached to that resource;
+- `authorization`: the short-lived permission Kivo issues after settlement proof and policy checks pass;
+- `gateway_event`: the runtime audit trail emitted by a physical or digital gateway as it requests, releases, completes, fails, or revokes access.
+
+These objects sit on top of the existing device, payment, webhook, Etherfuse, and MCP endpoints below. The current REST contract still exposes the lower-level payment primitives, while the Kivo payment engine treats them as the implementation path for resource access.
 
 ---
 

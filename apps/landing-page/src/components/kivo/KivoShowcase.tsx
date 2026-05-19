@@ -121,15 +121,15 @@ export default function KivoShowcase() {
           {/* Item 30: Blurhash Simulated */}
           <BlurImage 
             src="/fake-terminal.png" 
-            alt="Kivo Terminal Device" 
+            alt="Kivo physical gateway device"
             blurColor="#1e3a8a"
             className="absolute inset-0 w-full h-full opacity-20 pointer-events-none"
           />
 
           <div className="relative z-10">
-            <h3 className="text-2xl font-bricolage text-white mb-3">Kivo Terminal</h3>
+            <h3 className="text-2xl font-bricolage text-white mb-3">Power Totem gateway</h3>
             <p className="text-white/50 mb-8 max-w-[280px]">
-              Offline? Sem internet? O hardware dedicado de baixo custo foi feito para as bordas do mundo.
+              Um gateway físico de baixo custo libera recursos reais somente após autorização paga.
             </p>
             <ul className="space-y-3 mb-12">
               <motion.li 

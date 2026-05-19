@@ -3,107 +3,215 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { advancedTools } from '@/data/advancedTools';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { kivoClient } from '@/services/kivoClient';
 
-const integrationToolRoutes = ['/api-keys', '/webhooks', '/mcp', '/x402', '/deploy'];
-
-const integrationCards = [
+const sdkSteps = [
   {
-    title: 'Templates',
-    route: '/templates',
-    icon: 'solar:bolt-circle-bold-duotone',
-    description: 'Tres pontos de partida do Solo MVP para configurar flows sem catalogo amplo.',
-    status: 'ready',
+    title: 'Baixe o Gateway SDK',
+    description: 'Um pacote pequeno com cliente TypeScript e exemplo de gateway Power Totem para Raspberry ou simulador.',
+    icon: 'solar:download-bold-duotone',
   },
-  ...advancedTools
-    .filter((tool) => integrationToolRoutes.includes(tool.route))
-    .map((tool) => ({
-      ...tool,
-      status: tool.route === '/deploy' ? 'warning' : 'ready',
-    })),
+  {
+    title: 'Cole o token do gateway',
+    description: 'Use o token pareado no Studio para autenticar heartbeat, autorizacao e eventos do totem.',
+    icon: 'solar:key-minimalistic-bold-duotone',
+  },
+  {
+    title: 'Proteja o recurso',
+    description: 'Crie a sessao de uso, cobre com x402 e libere acesso quando o pagamento confirmar.',
+    icon: 'solar:shield-keyhole-bold-duotone',
+  },
+  {
+    title: 'Receba eventos',
+    description: 'Configure webhooks para status de pagamento, falhas e confirmacoes de settlement.',
+    icon: 'solar:bell-bing-bold-duotone',
+  },
+];
+
+const starterFiles = [
+  'README.md',
+  'package.json',
+  'src/cli.ts',
+  'src/client.ts',
+  'src/runner.ts',
+  'src/adapters/simulator.ts',
+  'src/adapters/raspberry.ts',
+];
+
+const flowCards = [
+  {
+    title: 'API Toll',
+    description: 'Roadmap para proteger rotas premium com os mesmos contratos x402.',
+    icon: 'solar:code-square-bold-duotone',
+  },
+  {
+    title: 'Data Gate',
+    description: 'Roadmap para vender leituras autenticadas de sensores e telemetria.',
+    icon: 'solar:database-bold-duotone',
+  },
+  {
+    title: 'Agent Tool Paywall',
+    description: 'Roadmap para cobrar chamadas de ferramentas de agentes depois do totem.',
+    icon: 'solar:magic-stick-3-bold-duotone',
+  },
 ];
 
 export default function IntegrationsPage() {
-  const tools = useAsyncData(() => kivoClient.listMcpTools(), []);
+  const apiKeys = useAsyncData(() => kivoClient.listApiKeys(), []);
+  const webhooks = useAsyncData(() => kivoClient.listWebhooks(), []);
   const pricing = useAsyncData(() => kivoClient.listX402PricingRules(), []);
 
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Advanced"
-        title="Ferramentas de integracao"
+        eyebrow="Power Totem Gateway SDK"
+        title="Conecte o gateway do Power Totem"
         icon="solar:code-square-bold-duotone"
-        description="Superficie tecnica para conectar SDKs, webhooks, x402 e agentes quando o flow principal ja precisa virar integracao."
-        action={<Link to="/api-keys" className="rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">Gerar credencial</Link>}
+        description="Baixe o starter, use o token pareado no Studio e envie heartbeat, autorizacao e eventos para liberar o recurso fisico."
+        action={
+          <a
+            href="/sdk/kivo-sdk-starter.zip"
+            download
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400"
+          >
+            <Icon icon="solar:download-bold" />
+            Baixar Gateway SDK
+          </a>
+        }
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {integrationCards.map((card) => (
-          <Link key={card.title} to={card.route} className="group rounded-2xl border border-white/5 bg-neutral-900/80 p-5 premium-shadow transition-colors hover:border-emerald-500/30 hover:bg-neutral-900">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
-                <Icon icon={card.icon} className="text-2xl" />
+      <Card className="border-emerald-500/20 bg-emerald-500/[0.06]">
+        <div className="flex items-start gap-3">
+          <Icon icon="solar:electric-refueling-bold-duotone" className="mt-0.5 text-2xl text-emerald-300" />
+          <p className="text-sm leading-6 text-neutral-200">
+            No hackathon, o SDK operacional foca no Power Totem. Depois, os mesmos contratos suportam API Toll, Data Gate, Agent Tool Paywall e outros templates.
+          </p>
+        </div>
+      </Card>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        {sdkSteps.map((step, index) => (
+          <Card key={step.title}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
+                <Icon icon={step.icon} className="text-2xl" />
               </div>
-              <Badge tone={card.status}>{card.status}</Badge>
+              <Badge tone="ready">{index + 1}</Badge>
             </div>
-            <h2 className="mt-5 font-bricolage text-xl font-bold text-white">{card.title}</h2>
-            <p className="mt-3 min-h-16 text-sm leading-6 text-neutral-400">{card.description}</p>
-            <div className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-emerald-400">
-              Abrir
-              <Icon icon="solar:arrow-right-up-linear" className="transition-transform group-hover:translate-x-0.5" />
-            </div>
-          </Link>
+            <h2 className="mt-4 font-bricolage text-lg font-bold text-white">{step.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-neutral-500">{step.description}</p>
+          </Card>
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_0.82fr]">
         <Card>
-          <h2 className="font-bricolage text-xl font-bold text-white">Sequencia tecnica de integracao</h2>
-          <p className="mt-1 text-sm text-neutral-500">Atalhos para validar credenciais, eventos e pagamento depois que o flow base ja foi escolhido.</p>
-          <div className="mt-5 space-y-3">
-            {[
-              ['Escolher template MVP', '/templates'],
-              ['Criar API key', '/api-keys'],
-              ['Configurar webhook', '/webhooks'],
-              ['Testar pagamento x402', '/checkout'],
-            ].map(([label, route], index) => (
-              <Link key={label} to={route} className="flex items-center justify-between rounded-xl bg-black/30 p-3 hover:bg-white/5">
-                <span className="flex items-center gap-3 text-sm text-neutral-300">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500 text-xs font-bold text-black">{index + 1}</span>
-                  {label}
-                </span>
-                <Icon icon="solar:arrow-right-linear" className="text-neutral-600" />
-              </Link>
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h2 className="font-bricolage text-xl font-bold text-white">Starter do Gateway SDK</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">
+                O starter e o caminho recomendado para a demo: baixar, colar o token do gateway e adaptar o exemplo do Power Totem.
+              </p>
+            </div>
+            <a
+              href="/sdk/kivo-sdk-starter.zip"
+              download
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-300 hover:bg-emerald-500/15"
+            >
+              <Icon icon="solar:download-bold" />
+              Download .zip
+            </a>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {starterFiles.map((file) => (
+              <div key={file} className="flex items-center gap-3 rounded-xl border border-white/5 bg-black/25 p-3 text-sm text-neutral-300">
+                <Icon icon="solar:file-text-bold-duotone" className="text-lg text-emerald-300" />
+                {file}
+              </div>
             ))}
           </div>
-        </Card>
 
-        <Card>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-white/5 bg-black/25 p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">MCP tools</p>
-              <p className="mt-2 font-bricolage text-3xl font-bold text-white">{tools.data?.length ?? 0}</p>
-              <p className="mt-2 text-sm text-neutral-500">Ferramentas disponiveis para agentes.</p>
-            </div>
-            <div className="rounded-2xl border border-white/5 bg-black/25 p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">x402 rules</p>
-              <p className="mt-2 font-bricolage text-3xl font-bold text-white">{pricing.data?.length ?? 0}</p>
-              <p className="mt-2 text-sm text-neutral-500">Recursos pagos configurados.</p>
-            </div>
-          </div>
-          <pre className="mt-5 overflow-auto rounded-2xl border border-white/10 bg-black/40 p-4 text-xs leading-6 text-blue-100">{`import { KivoClient } from '@kivo/sdk';
+          <pre className="mt-5 overflow-auto rounded-2xl border border-white/10 bg-black/40 p-4 text-xs leading-6 text-blue-100">{`import { KivoGatewayClient } from './src/client';
+import { runOnce } from './src/runner';
+import { SimulatorPowerAdapter } from './src/adapters/simulator';
 
-const kivo = new KivoClient({ apiKey: process.env.KIVO_API_KEY });
+const client = new KivoGatewayClient({
+  baseUrl: process.env.KIVO_API_URL!,
+  gatewayId: process.env.KIVO_GATEWAY_ID!,
+  gatewayToken: process.env.KIVO_GATEWAY_TOKEN!,
+  apiToken: process.env.KIVO_API_TOKEN,
+});
 
-const payment = await kivo.payments.create({
-  amount: '0.0500000',
-  assetCode: 'USDC',
-  conditionType: 'service_complete'
+await runOnce({
+  client,
+  adapter: new SimulatorPowerAdapter(),
 });`}</pre>
         </Card>
+
+        <div className="space-y-6">
+          <Card>
+            <h2 className="font-bricolage text-xl font-bold text-white">Pronto para operar o totem?</h2>
+            <div className="mt-5 space-y-3">
+              <Link to="/studio" className="flex items-center justify-between rounded-xl bg-black/30 p-3 text-sm font-bold text-neutral-200 hover:bg-white/5">
+                Abrir Kivo Studio
+                <Icon icon="solar:arrow-right-linear" />
+              </Link>
+              <Link to="/totem-simulator" className="flex items-center justify-between rounded-xl bg-black/30 p-3 text-sm font-bold text-neutral-200 hover:bg-white/5">
+                Abrir simulador
+                <Icon icon="solar:arrow-right-linear" />
+              </Link>
+              <Link to="/checkout" className="flex items-center justify-between rounded-xl bg-emerald-500/10 p-3 text-sm font-bold text-emerald-300 hover:bg-emerald-500/15">
+                Testar checkout x402
+                <Icon icon="solar:arrow-right-linear" />
+              </Link>
+            </div>
+          </Card>
+
+          <Card>
+            <h2 className="font-bricolage text-xl font-bold text-white">Estado da integracao</h2>
+            <div className="mt-5 grid gap-3">
+              <div className="flex items-center justify-between rounded-xl bg-black/25 p-3">
+                <span className="text-sm text-neutral-400">API keys</span>
+                <Badge tone={(apiKeys.data?.length ?? 0) ? 'ready' : 'warning'}>{apiKeys.data?.length ?? 0}</Badge>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-black/25 p-3">
+                <span className="text-sm text-neutral-400">Webhooks</span>
+                <Badge tone={(webhooks.data?.length ?? 0) ? 'ready' : 'warning'}>{webhooks.data?.length ?? 0}</Badge>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-black/25 p-3">
+                <span className="text-sm text-neutral-400">Recursos x402</span>
+                <Badge tone={(pricing.data?.length ?? 0) ? 'ready' : 'warning'}>{pricing.data?.length ?? 0}</Badge>
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
+
+      <Card>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="font-bricolage text-xl font-bold text-white">Roadmap de templates</h2>
+            <p className="mt-2 text-sm leading-6 text-neutral-500">
+              Estes templates nao sao o caminho primario do hackathon; eles reaproveitam os contratos depois que o Power Totem estiver fechado.
+            </p>
+          </div>
+          <Badge tone="paused">Depois do MVP</Badge>
+        </div>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {flowCards.map((card) => (
+            <div key={card.title} className="rounded-2xl border border-white/5 bg-black/25 p-5">
+              <Icon icon={card.icon} className="text-3xl text-emerald-300" />
+              <h3 className="mt-4 font-bricolage text-xl font-bold text-white">{card.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-neutral-500">{card.description}</p>
+              <span className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-neutral-500">
+                Roadmap nao funcional agora
+              </span>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }

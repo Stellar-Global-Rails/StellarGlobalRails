@@ -2,31 +2,19 @@ import { Icon } from '@iconify/react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { advancedTools } from '@/data/advancedTools';
 import { useUIStore } from '@/stores';
 
-const advancedCommands = advancedTools.map((tool) => ({
-  label: tool.title,
-  path: tool.route,
-  icon: tool.icon,
-  keywords: `advanced ${tool.keywords}`,
-}));
-
 const commands = [
-  { label: 'Home', path: '/dashboard', icon: 'solar:home-angle-bold-duotone', keywords: 'home personas workspace' },
-  { label: 'Criar flow', path: '/create-flow', icon: 'solar:add-circle-bold-duotone', keywords: 'create flow monetizar template kivo' },
-  { label: 'Flows', path: '/flows', icon: 'solar:bolt-circle-bold-duotone', keywords: 'flows recursos monetizados devices apis data feeds' },
+  { label: 'Home', path: '/dashboard', icon: 'solar:home-2-bold-duotone', keywords: 'home power totem workspace' },
+  { label: 'Kivo Studio', path: '/studio', icon: 'solar:electric-refueling-bold-duotone', keywords: 'power totem raspberry gateway sdk ai agents' },
+  { label: 'Simulador do totem', path: '/totem-simulator', icon: 'solar:bolt-circle-bold-duotone', keywords: 'demo meet fallback raspberry gpio' },
   { label: 'Pagamentos', path: '/payments', icon: 'solar:wallet-money-bold-duotone', keywords: 'payment payments stellar usdc' },
   { label: 'Checkout real', path: '/checkout', icon: 'solar:card-transfer-bold-duotone', keywords: 'payer usuario payment required checkout x402' },
-  { label: 'Integracoes', path: '/advanced', icon: 'solar:settings-bold-duotone', keywords: 'advanced x402 etherfuse mcp webhooks deploy diagnosticos tecnicos' },
-  { label: 'Operacao M2M', path: '/operations', icon: 'solar:devices-bold-duotone', keywords: 'operator devices health sessions' },
-  { label: 'Hub de integracao', path: '/integrations', icon: 'solar:code-square-bold-duotone', keywords: 'builder api webhooks mcp templates' },
+  { label: 'Power Totem Gateway SDK', path: '/integrations', icon: 'solar:code-square-bold-duotone', keywords: 'sdk gateway totem raspberry simulator webhooks' },
   { label: 'Financeiro', path: '/finance', icon: 'solar:chart-square-bold-duotone', keywords: 'recebiveis conciliacao settlement receita' },
-  { label: 'Saude dos flows', path: '/health', icon: 'solar:heart-pulse-bold-duotone', keywords: 'health saude flows recursos setup falhas' },
+  { label: 'Saude do totem', path: '/health', icon: 'solar:heart-pulse-bold-duotone', keywords: 'health saude gateway totem setup falhas' },
   { label: 'Status do Kivo', path: '/status', icon: 'solar:pulse-2-bold-duotone', keywords: 'status sistema kivo plataforma disponibilidade' },
-  { label: 'Time e escala', path: '/team', icon: 'solar:users-group-rounded-bold-duotone', keywords: 'workspace roles solo team enterprise' },
-  { label: 'Ferramentas avancadas', path: '/ops-dashboard', icon: 'solar:widget-5-bold-duotone', keywords: 'metrics health dashboard advanced' },
-  ...advancedCommands,
+  { label: 'Configuracoes', path: '/settings', icon: 'solar:settings-bold-duotone', keywords: 'conta workspace ambiente conexoes' },
 ];
 
 export default function CommandPalette() {
@@ -71,7 +59,7 @@ export default function CommandPalette() {
           >
             <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
               <Icon icon="solar:magnifer-linear" className="text-xl text-neutral-500" />
-              <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar flow, pagamento ou integracao..." className="w-full bg-transparent text-white outline-none placeholder:text-neutral-600" />
+              <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar Studio, simulador ou pagamento..." className="w-full bg-transparent text-white outline-none placeholder:text-neutral-600" />
               <span className="rounded bg-white/5 px-2 py-1 text-[10px] text-neutral-500">ESC</span>
             </div>
             <div className="max-h-[50vh] overflow-y-auto p-2">

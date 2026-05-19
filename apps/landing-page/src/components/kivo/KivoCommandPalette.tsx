@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const MODULES = [
   { id: 'invoicing', name: 'Kivo Invoicing', icon: 'solar:bill-list-linear', path: '/invoice' },
-  { id: 'payouts', name: 'Kivo Payouts', icon: 'solar:buildings-linear', path: '/payouts' },
+  { id: 'payouts', name: 'Kivo Gateway', icon: 'solar:buildings-linear', path: '/payouts' },
   { id: 'escrow', name: 'Kivo Safe Checkout', icon: 'solar:shield-keyhole-linear', path: '/escrow' },
   { id: 'familybridge', name: 'FamilyBridge', icon: 'solar:home-smile-linear', path: '/familybridge' },
   { id: 'vakinha', name: 'Vakinha Global', icon: 'solar:heart-pulse-linear', path: '/vakinha' },

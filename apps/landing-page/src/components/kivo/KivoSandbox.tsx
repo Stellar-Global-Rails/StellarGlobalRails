@@ -36,8 +36,8 @@ export default function KivoSandbox() {
         viewport={{ once: true }}
         className="text-center mb-12"
       >
-        <h2 className="text-3xl md:text-5xl font-bricolage text-white mb-6">Live Sandbox: Gateway Global</h2>
-        <p className="text-white/50 text-lg">Veja o que acontece nos bastidores quando uma compra transfronteiriça é feita usando 3 linhas de código.</p>
+        <h2 className="text-3xl md:text-5xl font-bricolage text-white mb-6">Gateway Access Flow</h2>
+        <p className="text-white/50 text-lg">Veja como um recurso físico ou digital fica bloqueado até o Kivo validar x402, Stellar e Etherfuse.</p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">

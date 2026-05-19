@@ -7,6 +7,18 @@ export type KivoTemplateId = 'device-pay-ev-charging' | 'paid-api-endpoint' | 'i
 export type KivoFlowStatus = 'draft' | 'testing' | 'active' | 'needs_setup' | 'failed';
 export type KivoFlowUnit = 'session' | 'kWh' | 'minute' | 'request' | 'reading' | 'package';
 export type KivoIntegrationMode = 'gateway_sdk' | 'api_middleware' | 'data_feed';
+export type PowerTotemStatus = 'draft' | 'pairing' | 'testing' | 'active' | 'paused' | 'failed';
+export type GatewayStatus = 'pairing' | 'online' | 'offline' | 'suspended';
+export type GatewayAdapter = 'simulator' | 'raspberry';
+export type PowerSessionStatus =
+  | 'requested'
+  | 'payment_required'
+  | 'paid'
+  | 'authorized'
+  | 'running'
+  | 'completed'
+  | 'expired'
+  | 'failed';
 
 export interface KivoTemplate {
   id: KivoTemplateId;
@@ -52,6 +64,87 @@ export interface CreateFlowDraft {
   price: string;
   unit: KivoFlowUnit;
   resource: string;
+}
+
+export interface PowerTotem {
+  id: string;
+  name: string;
+  resource: string;
+  price: string;
+  unit: 'session' | 'minute' | 'kWh';
+  sessionDurationSeconds: number;
+  status: PowerTotemStatus;
+  qrSlug: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePowerTotemInput {
+  name: string;
+  price: string;
+  unit?: PowerTotem['unit'];
+  sessionDurationSeconds?: number;
+  qrSlug?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface Gateway {
+  id: string;
+  totemId?: string | null;
+  name: string;
+  tokenPreview: string;
+  pairingTokenPreview?: string | null;
+  status: GatewayStatus;
+  adapter: GatewayAdapter;
+  lastSeenAt?: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GatewayPairingResult {
+  gateway: Gateway;
+  gatewayToken: string;
+  pairingToken?: string;
+}
+
+export interface PowerSession {
+  id: string;
+  totemId: string;
+  gatewayId?: string | null;
+  paymentId?: string | null;
+  x402Nonce?: string | null;
+  resource: string;
+  amount: string;
+  asset: string;
+  durationSeconds: number;
+  status: PowerSessionStatus;
+  authorizationTokenPreview?: string | null;
+  authorizedAt?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  expiresAt: string;
+  failureReason?: string | null;
+  events: PaymentEvent[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GatewayEvent {
+  id: string;
+  gatewayId?: string | null;
+  totemId?: string | null;
+  sessionId?: string | null;
+  eventType: string;
+  payload: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface CreateGatewayEventInput {
+  eventType: string;
+  sessionId?: string | null;
+  payload?: Record<string, unknown>;
 }
 
 export interface AssetBalance {

@@ -107,7 +107,7 @@ SocialPay is one of three products in the **Stellar Global Rails** ecosystem:
 graph TD
     SP[SocialPay<br/>@handle payments]
     CE[ContractEase<br/>Smart contracts]
-    KP[Kivo Pay<br/>Settlement layer]
+    KP[Kivo<br/>Settlement layer]
     SB[(Supabase<br/>Shared backend)]
     SN[Stellar Network]
 
@@ -120,7 +120,7 @@ graph TD
 ```
 
 - **Shared Supabase**: SocialPay and ContractEase share authentication, organization management, and row-level security policies via a unified Supabase project
-- **Kivo Pay settlement**: Large or cross-currency transactions are routed through Kivo Pay for optimal path payment execution
+- **Kivo settlement**: Large or cross-currency transactions are routed through the Kivo settlement engine for optimal path payment execution
 - **Stellar Network**: All settlement happens on-chain — SocialPay is a UX layer, not a custodian
 
 ---

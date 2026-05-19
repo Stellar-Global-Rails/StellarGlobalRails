@@ -137,7 +137,7 @@ function InvoiceVisual() {
   );
 }
 
-// --- Visual Interativo: Kivo Payouts ---
+// --- Visual Interativo: Kivo Gateway ---
 function PayoutsVisual() {
   const [processing, setProcessing] = useState(false);
   
@@ -340,7 +340,7 @@ export default function KivoEcosystem() {
     {
       id: 'payouts',
       icon: 'solar:buildings-linear',
-      name: 'Kivo Payouts',
+      name: 'Kivo Gateway',
       desc: 'Pague 200 bolsistas ou fornecedores com um clique via planilhas.',
       longDesc: 'Diga adeus as remessas Swift caras. Faça o upload de uma planilha CSV com e-mails ou carteiras, deposite o valor total em USDC e nosso motor dispara centenas de pagamentos simultâneos em menos de 5 segundos.',
       color: 'text-purple-400',
@@ -366,8 +366,8 @@ export default function KivoEcosystem() {
       id: 'familybridge',
       icon: 'solar:home-smile-linear',
       name: 'FamilyBridge',
-      desc: 'Remessas internacionais B2C liquidadas no Brasil via Kivo Payouts.',
-      longDesc: 'FamilyBridge usa o Kivo Payouts nos bastidores para conectar USDC em contas estrangeiras diretamente ao Pix de familiares no Brasil, sem passar por bancos correspondentes.',
+      desc: 'Remessas internacionais B2C liquidadas no Brasil via Kivo Gateway.',
+      longDesc: 'FamilyBridge usa o Kivo Gateway nos bastidores para conectar USDC em contas estrangeiras diretamente ao Pix de familiares no Brasil, sem passar por bancos correspondentes.',
       color: 'text-orange-400',
       bg: 'bg-orange-500/10',
       border: 'border-orange-500/20'
@@ -386,8 +386,8 @@ export default function KivoEcosystem() {
       id: 'quilovolt',
       icon: 'solar:bolt-circle-linear',
       name: 'QuiloVolt EV',
-      desc: 'Postos de recarga IoT rodando hardware Kivo Terminal modificado.',
-      longDesc: 'Ao acoplar o SDK do Kivo Terminal num totem elétrico, o Quilovolt usa a API de "Hold" do Kivo para ir cobrando do cliente por minuto, sem fricção.',
+      desc: 'Roadmap de recarga IoT usando gateways fisicos Kivo.',
+      longDesc: 'QuiloVolt EV fica como template futuro: um gateway fisico validaria x402, Stellar e Etherfuse antes de liberar energia por sessao.',
       color: 'text-yellow-400',
       bg: 'bg-yellow-500/10',
       border: 'border-yellow-500/20'
@@ -416,7 +416,7 @@ export default function KivoEcosystem() {
       id: 'onyx',
       icon: 'lucide:shield-check',
       name: 'ONYX Risk',
-      desc: 'O Kivo Pay consome o ONYX para barrar fraudes e lavar dinheiro em tempo real.',
+      desc: 'O Kivo settlement engine consome o ONYX para barrar fraudes e lavagem de dinheiro em tempo real.',
       longDesc: 'Toda transação no Kivo Gateway passa pelos nós do Onyx. Se o score de risco for alto, o Kivo rejeita a transação antes mesmo de ir para o Ledger Stellar.',
       color: 'text-red-400',
       bg: 'bg-red-500/10',

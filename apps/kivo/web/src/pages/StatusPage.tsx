@@ -26,79 +26,127 @@ export default function StatusPage() {
   const etherfuse = useAsyncData(() => kivoClient.getEtherfuseStatus(), []);
 
   const system = health.data;
-  const platformOnline = system?.api === 'ok' && system.db === 'ok' && system.stellar === 'ok';
-  const serviceRows = [
-    { id: 'app', label: 'Aplicacao Kivo', description: 'Frontend, login e experiencia do workspace.', status: system?.api ?? 'degraded', icon: 'solar:monitor-bold-duotone' },
-    { id: 'db', label: 'Dados e autenticacao', description: 'Supabase Auth, banco e regras de acesso.', status: system?.db ?? 'degraded', icon: 'solar:database-bold-duotone' },
-    { id: 'stellar', label: 'Liquidacao Stellar', description: 'Rede usada para confirmar pagamentos assinados.', status: system?.stellar ?? 'degraded', icon: 'solar:star-fall-bold-duotone' },
-    { id: 'workers', label: 'Automacoes', description: 'Processos que acompanham pagamentos, webhooks e eventos.', status: system?.workers ?? 'degraded', icon: 'solar:refresh-circle-bold-duotone' },
-    { id: 'anchor', label: 'Etherfuse Devnet', description: 'Rampa e anchor para funding antes do checkout.', status: etherfuse.data?.configured ? 'ok' : 'degraded', icon: 'solar:banknote-2-bold-duotone' },
+  const gatewaySignal = typeof system?.gateway === 'string'
+    ? system.gateway
+    : typeof system?.gateways === 'string'
+      ? system.gateways
+      : undefined;
+  const apiReady = system?.api === 'ok';
+  const stellarReady = system?.stellar === 'ok';
+  const etherfuseReady = Boolean(etherfuse.data?.configured);
+  const gatewayReady = gatewaySignal === 'ok' || gatewaySignal === 'online';
+  const powerPathReady = apiReady && stellarReady && etherfuseReady && gatewayReady;
+
+  const readinessChecks = [
+    {
+      id: 'api',
+      label: 'Kivo API',
+      description: 'Supabase Edge Function responde as rotas de checkout e gateway.',
+      status: system?.api ?? 'degraded',
+      detail: health.error ?? (system?.version ? `Versao ${system.version}` : 'Aguardando leitura do health.'),
+      icon: 'solar:server-square-cloud-bold-duotone',
+    },
+    {
+      id: 'stellar',
+      label: 'Stellar settlement',
+      description: 'Backend consegue validar e liquidar pagamentos assinados no Horizon.',
+      status: system?.stellar ?? 'degraded',
+      detail: stellarReady ? 'Health Stellar ok.' : 'Aguardando health Stellar ok.',
+      icon: 'solar:star-fall-bold-duotone',
+    },
+    {
+      id: 'etherfuse',
+      label: 'Etherfuse anchor/funding',
+      description: 'Anchor e funding para demo estao configurados no servidor.',
+      status: etherfuseReady ? 'ok' : 'degraded',
+      detail: etherfuse.data ? `${formatProviderModeLabel(etherfuse.data.mode)} - ${etherfuse.data.network}` : etherfuse.error ?? 'Checando Etherfuse.',
+      icon: 'solar:banknote-2-bold-duotone',
+    },
+    {
+      id: 'gateway',
+      label: 'Power Gateway heartbeat',
+      description: 'Sinal do gateway fisico/simulador que marca a operacao online.',
+      status: gatewaySignal ?? 'degraded',
+      detail: gatewaySignal ? `Health reportou ${gatewaySignal}.` : 'Sem heartbeat agregado no status; valide no simulador ou no gateway package.',
+      icon: 'solar:radio-minimalistic-bold-duotone',
+    },
   ];
 
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Sistema"
-        title="Status do Kivo"
+        eyebrow="Power Totem"
+        title="Status da demo"
         icon="solar:pulse-2-bold-duotone"
-        description="Visao simples da disponibilidade da plataforma que sustenta os workspaces Kivo."
-        action={<Link to="/health" className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/5">Ver meus flows</Link>}
+        description="Quatro sinais para decidir se o caminho Power Totem esta pronto para palco."
+        action={<Link to="/health" className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/5">Ver readiness</Link>}
       />
 
       <WorkspaceContextBanner
-        eyebrow="Plataforma"
-        title={platformOnline ? 'Kivo operacional' : 'Kivo precisa de atencao'}
+        eyebrow="Go/No-Go"
+        title={powerPathReady ? 'Power Totem pronto para teste' : 'Power Totem precisa de atencao'}
         icon="solar:shield-check-bold-duotone"
-        tone={platformOnline ? 'ready' : 'warning'}
-        description="Esta pagina responde a pergunta: o Kivo esta pronto para autenticar, cobrar e liquidar pagamentos agora?"
-        checkpoints={['Frontend', 'Supabase', 'Stellar', 'Etherfuse']}
-        primaryAction={{ to: '/dashboard', label: 'Voltar para Home' }}
-        secondaryAction={{ to: '/deploy', label: 'Checklist de deploy' }}
+        tone={powerPathReady ? 'ready' : 'warning'}
+        description="Use esta tela para conferir API, Stellar, Etherfuse e o sinal honesto do gateway antes de iniciar checkout e autorizacao fisica."
+        checkpoints={['Kivo API', 'Stellar', 'Etherfuse', 'Gateway']}
+        primaryAction={{ to: '/checkout', label: 'Abrir checkout' }}
+        secondaryAction={{ to: '/totem-simulator', label: 'Simulador gateway' }}
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <StatCard
-          title="Plataforma"
-          value={platformOnline ? 'Online' : 'Atenção'}
-          detail={health.error ?? 'Servicos principais monitorados'}
-          icon="solar:pulse-2-bold-duotone"
-          tone={platformOnline ? 'emerald' : 'amber'}
-        />
-        <StatCard
-          title="Anchor"
-          value={etherfuse.data?.configured ? 'Conectada' : 'Pendente'}
-          detail={etherfuse.data ? formatProviderModeLabel(etherfuse.data.mode) : etherfuse.error ?? 'checando Etherfuse'}
-          icon="solar:banknote-2-bold-duotone"
-          tone={etherfuse.data?.configured ? 'emerald' : 'amber'}
-        />
-        <StatCard
-          title="Ambiente"
-          value={etherfuse.data?.network ?? 'testnet'}
-          detail={system?.version ? 'Versao validada no backend' : 'Aguardando leitura'}
+          title="Kivo API"
+          value={apiReady ? 'OK' : 'Atencao'}
+          detail={health.error ?? 'Edge health'}
           icon="solar:server-square-cloud-bold-duotone"
-          tone="blue"
+          tone={apiReady ? 'emerald' : 'amber'}
+        />
+        <StatCard
+          title="Stellar"
+          value={stellarReady ? 'OK' : 'Atencao'}
+          detail="Settlement XDR"
+          icon="solar:star-fall-bold-duotone"
+          tone={stellarReady ? 'emerald' : 'amber'}
+        />
+        <StatCard
+          title="Etherfuse"
+          value={etherfuseReady ? 'OK' : 'Pendente'}
+          detail={etherfuse.data ? formatProviderModeLabel(etherfuse.data.mode) : etherfuse.error ?? 'anchor/funding'}
+          icon="solar:banknote-2-bold-duotone"
+          tone={etherfuseReady ? 'emerald' : 'amber'}
+        />
+        <StatCard
+          title="Gateway"
+          value={gatewayReady ? 'Online' : 'Aguardando'}
+          detail="heartbeat fisico/simulador"
+          icon="solar:radio-minimalistic-bold-duotone"
+          tone={gatewayReady ? 'emerald' : 'amber'}
         />
       </div>
 
       <Card>
-        <h2 className="font-bricolage text-xl font-bold text-white">Servicos principais</h2>
+        <h2 className="font-bricolage text-xl font-bold text-white">Checks Power Totem</h2>
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
-          {serviceRows.map((service) => (
-            <div key={service.id} className="rounded-2xl border border-white/5 bg-black/25 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-emerald-300">
-                    <Icon icon={service.icon} className="text-xl" />
+          {readinessChecks.map((check) => {
+            const tone = healthTone(check.status);
+            return (
+              <div key={check.id} className="rounded-2xl border border-white/5 bg-black/25 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-emerald-300">
+                      <Icon icon={check.icon} className="text-xl" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-white">{check.label}</p>
+                      <p className="mt-1 text-sm leading-6 text-neutral-500">{check.description}</p>
+                      <p className="mt-2 text-xs text-neutral-600">{check.detail}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-white">{service.label}</p>
-                    <p className="mt-1 text-sm leading-6 text-neutral-500">{service.description}</p>
-                  </div>
+                  <Badge tone={tone}>{statusLabel(tone)}</Badge>
                 </div>
-                <Badge tone={healthTone(service.status)}>{statusLabel(healthTone(service.status))}</Badge>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
 

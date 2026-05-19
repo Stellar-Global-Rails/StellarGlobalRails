@@ -1,12 +1,20 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo Pay — x402 Protocol"
+title: "Kivo — x402 Protocol"
 description: "Deep dive into the HTTP 402 Payment Required protocol for machine-native payments: flow, Go server implementation, TypeScript client, and Stellar payment encoding."
 ---
 
 # x402 Protocol Deep Dive
 
-The x402 protocol repurposes the HTTP 402 Payment Required status code — originally reserved but never widely used — as a machine-native payment primitive. It is the backbone of Kivo Pay's API monetization layer and the protocol that makes M2M payments as simple as an HTTP header.
+The x402 protocol repurposes the HTTP 402 Payment Required status code — originally reserved but never widely used — as a machine-native payment primitive. It is the backbone of Kivo's API monetization layer and the protocol that makes M2M payments as simple as an HTTP header.
+
+---
+
+## Role In Kivo
+
+x402 is the paid access requirement layer in Kivo.
+
+When a client requests a protected resource, Kivo returns an x402 payment requirement. After payment and settlement proof are validated, Kivo issues an authorization that a physical gateway or digital gateway can enforce. x402 tells the client what must be paid; Kivo decides whether that payment unlocks the resource.
 
 ---
 

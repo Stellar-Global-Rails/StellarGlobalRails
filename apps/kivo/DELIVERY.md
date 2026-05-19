@@ -4,30 +4,30 @@ Last checked: 2026-05-18
 
 ## Current Status
 
+- Hackathon path: Power Totem is the primary demo path.
 - Frontend deploy: Vercel is already configured by the operator.
 - Production API target: Supabase Edge Function `kivo-api`.
-- Fly.io: removed from the MVP path because the trial/billing blocker made it unreliable for delivery.
-- Go API: retired from the MVP runtime; the Solo MVP routes now run in TypeScript on Supabase Edge.
-- Supabase schema: `kivo_*` tables, RLS, grants, and compatibility alignment applied to the cloud project.
-- Edge route parity: dashboard, devices, payments, x402, webhooks, API keys, MCP tools/config, workflows, deploy checks, and Etherfuse proxy are active.
-- Product UI: Checkout, Deploy, and x402 no longer expose test-harness wording in normal mode.
-- Dev-only controls: hidden unless `VITE_KIVO_ENABLE_DEV_CONTROLS=true`.
+- Supabase schema: `kivo_*` tables, RLS, grants, Power Totem tables, gateway events, and x402/session bridge alignment applied to the cloud project.
+- Edge route parity: health, Etherfuse proxy, x402 challenge/payment, Power Totems, Power Sessions, gateway heartbeat, gateway authorization, gateway events, dashboard, deploy checks, and delivery docs are active.
+- Gateway package: `apps/kivo/gateway` supports simulator and Raspberry shell adapters; completion currently needs `KIVO_API_TOKEN` until gateway-token completion is promoted.
+- Safety posture: Raspberry demo must use only low-voltage output. Browser simulator remains the fallback if hardware is not ready.
+- Legacy note: Fly.io and the old Go API are retired from the MVP runtime.
 
 ## Current Blockers
 
 1. Wallet signing remains an external user/device step.
-   - `GET /v1/x402/challenge` persists a nonce.
-   - `POST /v1/x402/pay` validates destination, amount, asset, and nonce memo before submitting the signed XDR to Stellar Horizon.
-   - The Kivo UI still needs a wallet/SDK-produced `txXDR` to complete the paid retry.
+   - `POST /v1/power-sessions/:id/start-checkout` creates the x402 challenge for `/power-totem/{id}/session`.
+   - `POST /v1/x402/pay` validates destination, amount, asset, and nonce memo before submitting signed XDR to Stellar Horizon.
+   - The Kivo UI still needs a wallet/SDK-produced `txXDR` to complete the paid authorization.
 
-2. Local Supabase/Postgres is not reachable in the current CLI session.
-   - Docker Desktop Linux engine was not available during the last preflight.
+2. Gateway completion uses authenticated Power Session completion.
+   - `apps/kivo/gateway` requires `KIVO_API_TOKEN` before it actuates.
+   - This can be removed when gateway-token completion is added or the x402 bridge owns the full status transition.
+
+3. Local Supabase/Postgres may not be reachable in every CLI session.
+   - Docker Desktop Linux engine was not available during the last local preflight.
    - Production deploy can still use `supabase functions deploy --use-api`.
    - Resolution for local dev: start Docker Desktop, then run `supabase start --workdir .`.
-
-3. Local `.env` can lag cloud secrets.
-   - Supabase Edge has `ETHERFUSE_WEBHOOK_SECRET` configured.
-   - The secret is not recoverable from Supabase after creation; rotate it if a local visible copy is required.
 
 4. `X402_PLATFORM_KEY` must be the funded Stellar testnet public key.
    - The public key must start with `G` and be funded on Stellar testnet.
@@ -37,36 +37,31 @@ Last checked: 2026-05-18
    - Supabase Advisor reports it as a warning, not a runtime blocker.
    - Enable it before public onboarding.
 
-## Go/No-Go Checklist
+## Power Totem Go/No-Go
 
-- [x] `supabase/functions/kivo-api` deployed with `--use-api --no-verify-jwt`.
-- [x] `GET /v1/health` returns `200`.
-- [x] `GET /v1/etherfuse/status` returns configured Devnet status.
-- [x] `GET /v1/etherfuse/assets` returns at least one Stellar rampable asset.
-- [x] `POST /v1/etherfuse/webhook` verifies signature and persists the event when signed.
-- [x] `GET /v1/x402/challenge?resource=/api/x402/data` returns a persisted nonce.
-- [x] `POST /v1/x402/pay` validates signed Stellar XDR and submits it to Horizon; invalid XDR fails without fake success.
-- [x] `GET /api/x402/data` rejects unpaid requests with `402`.
-- [x] `GET /api/x402/data` unlocks with `200` after a valid signed XDR is supplied.
-- [x] Frontend Vercel env `VITE_KIVO_API_URL` points to the healthy Supabase Edge Function.
-- [x] Supabase Auth login works against the Edge API in smoke tests.
-- [x] Supabase Advisor has no Kivo schema errors; only Auth leaked password protection remains as a dashboard warning.
-- [x] Create Flow publishes either a device flow or an x402 pricing rule.
-- [x] Dashboard, Checkout, Deploy, and x402 run without Fly runtime references.
+- [ ] Power Totem can be created in Studio.
+- [ ] Gateway token is shown once and not exposed again.
+- [ ] Gateway heartbeat marks the gateway online.
+- [ ] Checkout creates x402 challenge for `/power-totem/{id}/session`.
+- [ ] Valid signed payment authorizes one session.
+- [ ] Gateway simulator receives authorization and reports session events.
+- [ ] Raspberry demo uses only low-voltage output.
+- [ ] Browser simulator is ready if hardware fails.
 
 ## Demo Flow
 
 1. Login in Kivo.
-2. Open Home and click `Create Flow`.
-3. Pick `Paid API` or `EV Charging`.
-4. Publish the flow.
-5. Open `Test Payment`.
-6. Request price/challenge.
-7. Sign the payment transaction with a Stellar testnet wallet or SDK, paying the exact destination/amount/asset and using memo text `nonce` or memo hash `sha256(nonce)`.
-8. Paste the signed `txXDR`.
-9. Submit payment.
-10. Show the unlocked response and the payment in the dashboard.
-11. Open Deploy and show Etherfuse Devnet status from the Supabase Edge Function.
+2. Open Studio and create a Power Totem.
+3. Copy the one-time gateway token.
+4. Run the gateway simulator from `apps/kivo/gateway`, or open the browser simulator.
+5. Send a heartbeat so the gateway is online.
+6. Open Checkout and start a Power Totem session.
+7. Confirm the x402 challenge targets `/power-totem/{id}/session`.
+8. Sign the Stellar testnet payment with the exact destination, amount, asset, and nonce memo.
+9. Submit the signed `txXDR`.
+10. Confirm the session becomes authorized.
+11. Let the gateway fetch authorization, enable output, disable output, complete the session, and report events.
+12. Open Health and Status to show readiness for API, Stellar, Etherfuse, and gateway heartbeat.
 
 ## Commands
 
@@ -81,7 +76,15 @@ Frontend:
 ```bash
 cd apps/kivo/web
 npm run lint
-npm test -- --run
+npx vitest run --reporter=default --pool=forks
+npm run build
+```
+
+Gateway:
+
+```bash
+cd apps/kivo/gateway
+npm test
 npm run build
 ```
 

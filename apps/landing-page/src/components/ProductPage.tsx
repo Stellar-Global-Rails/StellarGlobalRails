@@ -105,6 +105,7 @@ export default function ProductPage({ slug }: Props) {
     );
   }
 
+  const isKivo = productData.id === 'kivopay';
   const { color, icon, name, tagline, solution, features, aiAgents, forWhom, techDetails, faq } = productData;
 
   // Variável para shadow multi-camada no botão
@@ -135,7 +136,7 @@ export default function ProductPage({ slug }: Props) {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[60vh] blur-[150px] opacity-20 pointer-events-none" style={{ backgroundColor: color }}></div>
 
       {/* Nav spacing & Hero */}
-      <div className="relative pt-48 pb-16 px-6">
+      <div className="relative pt-36 md:pt-48 pb-40 md:pb-16 px-6">
         <div className="max-w-6xl mx-auto">
           {/* 2. Breadcrumbs Translúcidos (Moved here and removed fixed) */}
           <div className="hidden md:flex items-center gap-2 mb-12 text-xs font-medium text-white/40 tracking-wider">
@@ -146,7 +147,7 @@ export default function ProductPage({ slug }: Props) {
             <span className="text-white" style={{ color }}>{name.toUpperCase()}</span>
           </div>
           {/* Back button for mobile */}
-          <a href="/#products" className="md:hidden inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-8">
+          <a href="/#products" className="md:hidden inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-6">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             <span className="text-sm">{t('product.back_to_products')}</span>
           </a>
@@ -155,7 +156,7 @@ export default function ProductPage({ slug }: Props) {
           <div className="grid md:grid-cols-2 gap-12 lg:gap-24 items-center">
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} style={{ y: yHeroText }}>
               {/* 9. Social Metrics / Proof & 19. Badge LIVE */}
-              <div className="flex flex-col items-center md:items-start gap-4 mb-8">
+              <div className="flex flex-col items-center md:items-start gap-3 md:gap-4 mb-6 md:mb-8">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 px-2 py-1 rounded-full border border-white/10 bg-white/5 me-2">
                     <div className={`w-2 h-2 rounded-full ${shouldReduceMotion ? '' : 'animate-pulse'}`} style={{ backgroundColor: color }}></div>
@@ -171,13 +172,15 @@ export default function ProductPage({ slug }: Props) {
                     ))}
                   </div>
                 </div>
-                <div className="text-xs text-white/40 uppercase tracking-widest font-mono">
-                  Trusted by <span className="text-white font-bold">10k+</span> ops
-                </div>
+                {!isKivo && (
+                  <div className="text-xs text-white/40 uppercase tracking-widest font-mono">
+                    Trusted by <span className="text-white font-bold">10k+</span> ops
+                  </div>
+                )}
               </div>
 
               {/* Product Badge (The Logo) */}
-              <div className="flex justify-center md:justify-start mb-6">
+              <div className="flex justify-center md:justify-start mb-4 md:mb-6">
                 <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-white/10 bg-white/5" style={{ boxShadow: `inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 20px ${color}10` }}>
                   {/* @ts-ignore */}
                   <iconify-icon icon={icon} width="20" style={{ color }}></iconify-icon>
@@ -204,12 +207,14 @@ export default function ProductPage({ slug }: Props) {
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   className="flex flex-col items-center md:items-start"
                 >
-                  <h1 className="text-5xl md:text-6xl lg:text-7xl font-bricolage font-semibold text-white leading-tight mb-6 tracking-tighter text-center md:text-left">
-                    {profile === 'dev' && slug === 'kivopay' ? "Infraestrutura financeira unificada via API." : tagline}
+                  <h1 className="text-[2.7rem] sm:text-5xl md:text-6xl lg:text-7xl font-bricolage font-semibold text-white leading-tight mb-4 md:mb-6 tracking-tighter text-center md:text-left">
+                    {profile === 'dev' && isKivo ? "Gateway programavel para recursos pagos." : tagline}
                   </h1>
-                  <p className="text-xl text-white/70 leading-[1.8] max-w-xl font-light mb-8 text-center md:text-left">
-                    {profile === 'dev' 
-                      ? "Integre pagamentos, liquidação e contas escrow em minutos com nossa API RESTful. Sandboxes dedicados e webhooks em tempo real." 
+                  <p className="text-lg md:text-xl text-white/70 leading-[1.65] md:leading-[1.8] max-w-xl font-light mb-6 md:mb-8 text-center md:text-left">
+                    {profile === 'dev' && isKivo
+                      ? "Proteja APIs, dispositivos, automacoes e ferramentas de agentes com SDK TypeScript, x402, Stellar, Etherfuse e autorizacao por gateway."
+                      : profile === 'dev'
+                      ? "Integre pagamentos, liquidacao e contas escrow em minutos com nossa API RESTful. Sandboxes dedicados e webhooks em tempo real."
                       : solution.description}
                   </p>
 
@@ -462,7 +467,7 @@ export default function ProductPage({ slug }: Props) {
       )}
 
       {/* Kivo-specific sections: Templates, MCP, Comparison */}
-      {slug === 'kivopay' && (
+      {isKivo && (
         <>
           {/* Section 1: SDK M2M Templates Gallery */}
           <div className="py-32 border-t border-white/5 relative">
@@ -475,10 +480,10 @@ export default function ProductPage({ slug }: Props) {
                 className="mb-16"
               >
                 <h2 className="text-5xl lg:text-6xl font-bricolage font-bold text-white mb-6">
-                  Ready-to-Use Templates
+                  Power Totem agora. Outros templates depois.
                 </h2>
                 <p className="text-xl text-white/60 max-w-3xl">
-                  Start building M2M payment solutions with pre-configured templates. Each includes architecture diagrams, code examples, and real-world scenarios.
+                  O template funcional do hackathon prova o gateway fisico com Raspberry Pi, QR checkout, x402, Stellar e Etherfuse. Os demais aparecem como roadmap, nao como features prontas.
                 </p>
               </motion.div>
               <KivoTemplateGallery />
@@ -488,6 +493,20 @@ export default function ProductPage({ slug }: Props) {
           {/* Section 2: MCP for Autonomous Agents */}
           <div className="py-32 border-t border-white/5 relative">
             <div className="max-w-6xl mx-auto px-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="mb-12"
+              >
+                <h2 className="text-5xl lg:text-6xl font-bricolage font-bold text-white mb-6">
+                  Kivo Studio com AI agents
+                </h2>
+                <p className="text-xl text-white/60 max-w-3xl">
+                  Studio sera o ambiente onde o usuario descreve o recurso, escolhe gateway fisico ou digital, gera SDK code, testa x402/Etherfuse em testnet e decide se publica em mainnet privada.
+                </p>
+              </motion.div>
               <KivoMCPDemo />
             </div>
           </div>
@@ -503,44 +522,44 @@ export default function ProductPage({ slug }: Props) {
                 className="mb-16"
               >
                 <h2 className="text-5xl lg:text-6xl font-bricolage font-bold text-white mb-6">
-                  Why Stellar for M2M?
+                  Por que x402, Stellar e Etherfuse?
                 </h2>
                 <p className="text-xl text-white/60 max-w-3xl">
-                  Traditional payment networks are built for humans. M2M needs different properties: instant settlement, zero intermediaries, atomic guarantees, and programmable conditions.
+                  Kivo precisa provar pagamento, settlement e contexto de funding antes de liberar um recurso. x402 cria o requisito, Stellar confirma a prova e Etherfuse deixa a rail visivel para a experiencia testnet/mainnet.
                 </p>
               </motion.div>
 
               <ComparisonTable
                 rows={[
                   {
-                    label: 'Latency',
-                    fiat: '24-48 hours',
-                    stellar: '3-5 seconds'
+                    label: 'Access gate',
+                    fiat: 'Checkout separado do recurso',
+                    stellar: 'x402 bloqueia e libera acesso'
                   },
                   {
-                    label: 'Cost per transaction',
-                    fiat: '$15-50',
-                    stellar: '$0.00001'
+                    label: 'Settlement proof',
+                    fiat: 'Confirmacao lenta ou opaca',
+                    stellar: 'Prova Stellar em segundos'
                   },
                   {
-                    label: 'Programmability',
-                    fiat: 'None',
-                    stellar: 'Full (Soroban)'
+                    label: 'Anchor context',
+                    fiat: 'Funding invisivel para o usuario',
+                    stellar: 'Etherfuse visivel no fluxo'
                   },
                   {
-                    label: 'Intermediaries',
-                    fiat: '4-7 (correspondent banks)',
-                    stellar: '0 (peer-to-peer)'
+                    label: 'Gateway execution',
+                    fiat: 'Integracao customizada por caso',
+                    stellar: 'Autorizacao padrao para fisico e digital'
                   },
                   {
-                    label: 'Atomic guarantee',
-                    fiat: 'No (clearing takes days)',
-                    stellar: 'Yes (ledger finality)'
+                    label: 'Testnet path',
+                    fiat: 'Ambiente de teste limitado',
+                    stellar: 'Validacao completa antes da mainnet'
                   },
                   {
-                    label: 'Payment conditions',
-                    fiat: 'Not supported',
-                    stellar: 'Supported (x402 protocol)'
+                    label: 'Commercial model',
+                    fiat: 'Billing separado do produto',
+                    stellar: 'Private mainnet billing para flows validados'
                   }
                 ]}
               />
@@ -552,38 +571,38 @@ export default function ProductPage({ slug }: Props) {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="mt-16 p-12 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20"
               >
-                <h3 className="text-2xl font-semibold text-white mb-6">Why Machines Care</h3>
+                <h3 className="text-2xl font-semibold text-white mb-6">O que o gateway garante</h3>
                 <div className="grid md:grid-cols-2 gap-8">
                   <div>
                     <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <span className="text-emerald-400">✓</span> Speed
+                      <span className="text-emerald-400">+</span> Gateway unico
                     </h4>
                     <p className="text-white/60 text-sm">
-                      In 3-5 seconds, payment is final and irreversible. No clearing risk or settlement delays.
+                      O mesmo modelo protege uma carga fisica, uma API, uma automacao ou uma ferramenta de agente.
                     </p>
                   </div>
                   <div>
                     <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <span className="text-emerald-400">✓</span> Cost
+                      <span className="text-emerald-400">+</span> Pagamento verificavel
                     </h4>
                     <p className="text-white/60 text-sm">
-                      Micropayments become viable at $0.00001 per transaction instead of $15-50.
+                      x402 e Stellar deixam claro quando existe pagamento suficiente para liberar acesso.
                     </p>
                   </div>
                   <div>
                     <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <span className="text-emerald-400">✓</span> Autonomy
+                      <span className="text-emerald-400">+</span> Rail visivel
                     </h4>
                     <p className="text-white/60 text-sm">
-                      Machines transact without waiting for banks or intermediaries. True P2P settlement.
+                      Etherfuse aparece como contexto de anchor/funding sem virar o componente que executa o recurso.
                     </p>
                   </div>
                   <div>
                     <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <span className="text-emerald-400">✓</span> Logic
+                      <span className="text-emerald-400">+</span> Mainnet com billing
                     </h4>
                     <p className="text-white/60 text-sm">
-                      Conditional payments execute automatically when conditions are met. Smart contracts native.
+                      Depois do teste funcionar, o usuario paga para manter o flow privado em mainnet.
                     </p>
                   </div>
                 </div>
