@@ -842,15 +842,9 @@ const handleStudio = async (req: Request, path: string) => {
       interactionModel?: unknown;
       gatewayMode?: unknown;
     };
-    const prompt = typeof input.prompt === "string" ? input.prompt.trim() : "";
-    if (!prompt) {
-      return apiError(
-        req,
-        400,
-        "invalid_studio_intent",
-        "prompt is required.",
-      );
-    }
+    const prompt = typeof input.prompt === "string" && input.prompt.trim()
+      ? input.prompt.trim()
+      : "Novo Kivo flow";
 
     const surface = isStudioSurface(input.surface)
       ? input.surface
