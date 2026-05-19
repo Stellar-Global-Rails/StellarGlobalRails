@@ -917,11 +917,7 @@ const handleStudio = async (req: Request, path: string) => {
     const validationStatus = isStudioValidationStatus(rawStatus)
       ? rawStatus
       : "needs_connection";
-    return json(req, 200, {
-      flowId: launchOptions[1],
-      validationStatus,
-      options: getLaunchOptionsForValidation(validationStatus),
-    });
+    return json(req, 200, getLaunchOptionsForValidation(validationStatus));
   }
 
   return apiError(req, 404, "not_found", "Studio route not found.");
