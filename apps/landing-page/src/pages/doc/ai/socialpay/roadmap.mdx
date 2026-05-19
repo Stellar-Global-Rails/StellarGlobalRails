@@ -1,0 +1,259 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "SocialPay — Roadmap & Changelog"
+description: "Current feature status, the Supabase migration plan, and future phases covering USDC, multi-tenancy, x402 premium features, and mobile PWA."
+---
+
+# Roadmap & Changelog
+
+This document tracks the current feature status of SocialPay, the in-progress Supabase migration (Phase 2), and planned development phases through Phase 5.
+
+---
+
+## Current Status
+
+| Feature | Status | Notes |
+|---|---|---|
+| @handle registration | Live | Per-org unique, enforced by DB constraint |
+| Magic link auth | In migration | Moving from custom bcrypt to Supabase Auth |
+| Custodial Stellar wallets | Live | Keys in Supabase Vault (post-migration) |
+| XLM payments | Live | Full send flow with handle resolution |
+| USDC payments | In progress | Trustline setup works; send flow in testing |
+| Transaction feed | Live | Polling-based; Realtime migration underway |
+| Public/org/private visibility | Live | RLS-enforced |
+| Etherfuse BRL on-ramp | Live | PIX → USDC |
+| Etherfuse BRL off-ramp | Live | USDC → PIX |
+| Etherfuse MXN on-ramp | Live | SPEI → USDC |
+| x402 analytics endpoint | Live | Payment-gated metrics |
+| Supabase Realtime feed | In migration | Replaces polling |
+| Department handles | Planned | Phase 3 |
+| Multi-tenant org workspaces | Planned | Phase 3 |
+| x402 premium features | Planned | Phase 4 |
+| Mobile PWA | Planned | Phase 5 |
+| Cross-org payments | Planned | Phase 5 |
+
+---
+
+## Phase 2: Supabase Migration (Current Sprint)
+
+The core infrastructure migration from the original Prisma + LibSQL + custom auth stack to Supabase.
+
+### Milestone 2.1: Database Migration
+
+- [x] Design Supabase PostgreSQL schema (replaces Prisma schema)
+- [x] Write SQL migrations for all tables
+- [x] Author RLS policies for all tables
+- [x] Create index strategy for handle resolution and feed queries
+- [ ] Data migration script: export LibSQL data → import to Supabase PostgreSQL
+- [ ] Validate RLS policies in staging environment
+
+### Milestone 2.2: Auth Migration
+
+- [x] Configure Supabase Auth on project
+- [x] Build magic link request endpoint (`POST /api/auth/magic-link`)
+- [x] Build auth callback route
+- [x] Build Supabase middleware for session validation
+- [ ] Migrate existing users: import emails into Supabase Auth (users login via magic link on next visit)
+- [ ] Remove custom `sessions` table and bcrypt logic
+- [ ] Remove `NEXTAUTH_SECRET` and related env vars
+
+### Milestone 2.3: Realtime Feed
+
+- [ ] Replace polling in transaction feed with Supabase Realtime subscription
+- [ ] Implement Realtime channel per organization: `org:${orgId}:transactions`
+- [ ] Handle reconnection logic in the feed component
+
+```typescript
+// components/TransactionFeed.tsx (Realtime approach)
+'use client';
+import { createClient } from '@/lib/supabase-browser';
+import { useEffect, useState } from 'react';
+import type { Transaction } from '@/types/database';
+
+export function TransactionFeed({ orgId }: { orgId: string }) {
+  const supabase = createClient();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    // Initial load
+    supabase.from('transactions')
+      .select('*')
+      .eq('organization_id', orgId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+      .then(({ data }) => setTransactions(data ?? []));
+
+    // Realtime subscription
+    const channel = supabase
+      .channel(`org:${orgId}:transactions`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'transactions', filter: `organization_id=eq.${orgId}` },
+        (payload) => setTransactions(prev => [payload.new as Transaction, ...prev])
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [orgId, supabase]);
+
+  return (
+    <ul>
+      {transactions.map(tx => (
+        <li key={tx.id}>
+          <strong>@{tx.sender_handle}</strong> → <strong>@{tx.receiver_handle}</strong>
+          {' '}{tx.amount} {tx.asset_code}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Milestone 2.4: Wallet Key Migration
+
+- [ ] Move any remaining plaintext secrets (dev/test environments) to Supabase Vault
+- [ ] Verify all production wallets use `vault_secret_id` references
+- [ ] Implement `loadWalletSecret()` using Supabase Vault RPC
+- [ ] Audit log: confirm no plaintext secret appears in application logs
+
+**Target completion: Phase 2 fully shipped by end of Q2 2025**
+
+---
+
+## Phase 3: USDC & Multi-Tenancy
+
+### USDC Payments (Full Flow)
+
+| Task | Status |
+|---|---|
+| USDC trustline establishment on wallet creation | In progress |
+| USDC trustline auto-setup for all existing wallets | Planned |
+| USDC send flow (same as XLM, different asset) | In testing |
+| USDC balance display on dashboard | In progress |
+| USDC ↔ XLM path payment via Stellar DEX | Planned |
+
+When a new wallet is created, SocialPay will automatically submit a `changeTrust` operation for USDC as part of wallet initialization — removing the need for any user action.
+
+### Multi-Tenant Org Workspaces
+
+| Task | Notes |
+|---|---|
+| Org creation flow | Admin creates org, invites members |
+| Department handle management | Admins create `@marketing`, `@ops`, etc. |
+| Org-level transaction limits | Per-member daily limits configurable by admin |
+| Org billing dashboard | Track total outflows, top spenders, top departments |
+| Org plan enforcement | Free: 50 members, 500 transactions/month |
+
+---
+
+## Phase 4: x402 Premium Features
+
+Phase 4 introduces a revenue layer using the x402 protocol to gate premium SocialPay features behind micropayments.
+
+| Premium Feature | x402 Cost | Notes |
+|---|---|---|
+| Bulk CSV export of transactions | 1 XLM | Download all transactions as spreadsheet |
+| Advanced analytics dashboard | 0.5 XLM/month | Charts, volume trends, top handles |
+| Team webhooks | 2 XLM setup | POST to your endpoint on every transaction |
+| Custom transaction feed embed | 1 XLM setup | Embed your org feed in Notion or Slack |
+| API rate limit increase | 0.1 XLM/day | 10x rate limit for power API users |
+
+```typescript
+// Reusable x402 gate middleware
+// lib/x402-gate.ts
+
+export function withX402Gate(amountXlm: string) {
+  return function gate(handler: (req: Request) => Promise<Response>) {
+    return async function (request: Request): Promise<Response> {
+      const payment = request.headers.get('X-Payment');
+
+      if (!payment) {
+        return Response.json({
+          x402Version: 1,
+          error: 'Payment required',
+          accepts: [{
+            scheme: 'exact',
+            network: process.env.STELLAR_NETWORK === 'mainnet' ? 'stellar' : 'stellar-testnet',
+            maxAmountRequired: String(parseFloat(amountXlm) * 10_000_000),
+            asset: 'XLM',
+            payTo: process.env.PLATFORM_PUBLIC_KEY!,
+          }]
+        }, { status: 402 });
+      }
+
+      const valid = await verifyPayment(payment, amountXlm);
+      if (!valid) return Response.json({ error: 'Invalid payment' }, { status: 402 });
+
+      return handler(request);
+    };
+  };
+}
+
+// Usage in any route:
+export const GET = withX402Gate('0.5')(async (request) => {
+  const data = await buildAnalytics();
+  return Response.json(data);
+});
+```
+
+---
+
+## Phase 5: Mobile & Advanced
+
+### Mobile PWA
+
+| Feature | Notes |
+|---|---|
+| Progressive Web App manifest | Installable on iOS and Android |
+| Offline-capable transaction history | Service worker caches last 7 days |
+| Push notifications | Web Push for incoming payments |
+| Touch-optimized send flow | Large tap targets, handle autocomplete |
+| Biometric authentication | WebAuthn passkey for transaction signing confirmation |
+
+### NFC Payments
+
+For in-person payments (cafeteria, office coffee bar):
+
+```
+1. Payee opens SocialPay, displays their QR code / NFC tag
+2. Payer taps phone to NFC tag or scans QR
+3. App prefills: recipient @handle, suggested amount
+4. Payer confirms amount and biometric
+5. Payment sent in ~5 seconds
+```
+
+### QR Code Payments
+
+```
+socialpay://send?to=@joao&amount=10&asset=USDC&description=Lunch
+```
+
+Deep link format that opens the SocialPay app (or PWA) with the send form pre-filled.
+
+### Cross-Org Payments
+
+Implement `@handle@company.domain` resolution via Stellar Federation:
+
+```typescript
+async function resolveExternalHandle(fullHandle: string) {
+  // @joao@acme.com → joao*acme.com
+  const [localPart, domain] = fullHandle.replace('@', '').split('@');
+  const federationName = `${localPart}*${domain}`;
+
+  const federationRecord = await StellarSdk.FederationServer.resolve(federationName);
+  return federationRecord.account_id; // Stellar public key
+}
+```
+
+---
+
+## Open Technical Decisions
+
+| Decision | Options | Status |
+|---|---|---|
+| Rate limiting backend | Upstash Redis vs Supabase Edge Function limits | Upstash preferred; decision pending cost review |
+| Key rotation strategy | Manual re-encrypt in Vault vs automatic rotation | Not yet designed |
+| Supabase vs separate project for SocialPay + ContractEase | Same project (current plan) vs separate with shared Auth | Awaiting org tier cost analysis |
+| USDC path payment for cross-asset | Use Stellar DEX path payment or always hold USDC | Deferred to Phase 3 |
+| Off-ramp KYC | Delegate 100% to Etherfuse vs platform-level KYC | Delegating to Etherfuse for now |
+| Handle namespace for merged orgs | Prefix all handles vs conflict resolution flow | No decision yet |

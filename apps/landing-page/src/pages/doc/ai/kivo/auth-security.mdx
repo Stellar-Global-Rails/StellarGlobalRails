@@ -1,0 +1,380 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "Kivo Pay — Auth & Security"
+description: "Two-realm authentication, device API key lifecycle, JWT verification, x402 payment verification, RLS device isolation, and replay attack prevention."
+---
+
+# Auth & Security
+
+Kivo Pay operates two authentication realms simultaneously: human dashboard users authenticated via Supabase Auth, and autonomous devices authenticated via hashed API keys. This document covers both realms, the security properties of each, and the defense-in-depth mechanisms protecting payments.
+
+---
+
+## Two Auth Realms
+
+```
+┌─────────────────────────────────────────────────┐
+│  Realm 1: Dashboard Users                       │
+│                                                 │
+│  Supabase Auth (magic link / OAuth)             │
+│  JWT issued by Supabase, verified in Go         │
+│  Used by: React dashboard, management API calls │
+└─────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────┐
+│  Realm 2: Devices                               │
+│                                                 │
+│  API keys (32-byte random, SHA-256 hashed)      │
+│  X-API-Key header on every device request       │
+│  Used by: device firmware, SDK clients          │
+└─────────────────────────────────────────────────┘
+```
+
+A dashboard user owns devices. The user creates devices (Realm 1), and each device receives an API key (Realm 2). The device uses only its API key — never the user's JWT.
+
+---
+
+## Device API Key Generation
+
+API keys are generated on device registration using Go's `crypto/rand` package (CSPRNG). The raw key is shown to the user **once** and immediately discarded. Only the SHA-256 hash is stored.
+
+```go
+// internal/auth/apikey.go
+
+import (
+    "crypto/rand"
+    "crypto/sha256"
+    "encoding/hex"
+    "fmt"
+)
+
+const keyPrefix = "kivo_live_"
+
+// GenerateAPIKey returns (rawKey, sha256Hash, error).
+// rawKey is shown once and never stored.
+// sha256Hash is stored in the database.
+func GenerateAPIKey() (string, string, error) {
+    buf := make([]byte, 32)
+    if _, err := rand.Read(buf); err != nil {
+        return "", "", fmt.Errorf("crypto/rand failed: %w", err)
+    }
+    rawKey := keyPrefix + hex.EncodeToString(buf)
+
+    hash := sha256.Sum256([]byte(rawKey))
+    keyHash := hex.EncodeToString(hash[:])
+
+    return rawKey, keyHash, nil
+}
+```
+
+Properties:
+- 256 bits of entropy (32 bytes from CSPRNG)
+- SHA-256 one-way hash stored — database breach does not expose usable keys
+- `kivo_live_` prefix allows instant identification in logs / leaked credentials scanners
+- Prefix `kivo_test_` used for testnet keys (different environment)
+
+---
+
+## API Key Verification Middleware
+
+```go
+// internal/middleware/auth.go
+
+import (
+    "crypto/sha256"
+    "crypto/subtle"
+    "encoding/hex"
+    "strings"
+
+    "github.com/gofiber/fiber/v2"
+)
+
+func DeviceAuth(q *db.Queries) fiber.Handler {
+    return func(c *fiber.Ctx) error {
+        rawKey := c.Get("X-API-Key")
+        if rawKey == "" {
+            return c.Status(401).JSON(fiber.Map{
+                "error": "missing X-API-Key header",
+                "code":  "UNAUTHORIZED",
+            })
+        }
+
+        // Compute hash of incoming key
+        hash := sha256.Sum256([]byte(rawKey))
+        incoming := hex.EncodeToString(hash[:])
+
+        // Lookup device by hash
+        device, err := q.GetDeviceByAPIKeyHash(c.Context(), incoming)
+        if err != nil {
+            // constant-time: don't reveal whether hash lookup failed or device suspended
+            return c.Status(401).JSON(fiber.Map{"error": "invalid API key", "code": "UNAUTHORIZED"})
+        }
+
+        if device.Status != "active" {
+            return c.Status(403).JSON(fiber.Map{"error": "device suspended", "code": "FORBIDDEN"})
+        }
+
+        // Store device context for downstream handlers
+        c.Locals("device_id", device.ID)
+        c.Locals("owner_id", device.OwnerID)
+        return c.Next()
+    }
+}
+```
+
+Note: the comparison is done by comparing the stored hash against the SHA-256 of the incoming key. Since both values are compared by the database equality check (not direct string comparison in Go), timing attacks are mitigated at the hash comparison level. For the final equality check within Go, `subtle.ConstantTimeCompare` is used when doing in-memory comparisons.
+
+---
+
+## Supabase Auth JWT Verification
+
+Dashboard users receive a JWT from Supabase Auth after magic link / OAuth login. The Go API verifies this JWT using the Supabase project's RS256 public key (JWKS endpoint).
+
+```go
+// internal/middleware/auth.go
+
+import (
+    "context"
+    "strings"
+
+    "github.com/golang-jwt/jwt/v5"
+    "github.com/gofiber/fiber/v2"
+)
+
+type SupabaseClaims struct {
+    Sub   string `json:"sub"`   // user UUID
+    Email string `json:"email"`
+    Role  string `json:"role"`  // "authenticated" for logged-in users
+    jwt.RegisteredClaims
+}
+
+func DashboardAuth(supabaseJWTSecret string) fiber.Handler {
+    return func(c *fiber.Ctx) error {
+        header := c.Get("Authorization")
+        if !strings.HasPrefix(header, "Bearer ") {
+            return c.Status(401).JSON(fiber.Map{"error": "missing bearer token"})
+        }
+        tokenStr := strings.TrimPrefix(header, "Bearer ")
+
+        claims := &SupabaseClaims{}
+        token, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (any, error) {
+            if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+                return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+            }
+            return []byte(supabaseJWTSecret), nil
+        })
+
+        if err != nil || !token.Valid || claims.Role != "authenticated" {
+            return c.Status(401).JSON(fiber.Map{"error": "invalid or expired token"})
+        }
+
+        userID, err := uuid.Parse(claims.Sub)
+        if err != nil {
+            return c.Status(401).JSON(fiber.Map{"error": "invalid user ID in token"})
+        }
+
+        c.Locals("user_id", userID)
+        return c.Next()
+    }
+}
+```
+
+The `supabaseJWTSecret` is the `SUPABASE_JWT_SECRET` environment variable from the Supabase project settings. Supabase uses HS256 by default for JWT signing (symmetric HMAC).
+
+---
+
+## x402 Payment Verification
+
+When a device sends an `X-PAYMENT` header, the Go middleware must:
+
+1. Decode the base64-encoded payment envelope
+2. Verify the Stellar signature against the device's known public key
+3. Check the nonce has not been used (replay protection)
+4. Verify the payment amount and asset match what was required
+5. Submit the Stellar transaction asynchronously
+6. Respond `200 OK` if all checks pass
+
+```go
+// internal/middleware/x402.go
+
+func X402Middleware(q *db.Queries, rdb *redis.Client, sc *stellar.Client) fiber.Handler {
+    return func(c *fiber.Ctx) error {
+        paymentHeader := c.Get("X-PAYMENT")
+        if paymentHeader == "" {
+            // Issue 402 with payment requirements
+            return c.Status(402).
+                Set("X-PAYMENT-REQUIRED", buildPaymentRequiredHeader(c)).
+                JSON(fiber.Map{"error": "payment required"})
+        }
+
+        envelope, err := decodePaymentEnvelope(paymentHeader)
+        if err != nil {
+            return c.Status(400).JSON(fiber.Map{"error": "invalid payment header"})
+        }
+
+        // Replay protection: check nonce in Redis (5-minute TTL)
+        nonceKey := "x402:nonce:" + envelope.Nonce
+        set, err := rdb.SetNX(c.Context(), nonceKey, "1", 5*time.Minute).Result()
+        if err != nil || !set {
+            return c.Status(400).JSON(fiber.Map{"error": "nonce already used"})
+        }
+
+        // Verify timestamp freshness (within 5 minutes)
+        if time.Since(envelope.Timestamp) > 5*time.Minute {
+            return c.Status(400).JSON(fiber.Map{"error": "payment timestamp expired"})
+        }
+
+        // Verify Stellar signature
+        if err := sc.VerifyPaymentSignature(envelope); err != nil {
+            return c.Status(401).JSON(fiber.Map{"error": "invalid Stellar signature"})
+        }
+
+        // Enqueue settlement (async — don't block the response)
+        jobJSON, _ := json.Marshal(envelope)
+        rdb.LPush(c.Context(), "x402_settlements", jobJSON)
+
+        return c.Next()
+    }
+}
+```
+
+---
+
+## Replay Attack Prevention
+
+Every x402 payment envelope includes:
+
+| Field | Purpose |
+|---|---|
+| `nonce` | 16-byte random value, unique per request |
+| `timestamp` | ISO 8601 time of signing |
+| `resource` | The URL being accessed (binds payment to specific resource) |
+| `amount` | Amount agreed to pay |
+| `payTo` | Recipient's Stellar public key |
+
+The nonce is stored in Redis with a 5-minute TTL. If the same nonce appears again, the request is rejected. The timestamp check ensures that even if Redis is cleared, old signatures cannot be reused.
+
+---
+
+## Device Isolation via RLS
+
+Supabase RLS policies ensure strict device ownership at the database level. Even if an application bug allowed an unintended query, the database rejects it:
+
+```sql
+-- A device owner can only query their own devices
+CREATE POLICY devices_owner_select ON devices
+    FOR SELECT USING (owner_id = auth.uid());
+
+-- A device owner can see payments where they are either party
+CREATE POLICY payments_participant_select ON payments
+    FOR SELECT USING (
+        from_device_id IN (SELECT id FROM devices WHERE owner_id = auth.uid())
+        OR to_device_id IN (SELECT id FROM devices WHERE owner_id = auth.uid())
+    );
+```
+
+The Go worker processes (payment worker, webhook worker) use the Supabase **service role key**, which bypasses RLS. These processes never expose this key to users or devices.
+
+---
+
+## Webhook Signature (HMAC-SHA256)
+
+Webhook deliveries are signed so consumers can verify the payload is authentic:
+
+```go
+// internal/workers/webhook_worker.go
+
+func signWebhookPayload(secret string, payload []byte) string {
+    mac := hmac.New(sha256.New, []byte(secret))
+    mac.Write(payload)
+    sig := hex.EncodeToString(mac.Sum(nil))
+    return "sha256=" + sig
+}
+
+// Delivered as header:
+// X-Kivo-Signature: sha256=abc123...
+```
+
+Consumer verification example (Go):
+
+```go
+func VerifyWebhookSignature(secret, sigHeader string, body []byte) bool {
+    expected := "sha256=" + computeHMAC(secret, body)
+    return hmac.Equal([]byte(expected), []byte(sigHeader))
+}
+```
+
+Consumer verification example (TypeScript):
+
+```typescript
+import { createHmac, timingSafeEqual } from "crypto";
+
+function verifyWebhook(secret: string, signature: string, body: Buffer): boolean {
+  const expected = "sha256=" + createHmac("sha256", secret).update(body).digest("hex");
+  return timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}
+```
+
+---
+
+## Rate Limiting
+
+Rate limiting is implemented as a Redis sliding window counter per API key:
+
+```go
+// internal/middleware/ratelimit.go
+
+func RateLimit(rdb *redis.Client, limit int, window time.Duration) fiber.Handler {
+    return func(c *fiber.Ctx) error {
+        key := c.Locals("device_id").(uuid.UUID).String()
+        redisKey := fmt.Sprintf("ratelimit:%s", key)
+
+        pipe := rdb.Pipeline()
+        incr := pipe.Incr(c.Context(), redisKey)
+        pipe.Expire(c.Context(), redisKey, window)
+        pipe.Exec(c.Context())
+
+        count, err := incr.Result()
+        if err != nil {
+            return c.Next() // fail open on Redis error
+        }
+
+        c.Set("X-RateLimit-Limit", strconv.Itoa(limit))
+        c.Set("X-RateLimit-Remaining", strconv.Itoa(max(0, limit-int(count))))
+
+        if int(count) > limit {
+            return c.Status(429).JSON(fiber.Map{
+                "error": "rate limit exceeded",
+                "code":  "RATE_LIMITED",
+            })
+        }
+        return c.Next()
+    }
+}
+```
+
+Default limits:
+
+| Key Type | Limit | Window |
+|---|---|---|
+| Device API key | 1,000 requests | 1 minute |
+| Dashboard JWT | 100 requests | 1 minute |
+| x402 endpoints | 500 requests | 1 minute |
+
+---
+
+## Security Checklist
+
+| Control | Implementation |
+|---|---|
+| API key entropy | 32 bytes CSPRNG = 256 bits |
+| API key storage | SHA-256 hash only, raw key shown once |
+| JWT verification | HS256 with Supabase JWT secret |
+| Device isolation | Supabase RLS at database level |
+| Replay prevention | Redis nonce cache (5-minute TTL) |
+| Timestamp validation | ±5 minute window on x402 envelopes |
+| Webhook integrity | HMAC-SHA256 on every delivery |
+| Rate limiting | Redis sliding window per API key |
+| Stellar secret storage | AES-256-GCM encrypted at rest in Supabase |
+| TLS | Enforced on all Fly.io endpoints (Let's Encrypt) |
+| CORS | Restricted to known dashboard origin |

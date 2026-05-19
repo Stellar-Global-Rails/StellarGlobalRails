@@ -1,0 +1,378 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "ContractEase — Auth & Security"
+description: "Magic link login, OTP contract signing, Freighter wallet integration, LGPD compliance, and multi-tenant data isolation in ContractEase."
+---
+
+# Auth & Security
+
+ContractEase uses Supabase Auth for user authentication and a custom OTP system for contract signing verification. Two signing methods are supported: **email OTP** (accessible to any signatory with an email address) and **Freighter wallet** (cryptographic signing for users with a Stellar account).
+
+---
+
+## Authentication Flows
+
+### 1. Magic Link Login (App Access)
+
+Magic link is the primary login method for ContractEase users. No password is required.
+
+```
+User enters email
+       │
+       ▼
+supabase.auth.signInWithOtp({ email, emailRedirectTo })
+       │
+       ▼ (Supabase sends email)
+User clicks link → browser navigates to /auth/callback?token=...
+       │
+       ▼
+Supabase Auth exchanges token for JWT session
+       │
+       ▼
+onAuthStateChange fires: event = 'SIGNED_IN'
+       │
+       ▼
+authStore.setSession(session) → redirect to /dashboard
+```
+
+**Implementation:**
+
+```typescript
+// src/hooks/useAuth.ts
+export function useAuth() {
+  const { session, setSession, clearSession } = useAuthStore()
+
+  const signIn = async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        shouldCreateUser: true,
+        data: { app: 'contractease' },
+      },
+    })
+    if (error) throw error
+  }
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    clearSession()
+  }
+
+  // Initialize session from URL hash (after magic link redirect)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session)
+      }
+    )
+    return () => subscription.unsubscribe()
+  }, [])
+
+  return { session, signIn, signOut }
+}
+```
+
+### 2. OTP Contract Signing (Signatory Verification)
+
+When a contract party clicks their signing link, they must verify their identity with a 6-digit OTP sent to their email. This OTP is separate from the Supabase Auth flow — it proves the signatory controls the email address at signing time.
+
+```
+Party receives signing email → clicks /sign/:token
+       │
+       ▼
+Frontend validates sign_token against contract_parties table
+       │
+       ▼
+User clicks "Send verification code"
+       │
+       ▼
+Edge Function: generate-otp
+  - generates random 6-digit code
+  - stores hashed code in otps table (expires in 15 min)
+  - sends code via email (Resend / SMTP)
+       │
+       ▼
+User enters code on /sign/:token page
+       │
+       ▼
+Edge Function: validate-otp
+  - checks code hash against otps table
+  - verifies not expired, not already used
+  - marks OTP as used
+  - returns { valid: true }
+       │
+       ▼
+Signature capture enabled → user draws/types/uploads
+       │
+       ▼
+contract_parties updated: status = 'signed', signed_at = now()
+```
+
+**OTP storage (never store plaintext codes):**
+
+```typescript
+// Edge Function: generate-otp
+import { createHash } from 'node:crypto'  // Deno compat
+
+const code = Math.floor(100000 + Math.random() * 900000).toString()
+const codeHash = createHash('sha256').update(code + Deno.env.get('OTP_SALT')).digest('hex')
+
+await supabaseAdmin.from('otps').insert({
+  email: partyEmail,
+  code: codeHash,
+  contract_id: contractId,
+  party_id: partyId,
+  expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+})
+```
+
+---
+
+## Freighter Wallet Integration
+
+Freighter is a browser extension that manages Stellar accounts. Signatories with Freighter can sign contracts cryptographically — their Stellar public key serves as their identity.
+
+### Setup
+
+```bash
+npm install @stellar/freighter-api
+```
+
+### Connect Freighter
+
+```typescript
+// src/hooks/useStellar.ts
+import {
+  isConnected,
+  getAddress,
+  signTransaction,
+} from '@stellar/freighter-api'
+
+export function useStellar() {
+  const [address, setAddress] = useState<string | null>(null)
+  const [connected, setConnected] = useState(false)
+
+  const connectFreighter = async () => {
+    const result = await isConnected()
+    if (!result.isConnected) {
+      throw new Error('Freighter extension not installed')
+    }
+
+    const addressResult = await getAddress()
+    if (addressResult.error) {
+      throw new Error(addressResult.error)
+    }
+
+    setAddress(addressResult.address)
+    setConnected(true)
+    return addressResult.address
+  }
+
+  const signContractHash = async (hash: string, network: 'testnet' | 'mainnet') => {
+    // Build a self-payment tx with the hash as memo
+    const tx = buildAnchorTransaction(hash, address!, network)
+    const xdr = tx.toXDR()
+
+    const result = await signTransaction(xdr, {
+      networkPassphrase: network === 'mainnet'
+        ? 'Public Global Stellar Network ; September 2015'
+        : 'Test SDF Network ; September 2015',
+    })
+
+    if (result.error) throw new Error(result.error)
+    return result.signedTx  // XDR of signed transaction
+  }
+
+  return { address, connected, connectFreighter, signContractHash }
+}
+```
+
+### Freighter Signing Flow
+
+```typescript
+// src/components/signing/FreighterSign.tsx
+async function handleFreighterSign() {
+  try {
+    // 1. Connect wallet
+    const address = await connectFreighter()
+
+    // 2. Update party record with Stellar address
+    await supabase.from('contract_parties').update({
+      stellar_address: address,
+      signing_method: 'freighter',
+    }).eq('id', partyId)
+
+    // 3. Sign transaction
+    const signedXdr = await signContractHash(contract.sha256_hash!, network)
+
+    // 4. Submit via Edge Function (has access to Horizon)
+    const { data } = await supabase.functions.invoke('submit-freighter-tx', {
+      body: { signedXdr, contractId, partyId, network },
+    })
+
+    // 5. Update party status
+    await supabase.from('contract_parties').update({
+      status: 'signed',
+      signed_at: new Date().toISOString(),
+      signature_data: `freighter:${address}`,
+    }).eq('id', partyId)
+
+  } catch (err) {
+    setError(err.message)
+  }
+}
+```
+
+---
+
+## Session Management
+
+### Zustand Auth Store
+
+```typescript
+// src/stores/authStore.ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import type { Session, User } from '@supabase/supabase-js'
+
+interface AuthState {
+  session: Session | null
+  user: User | null
+  organizationId: string | null
+  setSession: (session: Session | null) => void
+  setOrganizationId: (id: string) => void
+  clearSession: () => void
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      session: null,
+      user: null,
+      organizationId: null,
+      setSession: (session) => set({ session, user: session?.user ?? null }),
+      setOrganizationId: (organizationId) => set({ organizationId }),
+      clearSession: () => set({ session: null, user: null, organizationId: null }),
+    }),
+    { name: 'contractease-auth', partialize: (s) => ({ organizationId: s.organizationId }) }
+  )
+)
+```
+
+### Protected Routes
+
+```typescript
+// src/components/layout/ProtectedRoute.tsx
+export function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { session } = useAuthStore()
+  const location = useLocation()
+
+  if (!session) {
+    return <Navigate to="/auth" state={{ from: location }} replace />
+  }
+
+  return <>{children}</>
+}
+```
+
+---
+
+## LGPD Compliance
+
+Brazil's Lei Geral de Proteção de Dados (LGPD, Law 13.709/2018) applies to ContractEase as a data processor for its customers' contract data.
+
+### Data Collected
+
+| Data Type | Purpose | Retention |
+|---|---|---|
+| Email address | Authentication, signing notifications | Until account deletion |
+| Full name | Contract party identification | Until account deletion |
+| IP address | Signing audit trail (fraud prevention) | 5 years (legal requirement) |
+| User agent | Signing audit trail | 5 years |
+| Signature image | Contract validity | Life of contract + 5 years |
+| Contract content | Core service | Until org deletes contract |
+| Stellar public key | Freighter signing identity | Until account deletion |
+
+### Consent Tracking
+
+```sql
+-- Consent is recorded at org creation and profile creation
+alter table profiles add column if not exists
+  lgpd_consent_at timestamptz,
+  lgpd_consent_version text;  -- e.g., '2024-01'
+
+alter table contract_parties add column if not exists
+  lgpd_consent_at timestamptz;  -- recorded when party accesses signing page
+```
+
+### Data Deletion (Right to Erasure)
+
+```typescript
+// Triggered by user account deletion request
+async function deleteUserData(userId: string) {
+  // 1. Anonymize contract_parties rows (cannot delete — audit trail)
+  await supabase.from('contract_parties')
+    .update({ email: '[deleted]', full_name: '[deleted]', ip_address: null })
+    .eq('user_id', userId)
+
+  // 2. Delete profile (cascades to notifications)
+  await supabase.from('profiles').delete().eq('id', userId)
+
+  // 3. Supabase Auth user deletion (via admin API in Edge Function)
+  await supabaseAdmin.auth.admin.deleteUser(userId)
+
+  // Note: contract_logs are retained for legal audit purposes
+  // Note: Stellar transactions are immutable — cannot be deleted
+}
+```
+
+---
+
+## Security Practices
+
+### RLS Enforcement
+
+Every table has RLS enabled. The application uses the **anon key** (public, JWT-enforced) for all client queries — never the service role key. The service role key is used only inside Edge Functions running in Supabase's server environment.
+
+```typescript
+// CORRECT: anon key in browser
+const supabase = createClient(url, VITE_SUPABASE_ANON_KEY)
+
+// WRONG: never expose service role in client bundle
+// const supabase = createClient(url, SUPABASE_SERVICE_ROLE_KEY)  ← never do this
+```
+
+### Secret Management
+
+| Secret | Location | Access |
+|---|---|---|
+| `STELLAR_SECRET_KEY` | Supabase Vault (Edge Function env) | Edge Functions only |
+| `OTP_SALT` | Supabase Vault | Edge Functions only |
+| `RESEND_API_KEY` | Supabase Vault | Edge Functions only |
+| `VITE_SUPABASE_URL` | `.env` / Cloudflare Pages env | Public (anon URL) |
+| `VITE_SUPABASE_ANON_KEY` | `.env` / Cloudflare Pages env | Public (RLS-protected) |
+
+### Multi-Tenant Data Isolation
+
+The `auth.user_organization_ids()` helper function (defined in `data-models`) is the single source of truth for organization membership. It is called in every RLS policy and is marked `SECURITY DEFINER` so it runs with elevated privileges — the calling user cannot override it by manipulating their JWT claims.
+
+Testing isolation:
+
+```sql
+-- Verify no cross-org data leaks
+set role authenticated;
+set request.jwt.claims to '{"sub": "user-a-uuid", "role": "authenticated"}';
+
+select count(*) from contracts
+where organization_id = 'org-b-uuid';
+-- Must return 0
+```
+
+### Token Security for Signing Links
+
+- `sign_token` is a UUID v4 (128 bits of entropy) — brute-force infeasible
+- Tokens expire after 7 days (`token_expires_at`)
+- Used tokens are not reusable (OTP `used = true`)
+- Tokens are single-use: once a party signs, the token is invalidated
+- Signing page validates token server-side via Edge Function before rendering the signing UI

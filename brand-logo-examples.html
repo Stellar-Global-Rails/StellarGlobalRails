@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stellar Global Rails - Logo Studies</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080a09;
+        --panel: rgba(18, 22, 20, 0.86);
+        --panel-strong: #101412;
+        --line: rgba(255, 255, 255, 0.09);
+        --text: #f7fbf8;
+        --muted: #98a29d;
+        --emerald: #10b981;
+        --emerald-soft: #34d399;
+        --cyan: #22d3ee;
+        --slate: #0f172a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          var(--bg);
+        background-size: 48px 48px;
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .page {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 40px 0 56px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 14px 0 30px;
+      }
+
+      .brand-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .brand-pill svg {
+        width: 28px;
+        height: 28px;
+        color: var(--emerald);
+      }
+
+      .badge {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--emerald-soft);
+        background: rgba(16, 185, 129, 0.08);
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .hero {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(34, 211, 238, 0.035) 42%, rgba(255, 255, 255, 0.025));
+        padding: clamp(22px, 4vw, 44px);
+        overflow: hidden;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin: 0;
+        font-size: clamp(34px, 7vw, 74px);
+        line-height: 0.94;
+        letter-spacing: 0;
+      }
+
+      .hero p {
+        max-width: 760px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.7;
+      }
+
+      .reference-row {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+      }
+
+      .reference-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 54px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.24);
+        padding: 12px 14px;
+      }
+
+      .reference-logo svg {
+        width: 34px;
+        height: 34px;
+        color: var(--emerald);
+      }
+
+      .reference-logo span {
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .section-title {
+        margin: 34px 0 14px;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .section-title h2 {
+        margin: 0;
+        font-size: clamp(24px, 4vw, 38px);
+        letter-spacing: 0;
+      }
+
+      .section-title p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 16px;
+        min-width: 0;
+      }
+
+      .logo-stage {
+        display: grid;
+        place-items: center;
+        min-height: 220px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          #0b0f0d;
+        background-size: 24px 24px;
+      }
+
+      .logo-stage svg {
+        width: min(320px, 94%);
+        height: auto;
+        overflow: visible;
+      }
+
+      .card h3 {
+        margin: 16px 0 6px;
+        font-size: 18px;
+        letter-spacing: 0;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .prompt {
+        min-height: 86px;
+        border-left: 2px solid rgba(16, 185, 129, 0.55);
+        padding-left: 12px;
+      }
+
+      .prompt strong {
+        color: var(--emerald-soft);
+        font-weight: 900;
+      }
+
+      .prompt span {
+        display: block;
+        margin-top: 6px;
+      }
+
+      .meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 15px;
+      }
+
+      .tag {
+        color: var(--emerald-soft);
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .copy {
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 8px;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--text);
+        padding: 8px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .copy:hover {
+        background: rgba(16, 185, 129, 0.18);
+      }
+
+      .lockup {
+        color: var(--text);
+      }
+
+      .lockup text {
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      .foot {
+        margin-top: 32px;
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      @media (max-width: 960px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .logo-stage {
+          min-height: 190px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          width: min(100% - 20px, 1180px);
+          padding-top: 20px;
+        }
+
+        .topbar,
+        .section-title {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .hero {
+          padding: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <div class="brand-pill">
+          <svg viewBox="175 220 840 800" aria-hidden="true">
+            <path
+              d="M626.5 229.122C502.755 238.574 391.924 307.433 328.127 414.5C291.988 475.149 273.391 536.926 271.305 603.25L270.684 623H474.884C702.384 623 686.753 622.525 702.5 629.92C722.298 639.217 737.695 657.756 743.068 678.766C745.727 689.164 745.688 704.989 742.977 715.59C739.024 731.048 731.214 744.045 719.342 754.924C707.002 766.231 692.583 773.019 676.823 774.94C671.337 775.609 606.712 775.787 487.25 775.463C387.563 775.193 306 775.141 306 775.346C306 776.673 315.218 795.245 321.139 805.847C353.254 863.357 400.017 914.243 452 948.246C503.019 981.618 554.481 1001.044 614.5 1009.585C629.085 1011.661 675.612 1012.586 691.626 1011.119C723.854 1008.167 757.856 999.609 788.092 986.839C822.626 972.255 854.931 952.891 881 931.15C939.016 882.767 982.915 818.466 1004.853 749.737C1012.322 726.338 1012.558 721.83 1006.348 721.201C1002.614 720.824 1000.974 722.639 997.493 731C989.709 749.698 971.34 782.527 958.045 801.5C918.16 858.418 864.153 900.944 799.5 926.339C775.476 935.775 751.077 942.034 724.5 945.58C708.67 947.692 669.448 948.01 654.5 946.147C590.72 938.202 535.293 914.473 484 873.153C473.906 865.022 449.325 841.01 442.127 832.25L437.814 827H567.657C710.087 826.993 705.025 827.188 724.455 820.963C760.971 809.264 792.384 778.816 805.402 742.5C810.666 727.816 812.163 719.404 812.698 701.5C813.169 685.722 813.017 683.663 810.576 672.854C799.612 624.297 765.615 589.143 718.127 577.259C712.101 575.751 695.019 575.572 529.75 575.28C351.98 574.965 348 574.917 348 573.059C348 572.014 349.125 564.486 350.499 556.329C357.919 512.304 376.217 466.562 401.71 428.311C414.728 408.778 427.233 393.711 445.972 374.981C470.592 350.372 492.171 333.816 519.747 318.38C559.212 296.289 596.817 284.371 646 278.366C664.343 276.127 701.319 276.135 722 278.383C754.462 281.912 784.479 289.577 813.406 301.723C857.782 320.356 890.278 341.556 926.666 375.613C934.124 382.593 939.639 387 940.916 387C943.247 387 947 383.713 947 381.671C947 377.229 921.254 346.123 903.665 329.316C869.053 296.242 831.412 271.874 788.134 254.523C737.109 234.067 679.758 225.054 626.5 229.122Z"
+              fill="currentColor"
+            />
+          </svg>
+          Stellar Global Rails logo language
+        </div>
+        <div class="badge">UBrand inputs</div>
+      </header>
+
+      <section class="hero">
+        <h1>Logo studies for ContractEase and Kivo.</h1>
+        <p>
+          UBrand-ready inputs for each product: just the brand name and a concise description,
+          tuned to keep the Stellar Global Rails visual DNA.
+        </p>
+        <div class="reference-row">
+          <div class="reference-logo">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <defs>
+                <linearGradient id="refGradient" x1="20" y1="100" x2="100" y2="20">
+                  <stop stop-color="#10b981" />
+                  <stop offset="1" stop-color="#22d3ee" />
+                </linearGradient>
+              </defs>
+              <path d="M29 75h45c10 0 18-8 18-18s-8-18-18-18H47c6-8 16-13 28-13 14 0 25 5 34 14" fill="none" stroke="url(#refGradient)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M24 87h48c19 0 34-14 36-32" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" opacity=".9" />
+              <path d="M96 16l3 10 10 3-10 3-3 10-3-10-10-3 10-3 3-10Z" fill="#34d399" />
+            </svg>
+            <span>Reference: rail + spark</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h2>ContractEase</h2>
+          <p>Legal trust, signature, document rail</p>
+        </div>
+
+        <div class="grid">
+          <article class="card">
+            <div class="logo-stage">
+              <svg id="contractease-logo-01" class="lockup" viewBox="0 0 360 128" role="img" aria-labelledby="ce1-title ce1-desc" xmlns="http://www.w3.org/2000/svg">
+                <title id="ce1-title">ContractEase Rail Seal logo concept</title>
+                <desc id="ce1-desc">A document mark with precise rail geometry and a Stellar Global Rails style spark.</desc>
+                <defs>
+                  <linearGradient id="ce1-g" x1="18" y1="104" x2="112" y2="20">
+                    <stop stop-color="#10b981" />
+                    <stop offset="1" stop-color="#22d3ee" />
+                  </linearGradient>
+                </defs>
+                <g transform="translate(16 16)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="14" y="8" width="74" height="88" rx="14" fill="#0f172a" stroke="currentColor" stroke-width="7" />
+                  <path d="M66 8v24h22" stroke="url(#ce1-g)" stroke-width="7" />
+                  <path d="M32 40h36M32 58h28M32 76h36" stroke="url(#ce1-g)" stroke-width="7" />
+                  <path d="M2 78h54c20 0 34-13 38-32" stroke="url(#ce1-g)" stroke-width="8" />
+                  <circle cx="2" cy="78" r="5" fill="#34d399" stroke="none" />
+                  <path d="M98 19l3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Z" fill="#34d399" stroke="none" />
+                </g>
+                <g transform="translate(142 41)">
+                  <text x="0" y="27" fill="currentColor" font-size="27" font-weight="850">ContractEase</text>
+                  <text x="2" y="52" fill="#98a29d" font-size="13" font-weight="650">signature rail</text>
+                </g>
+              </svg>
+            </div>
+            <h3>01 - Rail Seal</h3>
+            <p class="prompt"><strong>Brand name:</strong> ContractEase<span><strong>Description:</strong> Premium legaltech SaaS for digital contracts, signatures, and trust automation. The logo should feel like part of the Stellar Global Rails ecosystem: dark fintech, precise rail geometry, folded document or trust seal, emerald and cyan accents, clean enterprise infrastructure style.</span></p>
+            <div class="meta">
+              <span class="tag">Primary candidate</span>
+              <button class="copy" type="button" data-copy="contractease-logo-01">Copiar SVG</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="logo-stage">
+              <svg id="contractease-logo-02" class="lockup" viewBox="0 0 360 128" role="img" aria-labelledby="ce2-title ce2-desc" xmlns="http://www.w3.org/2000/svg">
+                <title id="ce2-title">ContractEase Folded Rail logo concept</title>
+                <desc id="ce2-desc">A verified seal crossed by a precise rail path and check mark.</desc>
+                <defs>
+                  <linearGradient id="ce2-g" x1="18" y1="108" x2="116" y2="18">
+                    <stop stop-color="#10b981" />
+                    <stop offset=".58" stop-color="#34d399" />
+                    <stop offset="1" stop-color="#22d3ee" />
+                  </linearGradient>
+                </defs>
+                <g transform="translate(16 16)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="54" cy="54" r="43" fill="#0f172a" stroke="currentColor" stroke-width="7" />
+                  <path d="M31 57l16 16 31-36" stroke="url(#ce2-g)" stroke-width="9" />
+                  <path d="M10 86h52c20 0 35-13 40-33" stroke="url(#ce2-g)" stroke-width="8" />
+                  <circle cx="10" cy="86" r="5" fill="#34d399" stroke="none" />
+                  <path d="M94 15l3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Z" fill="#34d399" stroke="none" />
+                </g>
+                <g transform="translate(142 41)">
+                  <text x="0" y="27" fill="currentColor" font-size="27" font-weight="850">ContractEase</text>
+                  <text x="2" y="52" fill="#98a29d" font-size="13" font-weight="650">verified agreements</text>
+                </g>
+              </svg>
+            </div>
+            <h3>02 - Folded Rail</h3>
+            <p class="prompt"><strong>Brand name:</strong> ContractEase<span><strong>Description:</strong> Secure digital agreement platform for verified contracts and legally traceable workflows. Visual direction: circular verification seal, confident check mark, fast rail line, black and white base with emerald/cyan highlights, modern B2B SaaS, trustworthy but not traditional law firm.</span></p>
+            <div class="meta">
+              <span class="tag">Literal mark</span>
+              <button class="copy" type="button" data-copy="contractease-logo-02">Copiar SVG</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="logo-stage">
+              <svg id="contractease-logo-03" class="lockup" viewBox="0 0 360 128" role="img" aria-labelledby="ce3-title ce3-desc" xmlns="http://www.w3.org/2000/svg">
+                <title id="ce3-title">ContractEase Monogram Rails logo concept</title>
+                <desc id="ce3-desc">A compact CE monogram made from rounded rail strokes.</desc>
+                <defs>
+                  <linearGradient id="ce3-g" x1="20" y1="108" x2="116" y2="18">
+                    <stop stop-color="#10b981" />
+                    <stop offset="1" stop-color="#22d3ee" />
+                  </linearGradient>
+                </defs>
+                <g transform="translate(16 16)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M91 31c-10-13-25-20-43-20-25 0-43 18-43 43s18 43 43 43c18 0 33-7 43-20" stroke="currentColor" stroke-width="9" />
+                  <path d="M47 32h49M47 54h36M47 76h49" stroke="url(#ce3-g)" stroke-width="9" />
+                  <path d="M12 94h58c19 0 33-11 38-29" stroke="url(#ce3-g)" stroke-width="6" opacity=".95" />
+                  <path d="M98 14l3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Z" fill="#34d399" stroke="none" />
+                </g>
+                <g transform="translate(142 41)">
+                  <text x="0" y="27" fill="currentColor" font-size="27" font-weight="850">ContractEase</text>
+                  <text x="2" y="52" fill="#98a29d" font-size="13" font-weight="650">legal automation</text>
+                </g>
+              </svg>
+            </div>
+            <h3>03 - CE Rails</h3>
+            <p class="prompt"><strong>Brand name:</strong> ContractEase<span><strong>Description:</strong> Contract automation product with a compact CE monogram. The mark should use rounded rail-like strokes, a subtle Stellar-style spark, and small document cues. It must work as an app icon, favicon, and dashboard sidebar brand, with a technical, trustworthy, dark-mode fintech feel.</span></p>
+            <div class="meta">
+              <span class="tag">Compact icon</span>
+              <button class="copy" type="button" data-copy="contractease-logo-03">Copiar SVG</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h2>Kivo</h2>
+          <p>Machine payments, x402, device wallet</p>
+        </div>
+
+        <div class="grid">
+          <article class="card">
+            <div class="logo-stage">
+              <svg id="kivo-logo-01" class="lockup" viewBox="0 0 360 128" role="img" aria-labelledby="kv1-title kv1-desc" xmlns="http://www.w3.org/2000/svg">
+                <title id="kv1-title">Kivo Node Rail logo concept</title>
+                <desc id="kv1-desc">A K mark made from rail strokes and machine payment nodes.</desc>
+                <defs>
+                  <linearGradient id="kv1-g" x1="18" y1="108" x2="116" y2="16">
+                    <stop stop-color="#10b981" />
+                    <stop offset="1" stop-color="#22d3ee" />
+                  </linearGradient>
+                </defs>
+                <g transform="translate(18 16)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M27 11v92" stroke="currentColor" stroke-width="10" />
+                  <path d="M91 16 35 58l58 46" stroke="url(#kv1-g)" stroke-width="10" />
+                  <path d="M12 96h56c20 0 35-13 39-32" stroke="currentColor" stroke-width="6" opacity=".9" />
+                  <circle cx="27" cy="11" r="6" fill="#34d399" stroke="none" />
+                  <circle cx="91" cy="16" r="6" fill="#22d3ee" stroke="none" />
+                  <circle cx="93" cy="104" r="6" fill="#10b981" stroke="none" />
+                  <path d="M99 39l3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Z" fill="#34d399" stroke="none" />
+                </g>
+                <g transform="translate(166 41)">
+                  <text x="0" y="30" fill="currentColor" font-size="35" font-weight="900">Kivo</text>
+                  <text x="2" y="55" fill="#98a29d" font-size="13" font-weight="650">machine value rails</text>
+                </g>
+              </svg>
+            </div>
+            <h3>01 - Node Rail</h3>
+            <p class="prompt"><strong>Brand name:</strong> Kivo<span><strong>Description:</strong> Machine-to-machine payment infrastructure for autonomous devices, x402 flows, Stellar settlement, and device wallets. The logo should feel like a serious fintech rail product: K-shaped rail path, connected device nodes, dark operational interface, emerald and cyan accents, clean geometric infrastructure style.</span></p>
+            <div class="meta">
+              <span class="tag">Primary candidate</span>
+              <button class="copy" type="button" data-copy="kivo-logo-01">Copiar SVG</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="logo-stage">
+              <svg id="kivo-logo-02" class="lockup" viewBox="0 0 360 128" role="img" aria-labelledby="kv2-title kv2-desc" xmlns="http://www.w3.org/2000/svg">
+                <title id="kv2-title">Kivo Payment Orbit logo concept</title>
+                <desc id="kv2-desc">A payment orbit with coin, rail, and x402 style machine settlement.</desc>
+                <defs>
+                  <linearGradient id="kv2-g" x1="18" y1="108" x2="116" y2="16">
+                    <stop stop-color="#10b981" />
+                    <stop offset=".56" stop-color="#34d399" />
+                    <stop offset="1" stop-color="#22d3ee" />
+                  </linearGradient>
+                </defs>
+                <g transform="translate(16 16)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="54" cy="54" r="39" stroke="currentColor" stroke-width="7" />
+                  <path d="M9 72h78c18 0 31-12 35-31" stroke="url(#kv2-g)" stroke-width="8" />
+                  <path d="M54 31v46M41 46h26M41 63h26" stroke="url(#kv2-g)" stroke-width="7" />
+                  <circle cx="9" cy="72" r="5" fill="#34d399" stroke="none" />
+                  <circle cx="122" cy="41" r="5" fill="#22d3ee" stroke="none" />
+                  <path d="M98 13l3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Z" fill="#34d399" stroke="none" />
+                </g>
+                <g transform="translate(166 41)">
+                  <text x="0" y="30" fill="currentColor" font-size="35" font-weight="900">Kivo</text>
+                  <text x="2" y="55" fill="#98a29d" font-size="13" font-weight="650">x402 settlement</text>
+                </g>
+              </svg>
+            </div>
+            <h3>02 - Payment Orbit</h3>
+            <p class="prompt"><strong>Brand name:</strong> Kivo<span><strong>Description:</strong> API-first payment rail for the machine economy, focused on x402 settlement and Stellar-based value transfer. Visual direction: circular payment orbit crossed by a clean rail line, subtle spark, dark premium fintech look, white structure with emerald/cyan highlights, fast and reliable infrastructure.</span></p>
+            <div class="meta">
+              <span class="tag">Payments first</span>
+              <button class="copy" type="button" data-copy="kivo-logo-02">Copiar SVG</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="logo-stage">
+              <svg id="kivo-logo-03" class="lockup" viewBox="0 0 360 128" role="img" aria-labelledby="kv3-title kv3-desc" xmlns="http://www.w3.org/2000/svg">
+                <title id="kv3-title">Kivo Device Key logo concept</title>
+                <desc id="kv3-desc">A compact K mark combining a device terminal, key path, and SGR rail spark.</desc>
+                <defs>
+                  <linearGradient id="kv3-g" x1="18" y1="108" x2="116" y2="16">
+                    <stop stop-color="#10b981" />
+                    <stop offset="1" stop-color="#22d3ee" />
+                  </linearGradient>
+                </defs>
+                <g transform="translate(16 16)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="18" y="10" width="50" height="92" rx="11" fill="#0f172a" stroke="currentColor" stroke-width="7" />
+                  <path d="M39 37h10M39 56h10M39 75h10" stroke="#34d399" stroke-width="6" />
+                  <path d="M82 28 50 58l38 38" stroke="url(#kv3-g)" stroke-width="9" />
+                  <path d="M82 58h34c11 0 19-8 19-19s-8-19-19-19h-13" stroke="url(#kv3-g)" stroke-width="8" />
+                  <circle cx="135" cy="39" r="5" fill="#22d3ee" stroke="none" />
+                  <path d="M98 82l3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Z" fill="#34d399" stroke="none" />
+                </g>
+                <g transform="translate(166 41)">
+                  <text x="0" y="30" fill="currentColor" font-size="35" font-weight="900">Kivo</text>
+                  <text x="2" y="55" fill="#98a29d" font-size="13" font-weight="650">device wallet OS</text>
+                </g>
+              </svg>
+            </div>
+            <h3>03 - Device Key</h3>
+            <p class="prompt"><strong>Brand name:</strong> Kivo<span><strong>Description:</strong> Device-wallet operating system for IoT payments and machine identity. The logo should combine a compact hardware terminal, K-shaped key or rail stroke, and an emerald spark. It should be scalable, clean, dark-mode friendly, and suitable for dashboard branding, app icons, and developer tooling.</span></p>
+            <div class="meta">
+              <span class="tag">Device first</span>
+              <button class="copy" type="button" data-copy="kivo-logo-03">Copiar SVG</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <p class="foot">
+        Os textos dos cards agora seguem o formato da UBrand: Brand name + Description.
+        Use o SVG inline apenas como referencia visual rapida; a direcao final pode ser refinada
+        na UBrand e depois vetorizada.
+      </p>
+    </main>
+
+    <script>
+      const buttons = document.querySelectorAll("[data-copy]");
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const id = button.getAttribute("data-copy");
+          const svg = document.getElementById(id);
+          const source = new XMLSerializer().serializeToString(svg);
+
+          try {
+            await navigator.clipboard.writeText(source);
+            const previous = button.textContent;
+            button.textContent = "SVG copiado";
+            window.setTimeout(() => {
+              button.textContent = previous;
+            }, 1400);
+          } catch {
+            button.textContent = "Selecione manual";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

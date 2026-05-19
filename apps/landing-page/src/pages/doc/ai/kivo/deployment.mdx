@@ -1,0 +1,127 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "Kivo Pay — Deployment"
+description: "Current MVP deployment plan for Kivo Pay using Vercel, Supabase Edge Functions, Supabase Auth/Postgres/Realtime/Storage, Stellar testnet, and Etherfuse Devnet."
+---
+
+# Deployment
+
+Kivo no longer uses Fly.io for the MVP backend. The deployment target is:
+
+| Layer | Provider | Path |
+|---|---|---|
+| Frontend | Vercel | `apps/kivo/web` |
+| API runtime | Supabase Edge Functions | `supabase/functions/kivo-api` |
+| Auth | Supabase Auth | same Supabase project |
+| Data | Supabase Postgres | `public.kivo_*` tables |
+| Realtime | Supabase Realtime | payment/order/delivery updates |
+| Storage | Supabase Storage | proofs and device assets |
+| Settlement | Stellar testnet | Horizon |
+| Anchor/ramp | Etherfuse Devnet | server-side proxy |
+
+The Go backend remains in the repository only as a temporary local fallback until the TypeScript Edge Function reaches route parity.
+
+## Frontend
+
+Set these on Vercel:
+
+```txt
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=...
+VITE_KIVO_API_URL=https://<project-ref>.supabase.co/functions/v1/kivo-api
+```
+
+Build command:
+
+```bash
+cd apps/kivo/web
+npm install
+npm run build
+```
+
+## Supabase Edge Function
+
+Deploy without Docker:
+
+```bash
+supabase functions deploy kivo-api --project-ref <project-ref> --use-api --no-verify-jwt
+```
+
+The API base URL is:
+
+```txt
+https://<project-ref>.supabase.co/functions/v1/kivo-api
+```
+
+The Etherfuse webhook URL is:
+
+```txt
+https://<project-ref>.supabase.co/functions/v1/kivo-api/v1/etherfuse/webhook
+```
+
+`verify_jwt` is disabled for the function because the same runtime receives public x402 challenges and third-party Etherfuse webhooks. The function must enforce auth route-by-route and keep all service credentials server-side.
+
+## Edge Function Secrets
+
+Set these in Supabase:
+
+```txt
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...
+CORS_ORIGINS=https://<your-vercel-domain>,http://localhost:5174,http://127.0.0.1:5174
+STELLAR_NETWORK=testnet
+STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
+X402_PLATFORM_KEY=G...
+USDC_ISSUER=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+ETHERFUSE_MODE=devnet
+ETHERFUSE_BASE_URL=https://api.sand.etherfuse.com
+ETHERFUSE_API_KEY=...
+ETHERFUSE_WEBHOOK_URL=https://<project-ref>.supabase.co/functions/v1/kivo-api/v1/etherfuse/webhook
+ETHERFUSE_WEBHOOK_SECRET=...
+ETHERFUSE_WEBHOOK_VERIFY=true
+ETHERFUSE_DEFAULT_FIAT=MXN
+ETHERFUSE_ALLOWED_ASSETS=USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+```
+
+Never expose `SUPABASE_SERVICE_ROLE_KEY`, `ETHERFUSE_API_KEY`, `ETHERFUSE_WEBHOOK_SECRET`, or any Stellar secret key in Vercel.
+
+## Route Parity
+
+Active in `kivo-api` now:
+
+- `GET /v1/health`
+- `GET /v1/deploy/checks`
+- `GET /v1/deploy/services`
+- `GET /v1/etherfuse/status`
+- `GET /v1/etherfuse/assets`
+- `POST /v1/etherfuse/onboarding-url`
+- `POST /v1/etherfuse/quotes`
+- `POST /v1/etherfuse/orders`
+- `GET /v1/etherfuse/orders/:id`
+- `POST /v1/etherfuse/orders/:id/fiat-received`
+- `POST /v1/etherfuse/webhook`
+
+Pending migration from the temporary Go fallback:
+
+- dashboard summary
+- devices
+- payments and conditional payment proof
+- x402 challenge persistence and `X-PAYMENT` validation
+- webhooks and API keys
+- MCP tool calls
+
+## Preflight
+
+```powershell
+powershell -ExecutionPolicy Bypass -File apps/kivo/scripts/preflight.ps1 -ApiUrl https://<project-ref>.supabase.co/functions/v1/kivo-api
+```
+
+Go/no-go:
+
+- `GET /v1/health` returns `200`.
+- `GET /v1/etherfuse/status` returns `configured: true`.
+- `GET /v1/etherfuse/assets` returns a Stellar asset for the selected wallet.
+- Etherfuse webhook verifies `X-Signature` and persists the event.
+- x402 returns a persisted nonce, submits signed Stellar XDR to Horizon, and unlocks the protected resource.
+- Vercel frontend points to the Supabase Edge Function.
+- Supabase Auth login works in production.

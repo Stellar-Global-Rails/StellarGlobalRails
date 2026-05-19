@@ -1,0 +1,457 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "ContractEase — Frontend Architecture"
+description: "Vite configuration, React Router setup, Zustand stores, custom hooks, key components, design tokens, and i18n for the ContractEase SPA."
+---
+
+# Frontend Architecture
+
+ContractEase is a React Single-Page Application built with Vite, TypeScript, Tailwind CSS, and Framer Motion. This document covers the frontend architecture, routing strategy, state management, key components, and performance patterns.
+
+---
+
+## Vite Configuration
+
+```typescript
+// vite.config.ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate heavy dependencies into named chunks
+          'stellar-sdk': ['stellar-sdk'],
+          'pdf': ['@react-pdf/renderer'],
+          'supabase': ['@supabase/supabase-js'],
+          'framer': ['framer-motion'],
+        },
+      },
+    },
+  },
+  server: {
+    port: 5173,
+    host: true,
+  },
+})
+```
+
+---
+
+## Routing
+
+ContractEase uses **React Router v6** with nested layouts. All authenticated routes are wrapped in `ProtectedRoute`. The public signing page bypasses auth entirely.
+
+```typescript
+// src/App.tsx
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
+
+// Lazy-load all pages for code splitting
+const Dashboard    = lazy(() => import('./pages/Dashboard'))
+const Contracts    = lazy(() => import('./pages/Contracts'))
+const ContractDetail = lazy(() => import('./pages/ContractDetail'))
+const NewContract  = lazy(() => import('./pages/NewContract'))
+const Templates    = lazy(() => import('./pages/Templates'))
+const Analytics    = lazy(() => import('./pages/Analytics'))
+const Settings     = lazy(() => import('./pages/Settings'))
+const Auth         = lazy(() => import('./pages/Auth'))
+const PublicSign   = lazy(() => import('./pages/PublicSign'))
+
+const router = createBrowserRouter([
+  // Public routes (no auth required)
+  {
+    path: '/auth',
+    element: <Suspense fallback={<Spinner />}><Auth /></Suspense>,
+  },
+  {
+    path: '/sign/:token',
+    element: <Suspense fallback={<Spinner />}><PublicSign /></Suspense>,
+  },
+
+  // Protected app routes
+  {
+    path: '/',
+    element: <ProtectedRoute><AppLayout /></ProtectedRoute>,
+    children: [
+      { index: true,           element: <Suspense fallback={<PageLoader />}><Dashboard /></Suspense> },
+      { path: 'contracts',     element: <Suspense fallback={<PageLoader />}><Contracts /></Suspense> },
+      { path: 'contracts/new', element: <Suspense fallback={<PageLoader />}><NewContract /></Suspense> },
+      { path: 'contracts/:id', element: <Suspense fallback={<PageLoader />}><ContractDetail /></Suspense> },
+      { path: 'templates',     element: <Suspense fallback={<PageLoader />}><Templates /></Suspense> },
+      { path: 'analytics',     element: <Suspense fallback={<PageLoader />}><Analytics /></Suspense> },
+      { path: 'settings',      element: <Suspense fallback={<PageLoader />}><Settings /></Suspense> },
+    ],
+  },
+
+  // Cloudflare Pages: _redirects handles SPA fallback
+  { path: '*', element: <Navigate to="/" replace /> },
+])
+
+export default function App() {
+  return <RouterProvider router={router} />
+}
+```
+
+**Cloudflare Pages SPA redirect (`public/_redirects`):**
+
+```
+/* /index.html 200
+```
+
+---
+
+## State Management
+
+### Auth Store
+
+```typescript
+// src/stores/authStore.ts
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import { devtools } from 'zustand/middleware'
+import type { Session, User } from '@supabase/supabase-js'
+
+interface AuthState {
+  session: Session | null
+  user: User | null
+  profile: Profile | null
+  organizationId: string | null
+  // Actions
+  setSession: (session: Session | null) => void
+  setProfile: (profile: Profile) => void
+  setOrganizationId: (id: string) => void
+  clearSession: () => void
+}
+
+export const useAuthStore = create<AuthState>()(
+  devtools(
+    persist(
+      (set) => ({
+        session: null,
+        user: null,
+        profile: null,
+        organizationId: null,
+        setSession: (session) => set({
+          session,
+          user: session?.user ?? null,
+        }, false, 'setSession'),
+        setProfile: (profile) => set({ profile }, false, 'setProfile'),
+        setOrganizationId: (organizationId) => set({ organizationId }, false, 'setOrganizationId'),
+        clearSession: () => set({
+          session: null, user: null, profile: null, organizationId: null,
+        }, false, 'clearSession'),
+      }),
+      {
+        name: 'ce-auth',
+        storage: createJSONStorage(() => localStorage),
+        // Only persist the organizationId — session is re-fetched from Supabase on load
+        partialize: (s) => ({ organizationId: s.organizationId }),
+      }
+    ),
+    { name: 'AuthStore' }
+  )
+)
+```
+
+### Notification Store
+
+```typescript
+// src/stores/notificationStore.ts
+import { create } from 'zustand'
+
+type ToastType = 'success' | 'error' | 'info' | 'warning'
+
+interface Toast {
+  id: string
+  type: ToastType
+  title: string
+  description?: string
+}
+
+interface NotificationState {
+  toasts: Toast[]
+  toast: (type: ToastType, title: string, description?: string) => void
+  dismiss: (id: string) => void
+}
+
+export const useNotificationStore = create<NotificationState>((set) => ({
+  toasts: [],
+  toast: (type, title, description) => {
+    const id = crypto.randomUUID()
+    set(s => ({ toasts: [...s.toasts, { id, type, title, description }] }))
+    setTimeout(() => {
+      set(s => ({ toasts: s.toasts.filter(t => t.id !== id) }))
+    }, 5000)
+  },
+  dismiss: (id) => set(s => ({ toasts: s.toasts.filter(t => t.id !== id) })),
+}))
+```
+
+---
+
+## Custom Hooks
+
+### `useContracts`
+
+```typescript
+// src/hooks/useContracts.ts
+export function useContracts(filters?: { status?: ContractStatus; folderId?: string }) {
+  const { organizationId } = useAuthStore()
+  const [contracts, setContracts] = useState<Contract[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!organizationId) return
+
+    let query = supabase
+      .from('contracts')
+      .select('*, contract_parties(id, email, status, role)')
+      .eq('organization_id', organizationId)
+      .order('updated_at', { ascending: false })
+
+    if (filters?.status) query = query.eq('status', filters.status)
+    if (filters?.folderId) query = query.eq('folder_id', filters.folderId)
+
+    setLoading(true)
+    query.then(({ data, error }) => {
+      if (error) setError(error.message)
+      else setContracts(data ?? [])
+      setLoading(false)
+    })
+  }, [organizationId, filters?.status, filters?.folderId])
+
+  return { contracts, loading, error }
+}
+```
+
+### `useOrganization`
+
+```typescript
+// src/hooks/useOrganization.ts
+export function useOrganization() {
+  const { organizationId, setOrganizationId } = useAuthStore()
+  const [organization, setOrganization] = useState<Organization | null>(null)
+  const [members, setMembers] = useState<OrganizationMember[]>([])
+
+  useEffect(() => {
+    if (!organizationId) return
+
+    supabase.from('organizations')
+      .select('*')
+      .eq('id', organizationId)
+      .single()
+      .then(({ data }) => setOrganization(data))
+
+    supabase.from('organization_members')
+      .select('*, profiles(id, email, full_name, avatar_url)')
+      .eq('organization_id', organizationId)
+      .then(({ data }) => setMembers(data ?? []))
+  }, [organizationId])
+
+  return { organization, members, setOrganizationId }
+}
+```
+
+### `useStellar`
+
+```typescript
+// src/hooks/useStellar.ts
+export function useStellar() {
+  const [freighterAddress, setFreighterAddress] = useState<string | null>(null)
+  const [isAnchoring, setIsAnchoring] = useState(false)
+
+  const connectFreighter = async () => {
+    const { isConnected } = await import('@stellar/freighter-api').then(m => m.isConnected())
+    if (!isConnected) throw new Error('Freighter not installed')
+    const { address } = await import('@stellar/freighter-api').then(m => m.getAddress())
+    setFreighterAddress(address)
+    return address
+  }
+
+  const anchorContract = async (contractId: string, sha256Hash: string) => {
+    setIsAnchoring(true)
+    try {
+      const result = await supabase.functions.invoke('anchor-on-stellar', {
+        body: { contractId, sha256Hash, network: import.meta.env.VITE_STELLAR_NETWORK },
+      })
+      return result.data
+    } finally {
+      setIsAnchoring(false)
+    }
+  }
+
+  return { freighterAddress, isAnchoring, connectFreighter, anchorContract }
+}
+```
+
+---
+
+## Key Components
+
+### `ContractEditor`
+
+Rich text editor for contract body. Uses `@tiptap/react` under the hood with a custom toolbar.
+
+```typescript
+// src/components/contract/ContractEditor.tsx
+interface ContractEditorProps {
+  content: string
+  onChange: (html: string) => void
+  readOnly?: boolean
+  placeholder?: string
+}
+```
+
+### `SignatureCanvas`
+
+Multi-method signature capture component:
+
+```typescript
+// src/components/signing/SignatureCanvas.tsx
+interface SignatureCanvasProps {
+  onCapture: (dataUrl: string, method: SigningMethod) => void
+  signerName: string
+}
+// Renders tab UI: Draw | Type | Upload | Freighter
+```
+
+### `AnchorStatus`
+
+Displays the Stellar anchoring state with Explorer link:
+
+```typescript
+// src/components/contract/AnchorStatus.tsx
+interface AnchorStatusProps {
+  anchorStatus: 'pending' | 'anchored' | 'failed'
+  stellarTxId: string | null
+  network: 'testnet' | 'mainnet'
+}
+```
+
+### `PDFViewer`
+
+Renders a contract PDF preview using `@react-pdf/renderer`:
+
+```typescript
+// src/components/contract/PDFViewer.tsx
+interface PDFViewerProps {
+  contract: Contract
+  showSignatures?: boolean
+}
+```
+
+---
+
+## Design Tokens
+
+```typescript
+// tailwind.config.ts
+import type { Config } from 'tailwindcss'
+
+export default {
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        // Primary brand: emerald
+        brand: {
+          50:  '#ecfdf5',
+          100: '#d1fae5',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          900: '#064e3b',
+        },
+        // Neutral: zinc
+        surface: {
+          50:  '#fafafa',
+          100: '#f4f4f5',
+          800: '#27272a',
+          900: '#18181b',
+        },
+      },
+      fontFamily: {
+        sans: ['Bricolage Grotesque', 'system-ui', 'sans-serif'],
+        signature: ['Dancing Script', 'cursive'],
+      },
+      borderRadius: {
+        DEFAULT: '0.5rem',
+        lg: '0.75rem',
+        xl: '1rem',
+      },
+    },
+  },
+} satisfies Config
+```
+
+---
+
+## Internationalization
+
+ContractEase ships with Portuguese (Brazilian) as the primary language and English as fallback. Translations are loaded from JSON files and accessed via a lightweight `useTranslation` hook.
+
+```typescript
+// src/i18n/useTranslation.ts
+import ptBR from './pt-BR.json'
+import en from './en.json'
+
+const translations = { 'pt-BR': ptBR, en }
+
+export function useTranslation() {
+  const lang = navigator.language.startsWith('pt') ? 'pt-BR' : 'en'
+  const t = translations[lang] ?? translations.en
+
+  return {
+    t: (key: string, vars?: Record<string, string>) => {
+      let str = key.split('.').reduce((obj: any, k) => obj?.[k], t) ?? key
+      if (vars) {
+        Object.entries(vars).forEach(([k, v]) => { str = str.replace(`{{${k}}}`, v) })
+      }
+      return str
+    },
+    lang,
+  }
+}
+```
+
+```json
+// src/i18n/pt-BR.json (excerpt)
+{
+  "contracts": {
+    "new": "Novo Contrato",
+    "send_for_signing": "Enviar para Assinatura",
+    "status": {
+      "draft": "Rascunho",
+      "pending": "Aguardando Assinaturas",
+      "partial": "Assinatura Parcial",
+      "completed": "Concluído",
+      "cancelled": "Cancelado"
+    }
+  }
+}
+```
+
+---
+
+## Performance Patterns
+
+| Pattern | Implementation |
+|---|---|
+| Route-level code splitting | `React.lazy()` + `Suspense` on every page import |
+| Heavy dependency chunking | Vite `manualChunks`: stellar-sdk, pdf, supabase, framer-motion |
+| Skeleton loaders | Show skeleton UI while Supabase queries resolve |
+| Realtime over polling | Supabase Realtime channels replace any `setInterval` refresh |
+| Pagination | Contract list uses `.limit(50)` with infinite scroll cursor |
+| Image optimization | Signature images compressed to PNG before upload |
+| Font preloading | Bricolage Grotesque loaded via `<link rel="preload">` in index.html |

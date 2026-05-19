@@ -1,0 +1,451 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "SocialPay — API Reference"
+description: "Full reference for all SocialPay Next.js App Router API endpoints, TypeScript request/response types, and error codes."
+---
+
+# API Reference
+
+All endpoints are Next.js App Router Route Handlers located in `app/api/`. Authentication is handled via Supabase session cookies validated in middleware. All responses are JSON.
+
+Base URL (production): `https://socialpay.io`
+
+---
+
+## Authentication
+
+All endpoints except magic-link require a valid Supabase session. The session is read from the `sb-*` cookies set by Supabase Auth. Server-side routes call `supabase.auth.getUser()` to validate the session.
+
+```typescript
+// lib/supabase-server.ts
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+
+export function createClient() {
+  const cookieStore = cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll(), setAll: (cs) => cs.forEach(c => cookieStore.set(c)) } }
+  );
+}
+```
+
+---
+
+## Auth Endpoints
+
+### `POST /api/auth/magic-link`
+
+Send a Supabase magic link to the provided email address.
+
+**Request**
+```typescript
+interface MagicLinkRequest {
+  email: string;
+  redirectTo?: string; // defaults to /dashboard
+}
+```
+
+**Response `200`**
+```typescript
+interface MagicLinkResponse {
+  success: true;
+  message: "Magic link sent. Check your email.";
+}
+```
+
+**Implementation**
+```typescript
+// app/api/auth/magic-link/route.ts
+export async function POST(request: Request) {
+  const supabase = createClient();
+  const { email, redirectTo } = await request.json();
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: redirectTo ?? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard` }
+  });
+
+  if (error) return Response.json({ error: error.message }, { status: 400 });
+  return Response.json({ success: true, message: 'Magic link sent. Check your email.' });
+}
+```
+
+---
+
+### `GET /api/auth/me`
+
+Returns the currently authenticated user's profile and organization.
+
+**Response `200`**
+```typescript
+interface MeResponse {
+  user: {
+    id: string;
+    email: string;
+    handle: string;
+    display_name: string | null;
+    stellar_public_key: string | null;
+    organization: {
+      id: string;
+      name: string;
+      slug: string;
+      role: 'owner' | 'admin' | 'member';
+    } | null;
+  };
+}
+```
+
+---
+
+## User Endpoints
+
+### `GET /api/users/[handle]`
+
+Resolve an @handle to a user profile and Stellar public key. Used before sending a payment to confirm the recipient exists.
+
+**Parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `handle` | path | Handle without the `@` prefix |
+
+**Query Parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `org_id` | string | Organization ID to scope handle resolution |
+
+**Response `200`**
+```typescript
+interface HandleResponse {
+  id: string;
+  handle: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  stellar_public_key: string;
+}
+```
+
+**Response `404`**
+```json
+{ "error": "Handle not found in this organization" }
+```
+
+**Implementation**
+```typescript
+// app/api/users/[handle]/route.ts
+export async function GET(request: Request, { params }: { params: { handle: string } }) {
+  const supabase = createClient();
+  const { searchParams } = new URL(request.url);
+  const orgId = searchParams.get('org_id');
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, handle, display_name, avatar_url, stellar_public_key')
+    .eq('handle', params.handle)
+    .eq('organization_id', orgId)
+    .single();
+
+  if (error || !data) return Response.json({ error: 'Handle not found' }, { status: 404 });
+  return Response.json(data);
+}
+```
+
+---
+
+## Transaction Endpoints
+
+### `POST /api/transactions/send`
+
+Send XLM or USDC to an @handle. This is the core payment endpoint.
+
+**Request**
+```typescript
+interface SendRequest {
+  to: string;          // @handle (with or without @)
+  amount: string;      // string to avoid float precision issues
+  asset: 'XLM' | 'USDC';
+  description?: string;
+  visibility?: 'public' | 'org' | 'private'; // defaults to 'org'
+}
+```
+
+**Response `200`**
+```typescript
+interface SendResponse {
+  success: true;
+  transaction: {
+    id: string;
+    stellar_hash: string;
+    explorer_url: string;
+    amount: string;
+    asset: string;
+    receiver_handle: string;
+    status: 'confirmed';
+  };
+}
+```
+
+**Full Flow**
+```typescript
+// app/api/transactions/send/route.ts
+export async function POST(request: Request) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { to, amount, asset, description, visibility = 'org' } = await request.json();
+  const handle = to.replace('@', '');
+
+  // 1. Load sender profile
+  const { data: sender } = await supabase
+    .from('profiles')
+    .select('organization_id, stellar_public_key')
+    .eq('id', user.id)
+    .single();
+
+  // 2. Resolve recipient
+  const { data: recipient } = await supabase
+    .from('profiles')
+    .select('id, handle, stellar_public_key')
+    .eq('handle', handle)
+    .eq('organization_id', sender.organization_id)
+    .single();
+
+  if (!recipient) return Response.json({ error: 'Handle not found' }, { status: 404 });
+
+  // 3. Load sender secret from Vault
+  const senderSecret = await loadWalletSecret(user.id); // decrypts from Vault
+
+  // 4. Submit Stellar payment
+  const { hash } = await sendStellarPayment({
+    sourceSecret: senderSecret,
+    destination: recipient.stellar_public_key,
+    amount,
+    asset,
+    memo: description,
+  });
+
+  // 5. Record in database
+  const { data: tx } = await supabase.from('transactions').insert({
+    sender_id: user.id,
+    receiver_id: recipient.id,
+    sender_handle: sender.handle,
+    receiver_handle: recipient.handle,
+    amount: parseFloat(amount),
+    asset_code: asset,
+    description,
+    visibility,
+    status: 'confirmed',
+    stellar_hash: hash,
+    explorer_url: `https://stellar.expert/explorer/public/tx/${hash}`,
+    organization_id: sender.organization_id,
+    confirmed_at: new Date().toISOString(),
+  }).select().single();
+
+  return Response.json({ success: true, transaction: tx });
+}
+```
+
+---
+
+### `GET /api/transactions/feed`
+
+Paginated transaction feed. Returns public, org-visible, and the caller's own private transactions. RLS handles filtering automatically.
+
+**Query Parameters**
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `page` | number | `1` | Page number |
+| `limit` | number | `20` | Results per page (max 100) |
+| `visibility` | string | all | Filter by `public`, `org`, or `private` |
+| `handle` | string | — | Filter to a specific sender or receiver handle |
+
+**Response `200`**
+```typescript
+interface FeedResponse {
+  transactions: Transaction[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    has_more: boolean;
+  };
+}
+```
+
+---
+
+## Wallet Endpoints
+
+### `GET /api/wallet/balance`
+
+Fetch the current XLM and USDC balance from Stellar Horizon for the authenticated user's wallet.
+
+**Response `200`**
+```typescript
+interface BalanceResponse {
+  stellar_public_key: string;
+  balances: Array<{
+    asset_code: string;
+    asset_issuer: string | null;
+    balance: string;
+  }>;
+}
+```
+
+---
+
+### `POST /api/wallet/fund`
+
+Fund the wallet using Stellar Friendbot (testnet only). Returns an error on mainnet.
+
+**Response `200`**
+```json
+{ "success": true, "message": "Testnet wallet funded with 10,000 XLM" }
+```
+
+**Response `400`** (mainnet)
+```json
+{ "error": "Friendbot is only available on testnet" }
+```
+
+---
+
+### `POST /api/wallet/trustline`
+
+Establish a USDC trustline on the user's Stellar account. Required before the user can hold or receive USDC.
+
+**Request**
+```typescript
+interface TrustlineRequest {
+  asset_code: 'USDC';
+  asset_issuer: string; // USDC issuer on Stellar
+}
+```
+
+**Response `200`**
+```typescript
+interface TrustlineResponse {
+  success: true;
+  stellar_hash: string;
+}
+```
+
+---
+
+## Ramp Endpoints
+
+### `POST /api/ramp/quote`
+
+Get a real-time quote from Etherfuse for converting between fiat and USDC.
+
+**Request**
+```typescript
+interface QuoteRequest {
+  type: 'on_ramp' | 'off_ramp';
+  fiat_currency: 'BRL' | 'MXN';
+  fiat_amount?: number;   // provide one of these
+  crypto_amount?: number;
+}
+```
+
+**Response `200`**
+```typescript
+interface QuoteResponse {
+  fiat_amount: number;
+  fiat_currency: 'BRL' | 'MXN';
+  crypto_amount: number;
+  crypto_asset: 'USDC';
+  rate: number;          // fiat per USDC
+  fee_fiat: number;
+  fee_crypto: number;
+  expires_at: string;    // quote validity window
+}
+```
+
+---
+
+### `POST /api/ramp/order`
+
+Create a ramp order with Etherfuse and return the payment URL for PIX or boleto.
+
+**Request**
+```typescript
+interface RampOrderRequest {
+  type: 'on_ramp' | 'off_ramp';
+  fiat_currency: 'BRL' | 'MXN';
+  fiat_amount: number;
+}
+```
+
+**Response `200`**
+```typescript
+interface RampOrderResponse {
+  order_id: string;        // SocialPay internal ID
+  etherfuse_ref: string;
+  payment_url: string;     // redirect user here to pay via PIX
+  expires_at: string;
+  fiat_amount: number;
+  crypto_amount: number;
+}
+```
+
+---
+
+## Analytics Endpoint
+
+### `GET /api/x402/analytics`
+
+Payment-gated analytics endpoint using the x402 protocol. Callers must include a valid x402 payment header to access metrics.
+
+**x402 Payment Required `402`** (initial response)
+```json
+{
+  "x402Version": 1,
+  "error": "Payment required",
+  "accepts": [{
+    "scheme": "exact",
+    "network": "stellar",
+    "maxAmountRequired": "1000000",
+    "asset": "XLM",
+    "payTo": "GBPLATFORM...PUBLIC_KEY"
+  }]
+}
+```
+
+**Response `200`** (after valid payment)
+```typescript
+interface AnalyticsResponse {
+  period: 'last_30_days';
+  total_transactions: number;
+  total_volume_xlm: number;
+  total_volume_usdc: number;
+  active_handles: number;
+  top_senders: Array<{ handle: string; count: number; volume: number }>;
+  top_receivers: Array<{ handle: string; count: number; volume: number }>;
+  daily_volume: Array<{ date: string; xlm: number; usdc: number }>;
+}
+```
+
+---
+
+## Error Codes
+
+| HTTP Status | Code | Description |
+|---|---|---|
+| `400` | `INVALID_HANDLE` | Handle format is invalid (wrong chars or length) |
+| `400` | `INSUFFICIENT_BALANCE` | Sender wallet has insufficient XLM or USDC |
+| `400` | `TRUSTLINE_MISSING` | Receiver has no USDC trustline established |
+| `400` | `DESTINATION_NOT_FOUND` | Recipient Stellar account does not exist |
+| `401` | `UNAUTHORIZED` | No valid Supabase session cookie |
+| `402` | `PAYMENT_REQUIRED` | x402 payment required for this endpoint |
+| `404` | `HANDLE_NOT_FOUND` | @handle does not exist in this organization |
+| `409` | `HANDLE_TAKEN` | @handle already exists in this organization |
+| `422` | `RAMP_QUOTE_EXPIRED` | Etherfuse quote has expired; request a new one |
+| `429` | `RATE_LIMITED` | Too many requests; retry after `Retry-After` header |
+| `500` | `STELLAR_ERROR` | Stellar network or Horizon API error |
+| `500` | `VAULT_ERROR` | Failed to retrieve wallet secret from Supabase Vault |

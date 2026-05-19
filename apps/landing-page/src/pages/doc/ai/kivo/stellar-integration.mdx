@@ -1,0 +1,433 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "Kivo Pay — Stellar Integration"
+description: "Go Stellar SDK setup, device wallet generation, payment submission, SSE monitoring, conditional payments, Claimable Balances, and error handling."
+---
+
+# Stellar Integration
+
+Kivo Pay uses the official Go Stellar SDK (`github.com/stellar/go`) to interact with the Stellar network. This document covers the full lifecycle: generating device wallets, submitting payments, monitoring confirmations via SSE, and implementing conditional payment logic with Claimable Balances.
+
+---
+
+## Go Stellar SDK Setup
+
+The Go Stellar SDK is maintained by the Stellar Development Foundation. Note: this is different from `stellar-sdk` (the JavaScript package). The Go module is `github.com/stellar/go`.
+
+```bash
+go get github.com/stellar/go/clients/horizonclient
+go get github.com/stellar/go/keypair
+go get github.com/stellar/go/txnbuild
+go get github.com/stellar/go/network
+go get github.com/stellar/go/protocols/horizon
+```
+
+---
+
+## Horizon Client Setup
+
+```go
+// internal/stellar/client.go
+
+package stellar
+
+import (
+    "log"
+    "os"
+    "time"
+
+    "github.com/stellar/go/clients/horizonclient"
+    "github.com/stellar/go/network"
+)
+
+type Client struct {
+    horizon    *horizonclient.Client
+    networkPassphrase string
+}
+
+func New() *Client {
+    stellarNetwork := os.Getenv("STELLAR_NETWORK") // "testnet" or "mainnet"
+
+    var horizonURL, passphrase string
+    switch stellarNetwork {
+    case "mainnet":
+        horizonURL = "https://horizon.stellar.org"
+        passphrase = network.PublicNetworkPassphrase
+    default:
+        horizonURL = "https://horizon-testnet.stellar.org"
+        passphrase = network.TestNetworkPassphrase
+    }
+
+    h := &horizonclient.Client{
+        HorizonURL: horizonURL,
+        HTTP: &http.Client{
+            Timeout: 30 * time.Second,
+        },
+    }
+
+    log.Printf("stellar: connected to %s (%s)", stellarNetwork, horizonURL)
+    return &Client{horizon: h, networkPassphrase: passphrase}
+}
+```
+
+For high-availability production deployments, configure a failover secondary Horizon node using the same `horizonclient.Client` with retry logic:
+
+```go
+func (c *Client) submitWithRetry(ctx context.Context, txe string) (horizon.Transaction, error) {
+    for attempt := 0; attempt < 3; attempt++ {
+        tx, err := c.horizon.SubmitTransactionXDR(txe)
+        if err == nil {
+            return tx, nil
+        }
+        hErr, ok := err.(*horizonclient.Error)
+        if ok && hErr.Problem.Status == 400 {
+            return tx, err // don't retry on bad transaction
+        }
+        time.Sleep(time.Duration(attempt+1) * 2 * time.Second)
+    }
+    return horizon.Transaction{}, fmt.Errorf("stellar: all submission attempts failed")
+}
+```
+
+---
+
+## Device Wallet Generation
+
+Each device gets a unique Stellar keypair. The public key is the device's wallet address — no bank account, no KYC required. The secret key is encrypted with AES-256-GCM before being stored in Supabase.
+
+```go
+// internal/stellar/wallet.go
+
+import (
+    "crypto/aes"
+    "crypto/cipher"
+    "crypto/rand"
+    "encoding/base64"
+    "os"
+
+    "github.com/stellar/go/keypair"
+)
+
+// GenerateKeypair creates a new random Stellar keypair.
+func (c *Client) GenerateKeypair() (*keypair.Full, error) {
+    kp, err := keypair.Random()
+    if err != nil {
+        return nil, fmt.Errorf("stellar: keypair.Random failed: %w", err)
+    }
+    return kp, nil
+}
+
+// EncryptSecret encrypts a Stellar secret key with AES-256-GCM.
+// The encryption key comes from the STELLAR_ENCRYPTION_KEY env var (32 bytes, hex-encoded).
+func (c *Client) EncryptSecret(secret string) (string, error) {
+    keyHex := os.Getenv("STELLAR_ENCRYPTION_KEY")
+    key, err := hex.DecodeString(keyHex)
+    if err != nil || len(key) != 32 {
+        return "", fmt.Errorf("stellar: invalid encryption key")
+    }
+
+    block, err := aes.NewCipher(key)
+    if err != nil {
+        return "", err
+    }
+    aesGCM, err := cipher.NewGCM(block)
+    if err != nil {
+        return "", err
+    }
+
+    nonce := make([]byte, aesGCM.NonceSize())
+    rand.Read(nonce)
+
+    ciphertext := aesGCM.Seal(nonce, nonce, []byte(secret), nil)
+    return base64.StdEncoding.EncodeToString(ciphertext), nil
+}
+
+// DecryptSecret decrypts a Stellar secret key for signing.
+func (c *Client) DecryptSecret(encrypted string) (string, error) {
+    keyHex := os.Getenv("STELLAR_ENCRYPTION_KEY")
+    key, _ := hex.DecodeString(keyHex)
+
+    data, _ := base64.StdEncoding.DecodeString(encrypted)
+    block, _ := aes.NewCipher(key)
+    aesGCM, _ := cipher.NewGCM(block)
+
+    nonceSize := aesGCM.NonceSize()
+    nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+
+    plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+    if err != nil {
+        return "", fmt.Errorf("stellar: decryption failed: %w", err)
+    }
+    return string(plaintext), nil
+}
+```
+
+---
+
+## Payment Submission
+
+```go
+// internal/stellar/payment.go
+
+import (
+    "github.com/stellar/go/keypair"
+    "github.com/stellar/go/txnbuild"
+)
+
+type PaymentRequest struct {
+    FromSecret      string
+    ToPublicKey     string
+    Amount          string          // decimal string, e.g. "10.5"
+    AssetCode       string          // "USDC" or "XLM"
+    AssetIssuer     string          // USDC issuer address, empty for XLM
+    Memo            string
+}
+
+func (c *Client) SubmitPayment(ctx context.Context, req PaymentRequest) (string, error) {
+    // Load source account
+    sourceKP := keypair.MustParseFull(req.FromSecret)
+    account, err := c.horizon.AccountDetail(horizonclient.AccountRequest{
+        AccountID: sourceKP.Address(),
+    })
+    if err != nil {
+        return "", fmt.Errorf("stellar: source account not found: %w", err)
+    }
+
+    // Build asset
+    var asset txnbuild.Asset
+    if req.AssetCode == "XLM" || req.AssetIssuer == "" {
+        asset = txnbuild.NativeAsset{}
+    } else {
+        asset = txnbuild.CreditAsset{
+            Code:   req.AssetCode,
+            Issuer: req.AssetIssuer,
+        }
+    }
+
+    // Build transaction
+    tx, err := txnbuild.NewTransaction(
+        txnbuild.TransactionParams{
+            SourceAccount:        &account,
+            IncrementSequenceNum: true,
+            Operations: []txnbuild.Operation{
+                &txnbuild.Payment{
+                    Destination: req.ToPublicKey,
+                    Amount:      req.Amount,
+                    Asset:       asset,
+                },
+            },
+            BaseFee:    txnbuild.MinBaseFee,
+            Memo:       txnbuild.MemoText(req.Memo),
+            Timebounds: txnbuild.NewTimeout(300), // 5 minute window
+            IncrementSequenceNum: true,
+        },
+    )
+    if err != nil {
+        return "", fmt.Errorf("stellar: build tx failed: %w", err)
+    }
+
+    // Sign
+    tx, err = tx.Sign(c.networkPassphrase, sourceKP)
+    if err != nil {
+        return "", fmt.Errorf("stellar: sign failed: %w", err)
+    }
+
+    // Submit
+    txXDR, _ := tx.ToXDR()
+    resp, err := c.submitWithRetry(ctx, txXDR)
+    if err != nil {
+        return "", parseHorizonError(err)
+    }
+
+    return resp.Hash, nil
+}
+```
+
+---
+
+## Path Payments (Cross-Asset)
+
+Path payments allow a device to pay in one asset while the receiver gets a different asset, routed automatically through Stellar's built-in DEX:
+
+```go
+// Device pays USDC, receiver gets XLM automatically
+tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+    SourceAccount:        &account,
+    IncrementSequenceNum: true,
+    Operations: []txnbuild.Operation{
+        &txnbuild.PathPaymentStrictSend{
+            SendAsset:   txnbuild.CreditAsset{Code: "USDC", Issuer: usdcIssuer},
+            SendAmount:  "10.0",
+            Destination: req.ToPublicKey,
+            DestAsset:   txnbuild.NativeAsset{},
+            DestMin:     "1.0", // minimum XLM to receive
+            Path:        []txnbuild.Asset{}, // Stellar finds path automatically
+        },
+    },
+    BaseFee:    txnbuild.MinBaseFee,
+    Timebounds: txnbuild.NewTimeout(300),
+})
+```
+
+---
+
+## Payment Monitoring via SSE
+
+After submitting a transaction, a goroutine monitors the Stellar Horizon SSE (Server-Sent Events) stream for confirmation:
+
+```go
+// internal/stellar/monitor.go
+
+func (c *Client) MonitorPayment(ctx context.Context, paymentID uuid.UUID, hash string, q *db.Queries, rdb *redis.Client) {
+    cursor := "now"
+    req := horizonclient.TransactionRequest{
+        Order:  horizonclient.OrderAsc,
+        Cursor: cursor,
+    }
+
+    err := c.horizon.StreamTransactions(ctx, req, func(tx horizon.Transaction) {
+        if tx.Hash == hash {
+            if tx.Successful {
+                confirmedAt := time.Now()
+                q.UpdatePaymentStatus(ctx, db.UpdatePaymentStatusParams{
+                    ID:          paymentID,
+                    Status:      "confirmed",
+                    StellarHash: &hash,
+                    ConfirmedAt: &confirmedAt,
+                })
+                // Notify webhook worker
+                rdb.LPush(ctx, "webhook_events", buildWebhookJob(paymentID, "payment.confirmed"))
+            } else {
+                q.UpdatePaymentStatus(ctx, db.UpdatePaymentStatusParams{
+                    ID:     paymentID,
+                    Status: "failed",
+                })
+                rdb.LPush(ctx, "webhook_events", buildWebhookJob(paymentID, "payment.failed"))
+            }
+        }
+    })
+    if err != nil && ctx.Err() == nil {
+        log.Printf("stellar: SSE stream error for payment %s: %v", paymentID, err)
+    }
+}
+```
+
+---
+
+## Claimable Balances (Escrow-Style Conditional Payments)
+
+For payments that should be held until a condition is met and automatically refunded if the condition is not met within a timeout, Kivo uses Stellar Claimable Balances:
+
+```go
+// internal/stellar/claimable.go
+
+// CreateClaimableBalance creates an escrow-style balance claimable by the
+// recipient if they claim within the timeout, or refundable by sender after timeout.
+func (c *Client) CreateClaimableBalance(ctx context.Context, senderSecret, recipientPublicKey, amount, assetCode, assetIssuer string, timeout time.Duration) (string, error) {
+    senderKP := keypair.MustParseFull(senderSecret)
+    account, _ := c.horizon.AccountDetail(horizonclient.AccountRequest{AccountID: senderKP.Address()})
+
+    claimants := []txnbuild.Claimant{
+        txnbuild.NewClaimant(
+            recipientPublicKey,
+            // Recipient can claim within timeout
+            txnbuild.BeforeAbsoluteTimePredicate(time.Now().Add(timeout).Unix()),
+        ),
+        txnbuild.NewClaimant(
+            senderKP.Address(),
+            // Sender can reclaim after timeout (refund)
+            txnbuild.NotPredicate(
+                txnbuild.BeforeAbsoluteTimePredicate(time.Now().Add(timeout).Unix()),
+            ),
+        ),
+    }
+
+    var asset txnbuild.Asset
+    if assetCode == "XLM" {
+        asset = txnbuild.NativeAsset{}
+    } else {
+        asset = txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+    }
+
+    tx, _ := txnbuild.NewTransaction(txnbuild.TransactionParams{
+        SourceAccount:        &account,
+        IncrementSequenceNum: true,
+        Operations: []txnbuild.Operation{
+            &txnbuild.CreateClaimableBalance{
+                Amount:    amount,
+                Asset:     asset,
+                Claimants: claimants,
+            },
+        },
+        BaseFee:    txnbuild.MinBaseFee,
+        Timebounds: txnbuild.NewTimeout(300),
+    })
+
+    tx, _ = tx.Sign(c.networkPassphrase, senderKP)
+    txXDR, _ := tx.ToXDR()
+    resp, err := c.horizon.SubmitTransactionXDR(txXDR)
+    if err != nil {
+        return "", err
+    }
+    return resp.Hash, nil
+}
+```
+
+---
+
+## Testnet Friendbot
+
+During development, fund a device wallet using Stellar's Friendbot:
+
+```go
+// Fund a device wallet on testnet (dev only)
+func (c *Client) FundTestnetWallet(publicKey string) error {
+    if c.networkPassphrase != network.TestNetworkPassphrase {
+        return fmt.Errorf("Friendbot only available on testnet")
+    }
+    resp, err := http.Get(fmt.Sprintf(
+        "https://friendbot.stellar.org/?addr=%s", url.QueryEscape(publicKey),
+    ))
+    if err != nil || resp.StatusCode != 200 {
+        return fmt.Errorf("friendbot failed: %v", err)
+    }
+    return nil
+}
+```
+
+---
+
+## Error Handling
+
+```go
+// internal/stellar/errors.go
+
+func parseHorizonError(err error) error {
+    hErr, ok := err.(*horizonclient.Error)
+    if !ok {
+        return err
+    }
+    extras := hErr.Problem.Extras
+    switch {
+    case strings.Contains(hErr.Problem.Detail, "op_no_destination"):
+        return fmt.Errorf("stellar: recipient account does not exist")
+    case strings.Contains(hErr.Problem.Detail, "op_underfunded"):
+        return fmt.Errorf("stellar: insufficient balance")
+    case strings.Contains(hErr.Problem.Detail, "tx_too_late"):
+        return fmt.Errorf("stellar: transaction expired")
+    case strings.Contains(hErr.Problem.Detail, "op_no_trust"):
+        return fmt.Errorf("stellar: recipient has no USDC trustline")
+    default:
+        return fmt.Errorf("stellar: horizon error: %s — %v", hErr.Problem.Title, extras)
+    }
+}
+```
+
+| Horizon Error | Cause | Resolution |
+|---|---|---|
+| `op_no_destination` | Recipient account does not exist on Stellar | Fund account with minimum XLM reserve (1 XLM) |
+| `op_underfunded` | Sender has insufficient balance | Recharge device wallet |
+| `tx_too_late` | Transaction timebounds expired | Rebuild + resubmit transaction |
+| `op_no_trust` | Recipient has no USDC trustline | Recipient must add USDC trustline before receiving |
+| `tx_bad_seq` | Sequence number mismatch (concurrent submissions) | Re-fetch account, retry with fresh sequence |
+| `tx_insufficient_fee` | Base fee below network surge pricing | Increase base fee, use fee bump transactions |

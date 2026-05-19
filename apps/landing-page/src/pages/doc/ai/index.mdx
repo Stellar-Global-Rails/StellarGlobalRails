@@ -1,0 +1,585 @@
+---
+layout: '../../../layouts/DocLayout.astro'
+title: "Stellar Global Rails — Platform Overview"
+description: "ADR/Living Document: architecture, decisions, and product strategy for the StellarGlobalRails ecosystem."
+---
+
+# Stellar Global Rails — Platform Overview
+
+**Document Type:** ADR / Living Product Document  
+**Status:** Active  
+**Last Updated:** 2025-05  
+**Audience:** Hackathon evaluators, external developers, and contributors  
+
+> This is the single source of truth for the StellarGlobalRails platform. It covers product strategy, architectural decisions, integration principles, and development guidelines across all products in the ecosystem.
+
+---
+
+## 1. What Is StellarGlobalRails
+
+StellarGlobalRails is a **B2B fintech platform built on the Stellar blockchain**, designed to make cross-border and domestic payments seamless, auditable, and cost-effective for Brazilian small and medium-sized businesses (SMBs) and the developers who serve them.
+
+The platform ships three products that share Stellar as their settlement layer:
+
+| Product | One-liner |
+|---------|-----------|
+| **ContractEase** | Digital B2B contract signing with blockchain-anchored document proofs |
+| **SocialPay** | Internal corporate payments via human-readable `@handles` |
+| **Kivo Pay** | Machine-to-machine (M2M) autonomous payment SDK using the x402 protocol |
+
+### Core Value Proposition
+
+- **Speed:** Stellar's 3–5 second transaction finality eliminates the multi-day settlement delays of traditional Brazilian banking rails (TED, DOC, PIX for B2B flows).
+- **Cost:** At $0.00001 per transaction, Stellar makes micro-payment architectures economically viable for the first time.
+- **Composability:** All three products share the same Stellar account model, USDC liquidity pool access, and Soroban smart contract substrate.
+- **Trust:** Every critical business event — contract signing, payment authorization, audit trail entry — is anchored to an immutable on-chain transaction memo.
+
+### Target Market
+
+- Brazilian SMBs processing B2B invoices, contracts, and payroll
+- Development teams building payment-enabled SaaS products on Stellar
+- Organizations requiring auditability without the overhead of enterprise blockchain infrastructure
+
+---
+
+## 2. Platform Architecture
+
+### 2.1 Repository Structure
+
+StellarGlobalRails is organized as a **monorepo** with clear product boundaries:
+
+```
+StellarGlobalRails/
+├── apps/
+│   ├── contract-ease/        # ContractEase — React/Vite + Supabase
+│   ├── social-pay/           # SocialPay — Next.js + Prisma
+│   └── kivo-pay/             # Kivo Pay — Go backend + React/Vite frontend
+├── landing-page-astro/       # Marketing site — Astro + React islands
+│   ├── src/
+│   │   ├── components/       # Shared UI components per product
+│   │   ├── data/             # Structured content (pricing, features, i18n)
+│   │   ├── layouts/          # Astro layouts (DocLayout, BaseLayout)
+│   │   └── pages/            # Route-based pages including /doc/
+└── packages/                 # (planned) Shared types and Stellar utilities
+```
+
+Each product application lives in `apps/` and operates as an independent deployable unit. The landing page (`landing-page-astro/`) is a separately deployed static site on Cloudflare Pages.
+
+### 2.2 Stellar Network Layer
+
+All blockchain operations target the **Stellar Testnet** during development:
+
+- **Horizon API (Testnet):** `https://horizon-testnet.stellar.org`
+- **Network Passphrase:** `Test SDF Network ; September 2015`
+- **Explorer:** `https://stellar.expert/explorer/testnet`
+
+The architecture is Mainnet-ready: switching to production requires only a passphrase and Horizon endpoint change. No application logic is environment-specific.
+
+**Key Stellar primitives used across the platform:**
+
+| Primitive | Usage |
+|-----------|-------|
+| Stellar Accounts (keypairs) | Identity for organizations and users |
+| USDC (Circle) on Stellar | Settlement currency for all B2B transactions |
+| Transaction Memos | On-chain anchoring of document hashes and event identifiers |
+| Soroban Smart Contracts | Programmable payment conditions (Kivo Pay) |
+| SEP-0010 | Web authentication standard for wallet-based login |
+| SEP-0024 | Anchor protocol for fiat on/off-ramp (roadmap) |
+| Freighter API | Browser wallet for user-signed transactions |
+
+### 2.3 Authentication Model
+
+The platform uses a **dual-auth model** depending on the product context:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Auth Strategies                       │
+├─────────────────────────┬───────────────────────────────┤
+│  Traditional Auth       │  Wallet-Based Auth             │
+│  (Supabase Auth)        │  (Freighter / Stellar SDK)     │
+│                         │                                │
+│  Magic Link / OTP       │  SEP-0010 Challenge/Response   │
+│  Email-based sessions   │  Wallet signature proves       │
+│  JWT for API access     │  ownership of keypair          │
+│                         │                                │
+│  ContractEase           │  Kivo Pay M2M flows            │
+│  SocialPay              │  On-chain transaction signing  │
+└─────────────────────────┴───────────────────────────────┘
+```
+
+### 2.4 Multi-Tenancy Model
+
+All B2B data is isolated by **organization**. Every tenant-scoped table carries an `organization_id` foreign key. Row Level Security (RLS) policies in PostgreSQL (via Supabase) enforce that authenticated users can only access rows belonging to their organization:
+
+```sql
+-- Example RLS policy pattern used across all products
+CREATE POLICY "org_isolation" ON contracts
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM organization_members
+      WHERE user_id = auth.uid()
+    )
+  );
+```
+
+This ensures zero cross-tenant data leakage at the database level, independent of application-layer authorization.
+
+---
+
+## 3. Architecture Decision Records (ADRs)
+
+### ADR-001: Stellar as the Settlement Layer
+
+**Status:** Accepted  
+**Date:** 2024-Q4  
+
+#### Context
+
+The platform needed a blockchain settlement layer that could handle B2B payment flows for Brazilian SMBs. Requirements:
+
+- Sub-10-second finality for real-time UX
+- Transaction costs below $0.001 to enable micro-payment models
+- Native stablecoin support (USDC) to avoid crypto volatility risk
+- Smart contract capability for programmable payment conditions
+- Established standards for anchor/fiat integration
+
+#### Decision
+
+Use the **Stellar Network** as the primary settlement and anchoring layer for all three products.
+
+#### Rationale
+
+| Criterion | Stellar | Ethereum | Solana | Traditional Banking |
+|-----------|---------|----------|--------|---------------------|
+| Finality | 3–5s | 12–15 min (PoS) | 0.4s (when stable) | 1–3 business days |
+| Cost per tx | $0.00001 | $0.50–$20+ | ~$0.00025 | $5–$30 per wire |
+| Native USDC | Yes (Circle) | Yes | Yes | N/A |
+| Smart contracts | Soroban (Rust/WASM) | Solidity (EVM) | BPF programs | N/A |
+| SEP standards | Yes (SEP-0001 to SEP-0038) | No | No | ISO 20022 |
+| Brazilian anchor ecosystem | Growing (Bitso, etc.) | Minimal | Minimal | Full |
+
+#### Alternatives Rejected
+
+- **Ethereum:** Gas fees of $0.50–$20+ per transaction make micro-payment and high-volume B2B flows economically unviable. L2 solutions add complexity without eliminating the underlying liquidity fragmentation problem.
+- **Solana:** While fast and cheap, Solana has experienced significant network reliability incidents. For a B2B payment platform where availability is a contractual obligation, this risk is unacceptable in the current maturity stage.
+- **Traditional Banking (PIX/TED):** PIX offers good domestic settlement but has no programmability, no native stablecoin, no smart contract layer, and introduces intermediaries at every step. It also provides no viable path for cross-border operations.
+
+#### Consequences
+
+- **Positive:** The team gains access to Stellar's anchor ecosystem, SEP protocol standards, and Soroban for programmable payment logic. Transaction costs remain negligible at any scale.
+- **Negative:** The development team must learn Stellar SDK, Soroban contract development (Rust/WASM), and the SEP protocol suite. This is an upfront investment with long-term leverage.
+- **Risk mitigation:** The Stellar Development Foundation's active developer relations and comprehensive documentation significantly reduce the learning curve. Freighter wallet provides a familiar browser UX for end users.
+
+---
+
+### ADR-002: Monorepo Architecture
+
+**Status:** Accepted  
+**Date:** 2024-Q4  
+
+#### Context
+
+Three distinct products (ContractEase, SocialPay, Kivo Pay) share:
+
+- Stellar integration patterns and utility functions
+- Brand design system (colors, typography, component patterns)
+- TypeScript types for common entities (organizations, transactions, users)
+- CI/CD infrastructure and deployment conventions
+
+Operating as three fully separate repositories would require duplicating all of the above and create drift between products over time.
+
+#### Decision
+
+Maintain all products and the marketing site in a **single monorepo** under `StellarGlobalRails/`.
+
+#### Rationale
+
+- **Shared types:** Changes to the `Organization` or `StellarTransaction` type surface immediately across all products without publish/install cycles.
+- **Shared Stellar utilities:** Functions for building transactions, parsing Horizon responses, and formatting XLM/USDC amounts live once and are consumed by all products.
+- **Atomic cross-product changes:** A breaking change to the shared auth model can be updated across all consumers in a single commit with a single PR review.
+- **Single CI/CD pipeline:** One GitHub Actions configuration runs linting, type-checking, and deployment for the entire ecosystem.
+
+#### Alternatives Rejected
+
+- **Polyrepo:** Independent repositories for each product would force the team to maintain a private package registry, synchronize versions across three repos, and duplicate CI configuration. Given the team size and stage of the company, this overhead is not justified.
+- **Git submodules:** Adds complexity to local development and CI without the developer experience benefits of a true monorepo.
+
+#### Consequences
+
+- **Positive:** Single source of truth for all code. Contributors see the full picture in a single clone.
+- **Negative:** The repository grows larger over time. CI pipelines must be selective (change detection) to avoid rebuilding all products on every commit.
+- **Future:** As the team grows, Turborepo or Nx can be adopted for build caching and task graph orchestration without restructuring the repository layout.
+
+---
+
+### ADR-003: Landing Page — Astro with React Islands
+
+**Status:** Accepted  
+**Date:** 2024-Q4  
+
+#### Context
+
+The marketing site needs to:
+
+- Load extremely fast (Core Web Vitals for SEO)
+- Deploy to Cloudflare Pages as a static site
+- Include interactive product demos (wallet connection simulators, payment flows)
+- Support two languages (PT-BR primary, EN secondary)
+- Be maintainable by a small frontend team
+
+#### Decision
+
+Use **Astro** as the site framework with **React islands** for interactive components.
+
+#### Rationale
+
+- **Static output by default:** Astro generates pure HTML/CSS with zero JavaScript unless explicitly opted in. This gives sub-100ms time-to-interactive on a CDN.
+- **React islands:** Interactive components (demo simulators, wallet connectors, pricing calculators) are React components with `client:load` or `client:visible` directives. They hydrate only when needed, keeping the JavaScript bundle minimal.
+- **Cloudflare Pages compatibility:** Astro's static output adapter deploys perfectly to Cloudflare Pages with edge caching across all PoPs.
+- **Content collections:** Astro's built-in content collections handle i18n data files and structured content cleanly.
+- **Great DX:** MDX support for documentation pages (like this one), TypeScript-first, and fast HMR.
+
+#### Alternatives Rejected
+
+- **Next.js:** SSR/SSG hybrid framework is well-suited for app development but is overkill for a marketing site. The larger runtime, more complex deployment model, and React-only architecture add unnecessary complexity. Cloudflare Pages integration requires the Edge Runtime adapter, adding another variable.
+- **Plain React (Vite SPA):** Produces a client-side-only bundle with poor SEO (no SSG), slower initial paint, and no built-in routing or content management. Unsuitable for a content-heavy marketing and documentation site.
+- **Remix:** Excellent for data-heavy applications but not optimized for static marketing content. Similar concerns to Next.js regarding deployment complexity.
+
+#### Consequences
+
+- **Positive:** Blazing-fast static site with selective interactivity. Easy to add new pages as MDX. Cloudflare Pages deployment is zero-config.
+- **Negative:** Developers must understand the Astro island architecture and the boundary between static and reactive components. React state cannot cross island boundaries without a shared store (Nanostores used where needed).
+
+---
+
+### ADR-004: Supabase for ContractEase Backend
+
+**Status:** Accepted  
+**Date:** 2024-Q4  
+
+#### Context
+
+ContractEase requires a backend that provides:
+
+- User authentication with magic link / OTP (no password friction)
+- Relational database for contracts, signatories, and organizations
+- File storage for contract PDFs and attachments
+- Realtime updates when a co-signer completes their signature
+- Row Level Security for strict multi-tenant data isolation
+- Minimal operational overhead for a startup team
+
+#### Decision
+
+Use **Supabase** as the complete backend for ContractEase (PostgreSQL + Auth + Storage + Realtime + Edge Functions).
+
+#### Rationale
+
+- **Generous free tier:** Supabase's free tier covers early-stage usage without infrastructure costs, allowing the team to validate the product before scaling.
+- **Built-in RLS:** PostgreSQL's Row Level Security, managed through Supabase's policy editor, enforces multi-tenancy at the database level. This is more reliable than application-layer authorization.
+- **Magic link auth:** `supabase.auth.signInWithOtp` provides passwordless authentication, reducing onboarding friction for enterprise users who dislike password managers.
+- **Realtime:** Supabase Realtime (powered by PostgreSQL logical replication) pushes signature events to all parties in a contract without polling. Critical for the signing UX.
+- **Edge Functions:** Supabase Edge Functions (Deno) handle Stellar transaction submission and SHA-256 document hashing without exposing credentials to the client.
+
+#### Alternatives Rejected
+
+- **Firebase:** NoSQL document model is poorly suited for the relational nature of contracts, signatories, and organizations. Lacks SQL RLS equivalent. Google Cloud vendor lock-in is a concern.
+- **Custom Express/Node API:** Viable but requires the team to build auth, storage, realtime, and connection pooling from scratch — weeks of infrastructure work before any product value is delivered.
+- **PlanetScale / Railway:** Good database solutions but do not bundle auth, storage, and realtime. Would require assembling multiple services, increasing operational complexity.
+
+#### Consequences
+
+- **Positive:** The team ships faster by leveraging Supabase's integrated platform. RLS provides strong multi-tenancy guarantees. Realtime works out of the box.
+- **Negative:** Supabase vendor dependency. If Supabase changes pricing or availability, migration requires extracting PostgreSQL (straightforward), rebuilding auth flows, and finding a realtime alternative. The risk is considered acceptable given the startup stage.
+- **Mitigation:** The application is written against standard PostgreSQL features. Migrating to a self-hosted Supabase or raw PostgreSQL + Auth.js is feasible if required.
+
+---
+
+## 4. Products Overview
+
+### 4.1 Products at a Glance
+
+| Product | Status | Frontend | Backend | Database | Blockchain |
+|---------|--------|----------|---------|----------|------------|
+| ContractEase | Beta | React + Vite | Supabase Edge Functions | PostgreSQL (Supabase) | Stellar (tx memos for SHA-256 anchoring) |
+| SocialPay | MVP | Next.js | Next.js API Routes | PostgreSQL (Prisma) | Stellar (USDC transfers) |
+| Kivo Pay | In Development | React + Vite | Go (REST + gRPC) | PostgreSQL | Stellar + Soroban (x402 protocol) |
+
+### 4.2 ContractEase
+
+ContractEase digitizes the B2B contract lifecycle with blockchain-backed proof of signing.
+
+**Core flow:**
+1. Sender uploads a contract PDF
+2. The backend computes a SHA-256 hash of the document
+3. The hash is submitted to Stellar as a transaction memo, creating an immutable timestamp
+4. Signatories receive magic link invitations and sign via digital signature
+5. Each signature event is anchored to a new Stellar transaction
+6. Any party can verify the contract's integrity at any time by comparing the document hash against the on-chain record
+
+**Key Supabase tables:** `organizations`, `organization_members`, `contracts`, `contract_signatories`, `signature_events`
+
+### 4.3 SocialPay
+
+SocialPay enables internal corporate payments using human-readable `@handles` rather than account numbers or wallet addresses.
+
+**Core flow:**
+1. User types `@colleague` and an amount in USDC
+2. SocialPay resolves the handle to a Stellar account address
+3. A payment transaction is constructed and submitted to Horizon
+4. The payment appears in a social feed with full audit trail
+5. All transactions are visible to organization admins for reconciliation
+
+**Key differentiator:** Eliminates the friction of managing wallet addresses inside organizations. Finance teams see a feed, not a spreadsheet.
+
+### 4.4 Kivo Pay
+
+Kivo Pay is an **M2M (machine-to-machine) autonomous payment SDK** targeting developers building services that need to pay each other programmatically — without human intervention.
+
+**Architecture:**
+- Go backend exposes a payment API compliant with the **x402 protocol** (HTTP 402 Payment Required)
+- Services register as Kivo agents with custodial Stellar wallets managed in the secure backend
+- When a service calls a paid API endpoint, Kivo intercepts the HTTP 402 response and automatically authorizes payment from the agent's wallet
+- Soroban smart contracts enforce payment conditions, spending limits, and allowlists
+
+**Key use cases:**
+- AI agent APIs that charge per inference call
+- IoT devices paying for data access automatically
+- SaaS microservices with per-request pricing
+
+---
+
+## 5. Stellar Integration Principles
+
+These principles apply to **all products** in the StellarGlobalRails ecosystem. They are non-negotiable and must be followed in every implementation.
+
+### 5.1 Key Security
+
+```
+NEVER expose private keys (seeds) in frontend code.
+NEVER log private keys or mnemonics.
+NEVER store private keys in localStorage, sessionStorage, or cookies.
+```
+
+- **User wallets:** Transactions that require a user's signature must be constructed in the frontend and signed via **Freighter** (`@stellar/freighter-api`). The private key never leaves the user's browser wallet.
+- **Custodial wallets:** When the application holds keys on behalf of users (Kivo Pay M2M agents), those keys are stored encrypted in a **secure backend environment** (Supabase Edge Functions, Go service with secret management). Never in client-accessible code.
+
+### 5.2 Transaction Construction
+
+```typescript
+// Canonical pattern for building a Stellar payment transaction
+import { Server, TransactionBuilder, Networks, Asset, Operation } from '@stellar/stellar-sdk';
+
+const server = new Server('https://horizon-testnet.stellar.org');
+const sourceAccount = await server.loadAccount(sourcePublicKey);
+
+const transaction = new TransactionBuilder(sourceAccount, {
+  fee: await server.fetchBaseFee(),
+  networkPassphrase: Networks.TESTNET,
+})
+  .addOperation(
+    Operation.payment({
+      destination: destinationPublicKey,
+      asset: Asset.native(), // or USDC asset
+      amount: '10.00',
+    })
+  )
+  .addMemo(Memo.text(documentHash.substring(0, 28))) // SHA-256 anchoring
+  .setTimeout(30)
+  .build();
+
+// Sign via Freighter (user wallet) — never touch the private key
+const signedXDR = await signTransaction(transaction.toXDR(), {
+  network: 'TESTNET',
+});
+```
+
+### 5.3 Error Handling
+
+All Horizon API calls must handle:
+
+- `op_no_destination` — destination account does not exist on the network
+- `op_underfunded` — insufficient balance for the payment
+- `tx_bad_seq` — sequence number mismatch (retry with fresh account load)
+- Network timeouts — Horizon is occasionally slow; implement exponential backoff
+
+### 5.4 Asset Handling
+
+- **Native XLM:** Used only for funding base reserves (minimum 1 XLM per account). Never used as the payment currency in B2B flows.
+- **USDC on Stellar:** The primary settlement currency. Circle issues USDC natively on Stellar. Issuer address on Testnet must be verified from official Circle documentation.
+- **Custom assets:** Not used in the current product suite. Reserved for future anchor-issued tokens.
+
+### 5.5 On-Chain Anchoring Pattern
+
+Every critical business event (contract signing, payment authorization, document notarization) is anchored to the Stellar ledger via transaction memo:
+
+```
+Memo Type: MEMO_TEXT (≤28 bytes) or MEMO_HASH (32 bytes)
+Content:   SHA-256 hash of the canonical event payload (truncated or full)
+Purpose:   Creates an immutable, timestamped, publicly verifiable proof of the event
+```
+
+The on-chain transaction hash (not the memo) serves as the permanent reference ID stored in the application database.
+
+---
+
+## 6. Development Guidelines
+
+### 6.1 Database Schema Conventions
+
+```sql
+-- Every tenant-scoped table follows this pattern
+CREATE TABLE example_entity (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  created_by  UUID REFERENCES auth.users(id),
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+  -- entity-specific columns follow
+);
+
+-- RLS is mandatory on every tenant-scoped table
+ALTER TABLE example_entity ENABLE ROW LEVEL SECURITY;
+
+-- Standard isolation policy
+CREATE POLICY "organization_isolation" ON example_entity
+  USING (
+    organization_id IN (
+      SELECT organization_id FROM organization_members
+      WHERE user_id = auth.uid()
+    )
+  );
+```
+
+### 6.2 Design System
+
+The platform uses a unified dark-mode design system across all products and the marketing site.
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| Background | `#0A0A0A` (`neutral-950`) | Page backgrounds |
+| Surface | `#171717` (`neutral-900`) | Cards, panels |
+| Border | `#262626` (`neutral-800`) | Dividers, input borders |
+| Primary | `#10B981` (`emerald-500`) | CTAs, highlights, active states |
+| Primary Dark | `#059669` (`emerald-600`) | Hover states |
+| Text Primary | `#F5F5F5` (`neutral-100`) | Headings |
+| Text Secondary | `#A3A3A3` (`neutral-400`) | Body copy, captions |
+| Mono (hashes) | `#6EE7B7` (`emerald-200`) | Stellar hashes, tx IDs |
+
+**Typography:**
+- **Headings:** `Bricolage Grotesque` — expressive, modern, distinct
+- **Body:** `Inter` (font-sans) — high legibility at all sizes
+- **Monospace:** System monospace — used for hashes, code, and technical data
+
+### 6.3 Internationalization (i18n)
+
+- **Primary language:** Portuguese (Brazil) — `pt-BR`
+- **Secondary language:** English — `en`
+- Translation strings are stored in structured data files under `landing-page-astro/src/data/`
+- Component-level translations use a `t()` helper that reads from the active locale
+- All user-facing copy must be available in both languages before shipping
+
+### 6.4 Commit Convention
+
+The repository uses **Conventional Commits** for clear history and automated changelog generation:
+
+```
+<type>(<scope>): <description>
+
+Types:
+  feat      New feature
+  fix       Bug fix
+  refactor  Code restructuring without behavior change
+  chore     Tooling, dependencies, CI
+  docs      Documentation only
+  test      Tests only
+  style     Formatting, no logic change
+
+Scopes:
+  contract-ease | social-pay | kivo | landing | shared | stellar | auth
+
+Examples:
+  feat(kivo): add x402 payment interceptor middleware
+  fix(contract-ease): resolve RLS policy for guest signatories
+  chore(stellar): update stellar-sdk to v12.1.0
+```
+
+### 6.5 Environment Variables
+
+Each application maintains its own `.env.local` file. Common variables across products:
+
+```bash
+# Stellar
+STELLAR_NETWORK=testnet
+HORIZON_URL=https://horizon-testnet.stellar.org
+STELLAR_NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
+
+# Supabase (ContractEase)
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=   # Never expose to client
+
+# Kivo Pay Backend
+DATABASE_URL=postgresql://...
+STELLAR_CUSTODIAL_SEED=      # Encrypted at rest, never logged
+```
+
+---
+
+## 7. Roadmap Highlights
+
+| Milestone | Target | Description |
+|-----------|--------|-------------|
+| ContractEase GA | Q3 2025 | Production deployment, e-signature legal compliance (Brazil MP 2.200-2) |
+| SocialPay Multi-currency | Q3 2025 | BRL anchor integration via SEP-0024 |
+| Kivo Pay Alpha | Q3 2025 | Developer SDK release, x402 reference implementation |
+| Mainnet Migration | Q4 2025 | All products migrate from Testnet to Stellar Mainnet |
+| SEP-0010 SSO | Q4 2025 | Cross-product wallet-based single sign-on |
+| Kivo Pay Soroban Contracts | Q1 2026 | On-chain spending policies and allowlists |
+
+---
+
+## 8. Links & Resources
+
+### Official
+
+| Resource | URL |
+|----------|-----|
+| GitHub Repository | https://github.com/Stellar-Global-Rails/StellarGlobalRails |
+| Stellar Testnet Explorer | https://stellar.expert/explorer/testnet |
+| Horizon Testnet API | https://horizon-testnet.stellar.org |
+
+### Stellar Ecosystem
+
+| Resource | URL |
+|----------|-----|
+| Stellar Developer Docs | https://developers.stellar.org/docs |
+| Soroban Smart Contracts | https://soroban.stellar.org |
+| SEP Standards | https://github.com/stellar/stellar-protocol/tree/master/ecosystem |
+| Freighter Wallet | https://www.freighter.app |
+| stellar-sdk (JS) | https://stellar.github.io/js-stellar-sdk |
+
+### Platform Services
+
+| Service | Usage |
+|---------|-------|
+| Supabase | ContractEase backend (auth, database, storage, realtime) |
+| Cloudflare Pages | Landing page hosting and CDN |
+| Circle (USDC) | Stablecoin issuance on Stellar |
+
+---
+
+## 9. Contributing
+
+StellarGlobalRails is under active development. If you are a hackathon evaluator or external contributor:
+
+1. **Clone the repo:** `git clone https://github.com/Stellar-Global-Rails/StellarGlobalRails.git`
+2. **Install dependencies:** Each app has its own `package.json`. Run `npm install` in the relevant `apps/` directory.
+3. **Set up environment:** Copy `.env.example` to `.env.local` in each app and configure Stellar Testnet credentials.
+4. **Fund a Testnet account:** Use the [Stellar Friendbot](https://friendbot.stellar.org) to fund test accounts with XLM.
+5. **Read the specs:** Check `src/pages/doc/` in this site for per-product technical specifications.
+
+For questions or collaboration inquiries, open an issue on GitHub.
+
+---
+
+*This document is maintained as a living record. Architectural decisions are logged as ADRs and updated when the decision is revisited. Product status reflects the current development state and is updated with each significant milestone.*

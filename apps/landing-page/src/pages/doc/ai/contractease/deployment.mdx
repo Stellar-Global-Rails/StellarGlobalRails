@@ -1,0 +1,366 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "ContractEase — Deployment Guide"
+description: "Local development setup, Supabase configuration, Cloudflare Pages deployment, production checklist, and CI/CD pipeline for ContractEase."
+---
+
+# Deployment Guide
+
+ContractEase is deployed as a static React SPA on **Cloudflare Pages** with **Supabase** as the backend. Edge Functions run on Supabase's Deno infrastructure. This guide covers everything from local development to production deployment.
+
+---
+
+## Prerequisites
+
+| Tool | Version | Purpose |
+|---|---|---|
+| Node.js | 18.x or 20.x LTS | Frontend build |
+| npm | 9+ | Package management |
+| Supabase CLI | Latest | Local dev, migrations, Edge Functions |
+| Cloudflare account | — | Pages hosting |
+| Git | 2.x | Source control |
+| Deno | 1.40+ | Edge Function local testing |
+
+```bash
+# Install Supabase CLI
+npm install -g supabase
+
+# Verify installations
+node --version    # v20.x.x
+supabase --version
+```
+
+---
+
+## Environment Variables
+
+### Frontend (Vite)
+
+These variables are bundled into the client-side JavaScript at build time. They are **public** — do not put secrets here.
+
+```bash
+# .env.local (local development)
+VITE_SUPABASE_URL=https://fpmhcjkadgebcexzkayz.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGc...   # anon key from Supabase dashboard
+VITE_STELLAR_NETWORK=testnet         # 'testnet' | 'mainnet'
+VITE_APP_URL=http://localhost:5173
+```
+
+```bash
+# .env.production (or set in Cloudflare Pages dashboard)
+VITE_SUPABASE_URL=https://fpmhcjkadgebcexzkayz.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGc...
+VITE_STELLAR_NETWORK=mainnet
+VITE_APP_URL=https://contractease.app
+```
+
+### Edge Functions (Supabase Vault)
+
+These are **secrets** — set them via the Supabase dashboard under Project Settings > Edge Functions > Secrets, or with the CLI:
+
+```bash
+supabase secrets set STELLAR_SECRET_KEY=S...           # custodial anchor keypair
+supabase secrets set OTP_SALT=random-64-char-string
+supabase secrets set RESEND_API_KEY=re_...             # email delivery
+supabase secrets set SUPABASE_SERVICE_ROLE_KEY=eyJ... # already set by default
+```
+
+---
+
+## Local Development
+
+### 1. Clone and Install
+
+```bash
+git clone https://github.com/your-org/StellarGlobalRails
+cd StellarGlobalRails/apps/contractease
+npm install
+```
+
+### 2. Start Supabase Locally
+
+```bash
+# Initialize Supabase (first time only)
+supabase init
+
+# Start local Supabase stack (PostgreSQL, Auth, Storage, Realtime, Edge Functions)
+supabase start
+
+# Output includes local credentials:
+# API URL:       http://localhost:54321
+# DB URL:        postgresql://postgres:postgres@localhost:54322/postgres
+# Studio URL:    http://localhost:54323
+# Anon key:      eyJhbGc...
+# Service key:   eyJhbGc...
+```
+
+### 3. Apply Migrations
+
+```bash
+# Run all migrations against local Supabase
+supabase db push
+
+# Or reset local DB and re-apply everything from scratch
+supabase db reset
+```
+
+### 4. Seed Template Data
+
+```bash
+# Load the 52 contract templates
+supabase db seed
+
+# Or manually
+psql postgresql://postgres:postgres@localhost:54322/postgres < supabase/seed.sql
+```
+
+### 5. Update Local .env
+
+```bash
+# .env.local
+VITE_SUPABASE_URL=http://localhost:54321
+VITE_SUPABASE_ANON_KEY=<local anon key from supabase start output>
+VITE_STELLAR_NETWORK=testnet
+```
+
+### 6. Start the Dev Server
+
+```bash
+npm run dev
+# → http://localhost:5173
+```
+
+### 7. Serve Edge Functions Locally
+
+```bash
+# Serve all functions locally
+supabase functions serve
+
+# Or serve a specific function
+supabase functions serve anchor-on-stellar --env-file .env.local
+```
+
+---
+
+## Supabase Production Setup
+
+### Create Project
+
+```bash
+# Via Supabase CLI (requires logged in: supabase login)
+supabase projects create contractease-prod --region sa-east-1  # São Paulo
+```
+
+Or create manually at [app.supabase.com](https://app.supabase.com).
+
+### Run Migrations
+
+```bash
+# Link CLI to production project
+supabase link --project-ref fpmhcjkadgebcexzkayz
+
+# Push all local migrations to production
+supabase db push
+
+# Verify migration status
+supabase db migrations list
+```
+
+### Deploy Edge Functions
+
+```bash
+# Deploy all Edge Functions
+supabase functions deploy anchor-on-stellar
+supabase functions deploy send-signature-email
+supabase functions deploy generate-otp
+supabase functions deploy validate-otp
+supabase functions deploy submit-freighter-tx
+
+# Set production secrets
+supabase secrets set \
+  STELLAR_SECRET_KEY=S... \
+  OTP_SALT=$(openssl rand -hex 32) \
+  RESEND_API_KEY=re_...
+```
+
+### Configure Auth
+
+In the Supabase dashboard under Authentication > Settings:
+
+```
+Site URL:          https://contractease.app
+Redirect URLs:     https://contractease.app/auth/callback
+                   https://contractease.app/sign/*
+JWT expiry:        3600 (1 hour)
+Enable magic link: ✓
+```
+
+### Enable Realtime
+
+In the Supabase dashboard under Database > Replication, enable replication for:
+- `contracts` (for status change subscriptions)
+- `contract_parties` (for signing progress)
+
+---
+
+## Cloudflare Pages Deployment
+
+### Connect Repository
+
+1. Go to Cloudflare Pages → Create a project
+2. Connect GitHub repository: `StellarGlobalRails`
+3. Set root directory: `apps/contractease`
+
+### Build Configuration
+
+| Setting | Value |
+|---|---|
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Node.js version | `20` |
+| Root directory | `apps/contractease` |
+
+### Environment Variables (Cloudflare Pages Dashboard)
+
+Navigate to Settings > Environment Variables and add:
+
+```
+VITE_SUPABASE_URL       = https://fpmhcjkadgebcexzkayz.supabase.co
+VITE_SUPABASE_ANON_KEY  = eyJhbGc...
+VITE_STELLAR_NETWORK    = mainnet
+VITE_APP_URL            = https://contractease.app
+```
+
+Set these for both **Production** and **Preview** environments (use `testnet` for Preview).
+
+### SPA Redirect Rule
+
+Create `public/_redirects`:
+
+```
+/* /index.html 200
+```
+
+---
+
+## Production Checklist
+
+Before going live, verify each of the following:
+
+**Supabase**
+- [ ] RLS enabled on **all** tables (`SELECT rowsecurity FROM pg_tables WHERE schemaname='public'`)
+- [ ] Service role key is **not** in any client-side code or repository
+- [ ] All Edge Functions deployed and smoke-tested
+- [ ] Production secrets set in Supabase Vault
+- [ ] Auth redirect URLs include production domain
+- [ ] Realtime replication enabled for `contracts` and `contract_parties`
+- [ ] Storage bucket policies applied (no public buckets)
+
+**Stellar**
+- [ ] `VITE_STELLAR_NETWORK=mainnet` in Cloudflare Pages env
+- [ ] Custodial keypair funded with at least 10 XLM on Mainnet
+- [ ] Friendbot usage removed from production code paths
+
+**Cloudflare Pages**
+- [ ] Custom domain configured (contractease.app)
+- [ ] `_redirects` file present for SPA routing
+- [ ] Preview environment uses separate Supabase project (or testnet)
+
+**Application**
+- [ ] LGPD consent modal shown to new users
+- [ ] Email templates customized with brand logo
+- [ ] Error tracking (Sentry or similar) configured
+- [ ] Analytics (Cloudflare Analytics or Plausible) active
+
+---
+
+## Monitoring
+
+### Supabase
+
+```bash
+# Tail Edge Function logs
+supabase functions logs anchor-on-stellar --tail
+
+# View all recent Edge Function invocations
+supabase functions logs --all
+```
+
+Access the Supabase Dashboard for:
+- **Database** → Query performance, slow query log
+- **Auth** → Sign-in attempts, user list
+- **Storage** → Bucket usage
+- **Edge Functions** → Invocation counts, error rates
+
+### Cloudflare Analytics
+
+Cloudflare Pages automatically provides:
+- Page view counts, unique visitors
+- Geographic distribution
+- Core Web Vitals (via Cloudflare Browser Insights)
+
+---
+
+## CI/CD — GitHub Actions
+
+```yaml
+# .github/workflows/deploy-contractease.yml
+name: Deploy ContractEase
+
+on:
+  push:
+    branches: [main]
+    paths: ['apps/contractease/**', 'supabase/**']
+
+jobs:
+  deploy-functions:
+    name: Deploy Edge Functions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase link --project-ref fpmhcjkadgebcexzkayz
+          supabase functions deploy anchor-on-stellar
+          supabase functions deploy send-signature-email
+          supabase functions deploy generate-otp
+          supabase functions deploy validate-otp
+
+  deploy-migrations:
+    name: Run DB Migrations
+    runs-on: ubuntu-latest
+    needs: []
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Run migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          supabase link --project-ref fpmhcjkadgebcexzkayz
+          supabase db push
+
+  # Cloudflare Pages deployment is automatic on push to main
+  # (configured via Cloudflare Pages dashboard Git integration)
+```
+
+### Required GitHub Secrets
+
+| Secret | Description |
+|---|---|
+| `SUPABASE_ACCESS_TOKEN` | Personal access token from Supabase account settings |
+| `SUPABASE_DB_PASSWORD` | Production database password |
+
+Cloudflare Pages deployment is triggered automatically by the Pages Git integration — no GitHub Action needed for the frontend.

@@ -1,181 +1,162 @@
 # Stellar Global Rails
 
-**Stellar Global Rails** é um monorepo para desenvolvimento de produtos e módulos Web3 voltados a pagamentos globais, liquidação com stablecoins, comprovantes digitais, certificados verificáveis, compliance e aplicações financeiras construídas sobre a infraestrutura da rede **Stellar**.
+**Stellar Global Rails (SGR)** is a monorepo of financial infrastructure products built on the [Stellar](https://stellar.org) network. Three independent, production-ready apps sharing a unified Supabase backend, each solving a distinct problem in global payments.
 
-O projeto foi criado para organizar, desenvolver e demonstrar produtos independentes que compartilham uma mesma base tecnológica: identidade de usuário, ledger de transações, camada de comprovantes, integração com carteiras, Stellar SDK, Horizon API, dashboard operacional e lógica de pagamentos em stablecoins como **USDC** e **BRZ**.
-
----
-
-## Visão Geral
-
-O objetivo do Stellar Global Rails é funcionar como uma infraestrutura modular para mover valor entre:
-
-- pessoas;
-- empresas;
-- instituições;
-- causas sociais;
-- operadores de serviços;
-- governos;
-- aplicações digitais.
-
-A proposta é reduzir a fragmentação dos fluxos financeiros globais, permitindo que diferentes produtos usem a mesma camada de pagamentos, rastreabilidade e comprovantes.
-
-Exemplos de uso:
-
-- um brasileiro no exterior enviando dinheiro para familiares no Brasil;
-- uma instituição pagando bolsas ou auxílios em massa;
-- uma ONG recebendo doações internacionais;
-- um freelancer emitindo invoice para cliente estrangeiro;
-- uma empresa emitindo certificados verificáveis;
-- um operador de recarga elétrica recebendo pagamentos por QR Code;
-- uma instituição analisando risco de transações blockchain.
+> Built for Stellar's 2025 Hackathon · Docs at `/doc/ai` on the landing page
 
 ---
 
-## Ecossistema de Produtos
+## Products
 
-O Stellar Global Rails é o guarda-chuva de vários módulos/produtos independentes, mas integrados por uma infraestrutura comum.
+### ContractEase
+**Verifiable contracts anchored on Stellar.**
 
-### 1. FamilyBridge
+Sign documents, generate SHA-256 hashes, issue on-chain certificates, and enable trustless escrow via Stellar Claimable Balances. Any party can verify authenticity through a public URL — no middlemen.
 
-Módulo de **remessa familiar internacional**.
+- SHA-256 document hashing → anchored on Stellar ledger
+- Claimable Balance escrow with conditional release
+- Public verification page + QR Code
+- Digital signature flow with Supabase Auth
 
-Permite que pessoas que moram no exterior enviem dinheiro para familiares em outro país usando stablecoins e a rede Stellar.
-
-Exemplo:
-
-> Um brasileiro que mora nos EUA envia USDC para sua mãe no Brasil, com liquidação rápida, comprovante digital e rastreabilidade.
-
----
-
-### 2. Stellar Payouts
-
-Módulo de **pagamentos institucionais em massa**.
-
-Permite que instituições paguem bolsas, auxílios, salários, premiações, residentes, freelancers ou beneficiários sociais em lote.
-
-Funcionalidades previstas:
-
-- upload de planilha CSV;
-- validação de beneficiários;
-- pagamento em lote;
-- status individual por beneficiário;
-- comprovantes automáticos;
-- dashboard institucional.
+```
+apps/contractease/   → React + Vite + TypeScript
+```
 
 ---
 
-### 3. ContractEase Global
+### SocialPay
+**Social payments over Stellar with @handles.**
 
-Módulo de **contratos, certificados e escrow**.
+Send money to anyone using a human-readable handle instead of a raw Stellar address. Think Venmo on-chain — with stablecoin rails, real-time settlement, and fiat on/off ramp via SEP-24.
 
-Permite registrar documentos, gerar hashes, emitir certificados verificáveis e vincular pagamentos ou escrow a contratos digitais.
+- @handle system mapped to Stellar keypairs (Supabase)
+- USDC / BRZ transfers with T+0 settlement
+- SEP-24 on-ramp (Pix → USDC) and off-ramp
+- Activity feed, transaction history, deep links
 
-Funcionalidades previstas:
-
-- geração de hash SHA-256;
-- emissão de certificado verificável;
-- QR Code de validação;
-- página pública de verificação;
-- registro de comprovantes;
-- contratos com pagamento vinculado;
-- escrow programável.
+```
+apps/socialpay/      → Next.js + Supabase Auth
+```
 
 ---
 
-### 4. Vakinha Global
+### Kivo Pay
+**x402 payment flows for devices, paid APIs, and IoT data feeds.**
 
-Módulo de **doações multimoeda**.
+The payment layer for solo operators shipping machine-to-machine products. A user creates a flow, connects Kivo SDK/middleware, receives an x402 challenge, signs a Stellar transaction, and unlocks the paid resource.
 
-Permite que ONGs, campanhas sociais e causas recebam doações internacionais em diferentes moedas e stablecoins.
+- x402 Protocol (HTTP 402) for machine-to-machine payments
+- Etherfuse Devnet funding/on-ramp path proxied server-side
+- MCP/advanced tools kept behind the product workflow
+- Supabase Auth/Postgres for workspace, devices, payments, and webhooks
 
-Funcionalidades previstas:
-
-- criação de campanhas;
-- meta de arrecadação;
-- doações em USDC, BRZ ou outras moedas;
-- comprovante para doador;
-- rastreabilidade on-chain;
-- relatórios de impacto.
-
----
-
-### 5. Stellar Invoice
-
-Módulo de **cobranças internacionais para PMEs e freelancers**.
-
-Permite criar invoices profissionais com link de pagamento, recebimento em stablecoins e emissão de comprovante.
-
-Funcionalidades previstas:
-
-- criação de invoice;
-- link de pagamento;
-- status de pagamento;
-- recibo automático;
-- histórico de cobranças;
-- dashboard financeiro.
+```
+apps/kivo/           → React/Vite product front + Supabase Edge API
+```
 
 ---
 
-### 6. QuiloVolt Global Pay
+## Repository Structure
 
-Módulo de **pagamentos para mobilidade elétrica**.
-
-Permite simular e futuramente integrar pagamentos para recarga de veículos elétricos, patinetes, bikes elétricas, frotas e pontos de recarga conectados.
-
-Funcionalidades do MVP:
-
-- seleção de estação de recarga;
-- pagamento por QR Code;
-- simulação de pagamento em USDC/BRZ;
-- liberação simulada da sessão de recarga;
-- comprovante digital;
-- dashboard do operador;
-- registro de sessão, valor, energia estimada e status.
-
-Este é o primeiro produto em desenvolvimento no monorepo.
-
----
-
-### 7. ONYX Stellar Risk
-
-Módulo de **compliance e risk assessment**.
-
-Permite analisar carteiras, transações e fluxos financeiros na rede Stellar, gerando score de risco, alertas e relatórios.
-
-Funcionalidades previstas:
-
-- análise de transações;
-- risk score;
-- alertas AML/KYC;
-- relatórios de compliance;
-- auditoria de fluxo financeiro;
-- integração futura com dashboards institucionais.
+```
+StellarGlobalRails/
+├── apps/
+│   ├── contractease/          # React + Vite frontend
+│   ├── socialpay/             # Next.js app
+│   └── kivo/                  # Kivo React/Vite front
+├── supabase/functions/kivo-api/ # Kivo Supabase Edge API
+├── landing-page-astro/        # Marketing site + documentation
+│   └── src/pages/doc/ai/
+│       ├── contractease/      # 10 ADR/Living docs
+│       ├── socialpay/         # 10 ADR/Living docs
+│       └── kivo/              # 10 ADR/Living docs
+└── README.md
+```
 
 ---
 
-### 8. Saúde 360 Data Wallet
+## Stack
 
-Módulo de **data wallet e consentimento**.
-
-Permite controlar consentimento, compartilhamento seletivo e rastreabilidade de acesso a dados sensíveis, especialmente na área de saúde.
-
-Funcionalidades previstas:
-
-- carteira de consentimento;
-- compartilhamento temporário;
-- registro de autorização;
-- histórico de acessos;
-- controle granular pelo usuário;
-- integração futura com HealthChain/Saúde 360.
+| Layer | Technology |
+|---|---|
+| Frontend (ContractEase) | React 18 + Vite + TypeScript + Tailwind |
+| Frontend (SocialPay) | Next.js 15 + Supabase client |
+| Backend API (Kivo) | Supabase Edge Functions + TypeScript |
+| Auth | Supabase Auth (all 3 products) |
+| Database | PostgreSQL via Supabase (RLS per product) |
+| Blockchain | Stellar Mainnet + Testnet (Horizon + Soroban) |
+| Landing / Docs | Astro 5 + MDX + Tailwind + React islands |
+| Deploy | Vercel (frontends) + Supabase Edge Functions |
 
 ---
 
-## Produto Atual em Desenvolvimento
+## Documentation
 
-### QuiloVolt Global Pay
+Each product has 10 structured documents following Stellar's ADR/Living Document format:
 
-Local do projeto:
+| Section | What it covers |
+|---|---|
+| Product Overview | What it is, for whom, and why Stellar |
+| Architecture & ADRs | Key decisions and their rationale |
+| Data Models | Database schema and entity relationships |
+| API Reference | Endpoints, auth, request/response shapes |
+| Auth & Security | Auth flow, RLS policies, key management |
+| Stellar Integration | How each product uses the Stellar network |
+| Product-specific | Signing flow / @handle system / x402 Protocol |
+| Frontend | Component structure, routing, state |
+| Deployment | Infrastructure, env vars, CI/CD |
+| Roadmap | What's built, what's next |
 
+Access the docs at `[your-domain]/doc/ai` — use the product selector in the sidebar to navigate between ContractEase, SocialPay, and Kivo Pay.
+
+---
+
+## Getting Started
+
+### Landing Page
 ```bash
-apps/quilovolt-global-pay
+cd landing-page-astro
+npm install
+npm run dev        # http://localhost:4321
+```
+
+### ContractEase
+```bash
+cd apps/contractease
+npm install
+cp .env.example .env   # add Supabase + Stellar keys
+npm run dev
+```
+
+### SocialPay
+```bash
+cd apps/socialpay
+npm install
+cp .env.example .env
+npm run dev
+```
+
+### Kivo
+```bash
+cd apps/kivo/web
+npm install
+npm run dev           # http://localhost:5174
+```
+
+---
+
+## Stellar Integration Summary
+
+| Product | How it uses Stellar |
+|---|---|
+| ContractEase | SHA-256 hash anchored via `manageData` operation; Claimable Balances for escrow |
+| SocialPay | Custodial keypairs per user; USDC path payments; SEP-24 anchor integration |
+| Kivo Pay | Device wallets; x402 HTTP payment protocol; path payments across currencies via DEX |
+
+---
+
+## Authors
+
+Built by **Charlles Augusto** & **Lucas Vital** for the Stellar 2025 Hackathon.
+
+- GitHub: [LucasVital08/StellarGlobalRails](https://github.com/LucasVital08/StellarGlobalRails)

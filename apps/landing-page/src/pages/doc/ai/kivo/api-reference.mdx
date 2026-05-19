@@ -1,0 +1,602 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "Kivo Pay — API Reference"
+description: "Complete REST API reference for the Kivo Pay Go/Fiber gateway, plus MCP tool specifications for AI agent integration."
+---
+
+# API Reference
+
+Kivo Pay exposes a REST API built with Go + Fiber and a Model Context Protocol (MCP) server for AI agent integration. All REST endpoints require either a device API key (`X-API-Key`) or a Supabase Auth JWT (`Authorization: Bearer <token>`).
+
+**Base URL:** `https://api.kivo.pay/v1` (production) | `http://localhost:8080/v1` (local)
+
+---
+
+## Authentication
+
+| Endpoint Type | Header | Value |
+|---|---|---|
+| Device endpoints | `X-API-Key` | Raw device API key (shown once at registration) |
+| Dashboard endpoints | `Authorization` | `Bearer <supabase_jwt>` |
+| x402 endpoints | `X-PAYMENT` | Encoded Stellar payment proof |
+
+---
+
+## Endpoints
+
+### `POST /v1/devices`
+
+Register a new device. Generates a Stellar keypair and a device API key. The raw API key is returned **once** — store it securely.
+
+**Auth:** Dashboard JWT
+
+**Request:**
+```json
+{
+  "name": "EV Charger — Station A12",
+  "metadata": {
+    "location": "San Francisco, CA",
+    "model": "ABB Terra 360"
+  }
+}
+```
+
+**Response `201`:**
+```json
+{
+  "id": "d5e3f1a2-...",
+  "name": "EV Charger — Station A12",
+  "stellar_public_key": "GDQP2KPQGKIHYJGXNUIYOMHARUSXL4HXJZP...",
+  "status": "active",
+  "api_key": "kivo_live_a8f3e2c1b9d4...",
+  "created_at": "2025-06-01T12:00:00Z"
+}
+```
+
+**Go Handler:**
+```go
+// internal/handlers/devices.go
+
+func RegisterDevice(q *db.Queries, sc *stellar.Client) fiber.Handler {
+    return func(c *fiber.Ctx) error {
+        userID := c.Locals("user_id").(uuid.UUID)
+
+        var req struct {
+            Name     string          `json:"name" validate:"required,min=1,max=255"`
+            Metadata json.RawMessage `json:"metadata"`
+        }
+        if err := c.BodyParser(&req); err != nil {
+            return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
+        }
+
+        // Generate Stellar keypair
+        kp, err := sc.GenerateKeypair()
+        if err != nil {
+            return c.Status(500).JSON(fiber.Map{"error": "keypair generation failed"})
+        }
+
+        // Generate API key: 32 random bytes, hex-encoded
+        rawKey, keyHash, err := generateAPIKey()
+        if err != nil {
+            return c.Status(500).JSON(fiber.Map{"error": "key generation failed"})
+        }
+
+        // Encrypt the Stellar secret
+        encryptedSecret, err := sc.EncryptSecret(kp.Seed())
+        if err != nil {
+            return c.Status(500).JSON(fiber.Map{"error": "encryption failed"})
+        }
+
+        device, err := q.CreateDevice(c.Context(), db.CreateDeviceParams{
+            Name:              req.Name,
+            OwnerID:           userID,
+            APIKeyHash:        keyHash,
+            StellarPublicKey:  kp.Address(),
+            EncryptedSecret:   encryptedSecret,
+        })
+        if err != nil {
+            return c.Status(500).JSON(fiber.Map{"error": "database error"})
+        }
+
+        return c.Status(201).JSON(fiber.Map{
+            "id":                 device.ID,
+            "name":               device.Name,
+            "stellar_public_key": device.StellarPublicKey,
+            "status":             device.Status,
+            "api_key":            rawKey, // shown once
+            "created_at":         device.CreatedAt,
+        })
+    }
+}
+```
+
+---
+
+### `GET /v1/devices/:id`
+
+Get device information including current Stellar balance.
+
+**Auth:** Dashboard JWT or Device API key (own device only)
+
+**Response `200`:**
+```json
+{
+  "id": "d5e3f1a2-...",
+  "name": "EV Charger — Station A12",
+  "stellar_public_key": "GDQP2KPQGKIHYJGXNUIYOMHARUSXL4HXJZP...",
+  "status": "active",
+  "balance": {
+    "XLM": "9.9999600",
+    "USDC": "100.0000000"
+  },
+  "metadata": { "location": "San Francisco, CA" },
+  "created_at": "2025-06-01T12:00:00Z"
+}
+```
+
+---
+
+### `POST /v1/payments`
+
+Create a new M2M payment, optionally with a condition that must be met before execution.
+
+**Auth:** Device API key
+
+**Request:**
+```json
+{
+  "to_device_id": "a1b2c3d4-...",
+  "amount": "10.0000000",
+  "asset_code": "USDC",
+  "condition_type": "energy_kwh",
+  "condition_value": "10.5",
+  "timeout_seconds": 3600,
+  "memo": "EV session #4892"
+}
+```
+
+**Response `201`:**
+```json
+{
+  "id": "pay_9f3e2c1b-...",
+  "from_device_id": "d5e3f1a2-...",
+  "to_device_id": "a1b2c3d4-...",
+  "amount": "10.0000000",
+  "asset_code": "USDC",
+  "condition_type": "energy_kwh",
+  "condition_value": "10.5",
+  "status": "pending",
+  "timeout_at": "2025-06-01T13:00:00Z",
+  "created_at": "2025-06-01T12:00:00Z"
+}
+```
+
+**Go Handler:**
+```go
+func CreatePayment(q *db.Queries, rdb *redis.Client) fiber.Handler {
+    return func(c *fiber.Ctx) error {
+        deviceID := c.Locals("device_id").(uuid.UUID)
+
+        var req struct {
+            ToDeviceID     uuid.UUID `json:"to_device_id"   validate:"required"`
+            Amount         string    `json:"amount"         validate:"required"`
+            AssetCode      string    `json:"asset_code"     validate:"required,oneof=USDC XLM"`
+            ConditionType  string    `json:"condition_type"`
+            ConditionValue string    `json:"condition_value"`
+            TimeoutSeconds int       `json:"timeout_seconds"`
+            Memo           string    `json:"memo"           validate:"max=28"`
+        }
+        if err := c.BodyParser(&req); err != nil {
+            return c.Status(400).JSON(fiber.Map{"error": "invalid body"})
+        }
+
+        amount, err := decimal.NewFromString(req.Amount)
+        if err != nil || amount.LessThanOrEqual(decimal.Zero) {
+            return c.Status(400).JSON(fiber.Map{"error": "invalid amount"})
+        }
+
+        var timeoutAt *time.Time
+        if req.TimeoutSeconds > 0 {
+            t := time.Now().Add(time.Duration(req.TimeoutSeconds) * time.Second)
+            timeoutAt = &t
+        }
+
+        payment, err := q.CreatePayment(c.Context(), db.CreatePaymentParams{
+            FromDeviceID:   deviceID,
+            ToDeviceID:     req.ToDeviceID,
+            Amount:         amount,
+            AssetCode:      req.AssetCode,
+            ConditionType:  req.ConditionType,
+            ConditionValue: &req.ConditionValue,
+            TimeoutAt:      timeoutAt,
+        })
+        if err != nil {
+            return c.Status(500).JSON(fiber.Map{"error": "database error"})
+        }
+
+        // If no condition, enqueue immediately
+        if req.ConditionType == "" || req.ConditionType == "none" {
+            jobJSON, _ := json.Marshal(map[string]string{"payment_id": payment.ID.String()})
+            rdb.LPush(c.Context(), "payment_jobs", jobJSON)
+        }
+
+        return c.Status(201).JSON(payment)
+    }
+}
+```
+
+---
+
+### `GET /v1/payments/:id`
+
+Get payment status and details.
+
+**Auth:** Device API key (participant device only)
+
+**Response `200`:**
+```json
+{
+  "id": "pay_9f3e2c1b-...",
+  "status": "confirmed",
+  "stellar_hash": "8a3f1e2b9c4d...",
+  "confirmed_at": "2025-06-01T12:00:05Z",
+  "ledger_explorer": "https://stellar.expert/explorer/testnet/tx/8a3f1e2b9c4d..."
+}
+```
+
+---
+
+### `POST /v1/payments/:id/execute`
+
+Manually trigger execution of a pending payment (for `condition_type: none` payments not auto-enqueued, or for testing).
+
+**Auth:** Device API key (from_device only)
+
+**Response `200`:**
+```json
+{ "status": "processing", "queued_at": "2025-06-01T12:00:01Z" }
+```
+
+---
+
+### `POST /v1/payments/:id/condition`
+
+Submit proof that a payment condition has been met. Triggers execution if the condition passes validation.
+
+**Auth:** Device API key (either party)
+
+**Request:**
+```json
+{
+  "condition_key": "energy_kwh",
+  "actual_value": "10.5",
+  "proof_data": {
+    "signed_reading": "base64-encoded-meter-signature",
+    "timestamp": "2025-06-01T12:55:00Z"
+  }
+}
+```
+
+**Response `200`:**
+```json
+{
+  "condition_met": true,
+  "payment_status": "processing"
+}
+```
+
+---
+
+### `GET /v1/payments/:id/status`
+
+Detailed status including Stellar ledger information.
+
+**Response `200`:**
+```json
+{
+  "id": "pay_9f3e2c1b-...",
+  "status": "confirmed",
+  "stellar_hash": "8a3f1e2b9c4d...",
+  "stellar_ledger": 49823041,
+  "stellar_created_at": "2025-06-01T12:00:05Z",
+  "explorer_url": "https://stellar.expert/explorer/testnet/tx/8a3f1e2b9c4d...",
+  "fee_charged": "100",
+  "memo": "EV session #4892"
+}
+```
+
+---
+
+### `POST /v1/webhooks`
+
+Register a webhook endpoint to receive payment events.
+
+**Auth:** Dashboard JWT
+
+**Request:**
+```json
+{
+  "url": "https://myapp.example.com/webhooks/kivo",
+  "events": ["payment.confirmed", "payment.failed", "payment.expired"]
+}
+```
+
+**Response `201`:**
+```json
+{
+  "id": "wh_3a1b2c-...",
+  "url": "https://myapp.example.com/webhooks/kivo",
+  "events": ["payment.confirmed", "payment.failed"],
+  "secret": "whsec_d3f2e1a9b8c7...",
+  "active": true
+}
+```
+
+---
+
+### `DELETE /v1/webhooks/:id`
+
+Deactivate and remove a webhook.
+
+**Auth:** Dashboard JWT (webhook owner)
+
+**Response:** `204 No Content`
+
+---
+
+### `GET /v1/health`
+
+Health check. Returns 200 if the API, database, and Redis are reachable.
+
+**Response `200`:**
+```json
+{
+  "status": "ok",
+  "db": "ok",
+  "redis": "ok",
+  "stellar": "ok",
+  "version": "0.1.0"
+}
+```
+
+---
+
+### `GET /api/x402/data`
+
+Example of an x402-protected premium data endpoint. Returns 402 if no payment header is present.
+
+**Response `402` (no payment):**
+```
+HTTP/1.1 402 Payment Required
+X-PAYMENT-REQUIRED: scheme=stellar,network=testnet,payTo=GDQP2KPQ...,amount=0.1,asset=USDC,maxTimeout=300
+```
+
+**Response `200` (valid payment header):**
+```json
+{ "data": "premium sensor reading", "timestamp": "..." }
+```
+
+---
+
+## Etherfuse Anchor Endpoints
+
+Kivo exposes Etherfuse through its own backend so browser clients never receive anchor credentials. See [Etherfuse Integration](/doc/ai/kivo/etherfuse-integration) for the full sandbox/testnet runbook, schemas, webhook verification, and production checklist.
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `GET /v1/etherfuse/status` | Dashboard JWT | Show whether the sandbox/production anchor is configured |
+| `POST /v1/etherfuse/onboarding-url` | Dashboard JWT | Create hosted onboarding URL for a Kivo operator/customer |
+| `GET /v1/etherfuse/assets` | Dashboard JWT | Discover Stellar rampable assets for a wallet |
+| `POST /v1/etherfuse/quotes` | Dashboard JWT | Create onramp/offramp/swap quote |
+| `POST /v1/etherfuse/orders` | Dashboard JWT | Create ramp order from a quote |
+| `GET /v1/etherfuse/orders/:id` | Dashboard JWT | Poll order state as fallback to webhooks |
+| `POST /v1/etherfuse/orders/:id/simulate-fiat-received` | Dashboard JWT, sandbox only | Advance sandbox onramp demo |
+| `POST /v1/etherfuse/webhook` | `X-Signature` | Receive signed Etherfuse events |
+
+The upstream Etherfuse API expects `Authorization: <api-key>` directly, with no `Bearer` prefix. Kivo stores that key server-side and maps Etherfuse order states into Kivo provider states for the dashboard.
+
+---
+
+## MCP Tools Specification
+
+The Kivo MCP server exposes the following tools to AI agents. See [MCP Tools](/doc/ai/kivo/mcp-tools) for the full integration guide.
+
+### `kivo_create_payment`
+
+Create an M2M payment between two devices.
+
+```json
+{
+  "name": "kivo_create_payment",
+  "description": "Create a payment between two Kivo-registered devices on Stellar",
+  "inputSchema": {
+    "type": "object",
+    "required": ["from_device_id", "to_device_id", "amount", "currency"],
+    "properties": {
+      "from_device_id": { "type": "string", "description": "UUID of the paying device" },
+      "to_device_id":   { "type": "string", "description": "UUID of the receiving device" },
+      "amount":         { "type": "string", "description": "Payment amount as decimal string, e.g. '10.5'" },
+      "currency":       { "type": "string", "enum": ["USDC", "XLM"] },
+      "condition":      { "type": "string", "description": "Optional condition type: energy_kwh, time_elapsed, service_complete" },
+      "condition_value":{ "type": "string", "description": "Condition threshold value" },
+      "timeout_seconds":{ "type": "integer", "description": "Seconds before payment expires (default: 3600)" },
+      "memo":           { "type": "string", "description": "Optional memo (max 28 chars)" }
+    }
+  }
+}
+```
+
+**Example output:**
+```json
+{
+  "payment_id": "pay_9f3e2c1b-...",
+  "status": "pending",
+  "created_at": "2025-06-01T12:00:00Z"
+}
+```
+
+---
+
+### `kivo_execute_contract`
+
+Execute a previously created conditional payment by submitting the condition proof.
+
+```json
+{
+  "name": "kivo_execute_contract",
+  "inputSchema": {
+    "type": "object",
+    "required": ["payment_id"],
+    "properties": {
+      "payment_id":     { "type": "string" },
+      "actual_value":   { "type": "string", "description": "Actual measured value for condition" },
+      "proof_data":     { "type": "object", "description": "Signed proof from oracle or device" }
+    }
+  }
+}
+```
+
+---
+
+### `kivo_check_status`
+
+Check the status of a payment including Stellar confirmation details.
+
+```json
+{
+  "name": "kivo_check_status",
+  "inputSchema": {
+    "type": "object",
+    "required": ["payment_id"],
+    "properties": {
+      "payment_id": { "type": "string" }
+    }
+  }
+}
+```
+
+**Example output:**
+```json
+{
+  "status": "confirmed",
+  "stellar_hash": "8a3f1e2b9c4d...",
+  "explorer_url": "https://stellar.expert/explorer/testnet/tx/8a3f1e2b9c4d...",
+  "confirmed_at": "2025-06-01T12:00:05Z"
+}
+```
+
+---
+
+### `kivo_subscribe_webhook`
+
+Register a webhook URL for payment event notifications.
+
+```json
+{
+  "name": "kivo_subscribe_webhook",
+  "inputSchema": {
+    "type": "object",
+    "required": ["url", "events"],
+    "properties": {
+      "url":    { "type": "string", "format": "uri" },
+      "events": {
+        "type": "array",
+        "items": { "type": "string", "enum": ["payment.confirmed", "payment.failed", "payment.expired"] }
+      }
+    }
+  }
+}
+```
+
+---
+
+### `kivo_simulate_payment`
+
+Simulate a payment on testnet. Returns a mock result without submitting to the real network. Useful for AI agent testing.
+
+```json
+{
+  "name": "kivo_simulate_payment",
+  "inputSchema": {
+    "type": "object",
+    "required": ["from_device_id", "to_device_id", "amount"],
+    "properties": {
+      "from_device_id": { "type": "string" },
+      "to_device_id":   { "type": "string" },
+      "amount":         { "type": "string" },
+      "currency":       { "type": "string", "enum": ["USDC", "XLM"], "default": "USDC" }
+    }
+  }
+}
+```
+
+**Example output:**
+```json
+{
+  "simulated": true,
+  "mock_payment_id": "sim_abc123",
+  "mock_stellar_hash": "SIMULATED_HASH_...",
+  "estimated_fee_xlm": "0.00001",
+  "estimated_settlement_seconds": 4
+}
+```
+
+---
+
+## TypeScript MCP Client Example
+
+```typescript
+// AI agent using Kivo MCP tools (Claude / any MCP-compatible agent)
+
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic();
+
+// The agent autonomously charges an EV by calling Kivo tools
+const response = await client.messages.create({
+  model: "claude-opus-4-5",
+  max_tokens: 1024,
+  tools: [
+    // Kivo MCP tools are registered in claude_desktop_config.json
+    // and injected automatically — no manual tool definitions needed
+  ],
+  messages: [
+    {
+      role: "user",
+      content: `
+        The EV at charger station A12 (device ID: d5e3f1a2-...) 
+        needs 10 kWh. The car's device ID is a1b2c3d4-...
+        USDC rate: $0.30 per kWh. Set a 2-hour timeout.
+        Create the payment and confirm when it is settled.
+      `,
+    },
+  ],
+});
+```
+
+---
+
+## Error Responses
+
+All error responses follow a consistent shape:
+
+```json
+{
+  "error": "human-readable message",
+  "code": "MACHINE_READABLE_CODE",
+  "details": {}
+}
+```
+
+| HTTP Status | Code | Meaning |
+|---|---|---|
+| 400 | `INVALID_REQUEST` | Malformed body or invalid parameters |
+| 401 | `UNAUTHORIZED` | Missing or invalid API key / JWT |
+| 402 | `PAYMENT_REQUIRED` | x402 endpoint — payment header required |
+| 403 | `FORBIDDEN` | Valid auth but insufficient scope |
+| 404 | `NOT_FOUND` | Resource not found |
+| 409 | `CONFLICT` | Duplicate payment, device already exists |
+| 422 | `UNPROCESSABLE` | Valid format but invalid business logic |
+| 429 | `RATE_LIMITED` | Too many requests for this API key |
+| 500 | `INTERNAL_ERROR` | Server error |
+| 503 | `STELLAR_UNAVAILABLE` | Horizon node unreachable |

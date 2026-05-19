@@ -1,0 +1,231 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "ContractEase — Roadmap & Changelog"
+description: "Current feature status, upcoming phases, open technical decisions, and recent changelog for ContractEase."
+---
+
+# Roadmap & Changelog
+
+This document tracks the current state of ContractEase, upcoming development phases, and the decisions still under active evaluation.
+
+---
+
+## Current Feature Status
+
+| Feature | Status | Notes |
+|---|---|---|
+| Multi-tenant organizations | Complete | RLS-enforced, org switcher in UI |
+| Magic link authentication | Complete | Supabase Auth, 1-hour JWT |
+| Email OTP contract signing | Complete | 6-digit code, 15-min expiry |
+| Freighter wallet signing | Complete | `@stellar/freighter-api` |
+| Stellar anchoring (custodial) | Complete | Demo keypair, testnet only |
+| Freighter anchor (self-sign) | Complete | User's own wallet signs memo tx |
+| SHA-256 hash generation | Complete | Web Crypto API, deterministic |
+| 52 contract templates | Complete | Brazilian legal templates, pt-BR |
+| Contract lifecycle state machine | Complete | draft → pending → partial → completed |
+| Audit log (`contract_logs`) | Complete | Every action recorded |
+| Folder organization | Complete | Nested folders per org |
+| PDF generation | Complete | `@react-pdf/renderer` |
+| Signature capture (draw/type/upload) | Complete | Canvas + font + file upload |
+| Analytics dashboard | Complete | Completion rates, time-to-sign |
+| In-app notifications | Complete | Zustand store + Supabase Realtime |
+| Email notifications (signing events) | Complete | Resend via Edge Function |
+| Contract search and filtering | Complete | By status, date, party email |
+| Escrow (Claimable Balances) | Planned | Phase 2 |
+| Soroban smart clauses | Planned | Phase 3 |
+| Stellar Mainnet | Planned | Phase 4 |
+| ICP-Brasil certificate | Planned | Phase 4 |
+| Mobile app | Planned | Phase 5 |
+| x402 API monetization | Planned | Phase 3 |
+
+---
+
+## Phase 2 — Real Escrow with Claimable Balances
+
+**Target:** Q3 2025
+
+The escrow feature stub exists in the codebase as a `createEscrow()` call that currently throws `NotImplementedError`. Phase 2 replaces this with a real Stellar Claimable Balance implementation.
+
+**Scope:**
+
+- Buyer links a contract to an escrow amount in XLM or USDC
+- Clicking "Fund Escrow" opens Freighter → user signs a `createClaimableBalance` operation
+- The balance ID is stored in a new `escrows` table linked to `contracts.id`
+- Seller can claim after the contract `completed` date + configured release delay
+- Buyer can trigger refund if contract is `cancelled` before delivery
+- UI: escrow status widget on `ContractDetail` page
+
+**New table:**
+
+```sql
+create table escrows (
+  id             uuid primary key default gen_random_uuid(),
+  contract_id    uuid not null references contracts(id),
+  organization_id uuid not null references organizations(id),
+  balance_id     text unique not null,   -- Stellar Claimable Balance ID
+  asset_code     text not null,          -- 'XLM' | 'USDC'
+  amount         decimal not null,
+  status         text not null default 'locked',
+    -- 'locked' | 'claimed' | 'refunded' | 'expired'
+  funded_by      text not null,          -- buyer Stellar address
+  claimant       text not null,          -- seller Stellar address
+  release_at     timestamptz not null,
+  created_at     timestamptz not null default now()
+);
+```
+
+---
+
+## Phase 3 — x402 API Monetization + Soroban Smart Clauses
+
+**Target:** Q4 2025
+
+### x402 Integration
+
+The x402 protocol allows HTTP APIs to require micropayments per request. ContractEase will use x402 to monetize its API for third-party integrators:
+
+- `POST /api/contracts/anchor` — pay per anchor operation (0.10 USDC)
+- `GET /api/contracts/:id/verify` — free read, paid verification certificate PDF
+- Kivo Pay handles the x402 payment channel (SGR ecosystem integration)
+
+### Soroban Smart Clauses
+
+Soroban is Stellar's native smart contract platform. Phase 3 introduces **smart clauses** — contract conditions that execute automatically on Stellar when triggered:
+
+| Clause Type | Trigger | Soroban Action |
+|---|---|---|
+| Auto-release escrow | All parties signed + N days elapsed | `claim_balance()` |
+| Penalty clause | Milestone missed | Transfer penalty amount to harmed party |
+| Expiry clause | Contract date passed | Mark invalid on-chain |
+
+**Technical approach:**
+- Smart contracts written in Rust, deployed to Soroban Mainnet
+- `contract_clauses.clause_type = 'soroban'` stores the contract address and invocation parameters
+- Edge Function `invoke-soroban-clause` triggers the contract using the Soroban client SDK
+
+---
+
+## Phase 4 — Stellar Mainnet + ICP-Brasil Compliance
+
+**Target:** Q1 2026
+
+### Stellar Mainnet
+
+- Switch `VITE_STELLAR_NETWORK=mainnet` in production
+- Fund custodial keypair on Mainnet (XLM purchase)
+- Update Horizon URL to `https://horizon.stellar.org`
+- Verify all Explorer links point to Mainnet
+- Performance test: confirm 3–5 s finality under load
+
+### ICP-Brasil Compliance
+
+ICP-Brasil (Infraestrutura de Chaves Públicas Brasileira) is the Brazilian government's PKI standard for legally valid digital signatures. Integration enables ContractEase contracts to have the same legal weight as notarized documents.
+
+**Implementation options under evaluation:**
+1. **Certisign API** — Brazilian CA, issues ICP-Brasil certificates via REST API
+2. **Docusign + ICP-Brasil module** — existing integration, higher cost
+3. **BirdID SDK** — mobile-based ICP-Brasil certificate, most user-friendly
+
+**What changes:**
+- Signing flow adds an optional "Use ICP-Brasil certificate" step
+- Certificate data is stored in `contract_parties.certificate_data`
+- PDF includes the ICP-Brasil signature block (PKCS#7 format)
+- Stellar anchor still provides blockchain proof-of-existence (complementary, not replacement)
+
+### e-CNPJ Integration
+
+For organizations signing contracts as legal entities (not individuals), e-CNPJ certificates provide company-level authentication. Integration mirrors the e-CPF/ICP-Brasil flow.
+
+---
+
+## Phase 5 — Mobile App + Offline Signing
+
+**Target:** Q2 2026
+
+### React Native App
+
+- Shared business logic with the web app (hooks, types, Supabase client)
+- Expo managed workflow for iOS and Android
+- Freighter Mobile wallet integration (when available) or WalletConnect
+- Push notifications for signing requests (Expo Push Notifications)
+- Biometric authentication for app access
+
+### Offline Signing
+
+Brazilian infrastructure can be unreliable. Offline signing allows parties to sign contracts without an internet connection:
+
+- Contract document cached locally (IndexedDB / AsyncStorage)
+- Signature captured offline
+- Sync queue: signature uploaded when connection resumes
+- OTP validation deferred: offline-signed contracts marked `pending_verification` until online
+
+---
+
+## Open Technical Decisions
+
+| Decision | Options Under Consideration | Status |
+|---|---|---|
+| PDF signing standard | PDF/A-3 (standard), PKCS#7 (ICP-Brasil) | Evaluating ICP-Brasil SDK cost |
+| Email provider | Resend (current), SendGrid, AWS SES | Resend performing well; revisit at scale |
+| Rate limiting | Upstash Redis (edge), Supabase pg_cron cleanup | Evaluating Upstash for OTP abuse prevention |
+| Contract storage encryption | AES-256 at rest (Supabase default), client-side encryption | Client-side adds complexity; evaluating demand |
+| Template marketplace | Public templates shareable between orgs | Architecture designed; pending product decision |
+| Multi-language contracts | Side-by-side pt-BR / en clauses | Requested by export-focused customers |
+| Webhook support | Outbound webhooks for contract events | High demand from integration partners |
+
+---
+
+## Recent Changelog
+
+### v0.8.0 — May 2025
+- Added Freighter wallet signing for contract parties
+- Implemented `anchorWithFreighter()` — users' own wallets sign the anchor transaction
+- Added `stellar_address` column to `contract_parties`
+
+### v0.7.0 — April 2025
+- Analytics dashboard: completion rate chart, average time-to-sign, signatory response heatmap
+- Added folder organization with drag-and-drop ordering
+- Fixed multi-org session persistence across browser refreshes
+
+### v0.6.0 — March 2025
+- Launched 52 Brazilian legal contract templates (seed data)
+- Template search by category and language
+- Contract duplication from template with variable substitution
+
+### v0.5.0 — February 2025
+- Stellar Testnet anchoring via custodial keypair
+- `anchor_status` column and AnchorStatus UI component
+- Stellar Explorer deep-link in ContractDetail page
+
+### v0.4.0 — January 2025
+- Multi-party signing: support for witnesses and approvers in addition to signers
+- Signature canvas: draw, type, and upload methods
+- Audit log (`contract_logs`) with IP and user agent capture
+- LGPD consent modal on first login
+
+---
+
+## Contribution Guide
+
+ContractEase follows the SGR monorepo conventions:
+
+```bash
+# Feature branches
+git checkout -b feat/escrow-claimable-balances
+
+# Commit format (Conventional Commits)
+git commit -m "feat(escrow): implement createClaimableBalance Edge Function"
+git commit -m "fix(signing): handle expired sign_token gracefully"
+git commit -m "docs(roadmap): add Phase 3 Soroban details"
+
+# Before PR
+npm run lint
+npm run type-check
+npm run test
+```
+
+All PRs require:
+- TypeScript `strict: true` compliance
+- No new `any` types without comment justification
+- RLS policy added for any new table
+- Edge Function tested with `supabase functions serve`

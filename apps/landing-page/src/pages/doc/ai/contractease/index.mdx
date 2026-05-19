@@ -1,0 +1,163 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "ContractEase — Product Overview"
+description: "B2B digital contract platform with blockchain proof-of-existence on Stellar — sign, anchor, and verify contracts forever."
+---
+
+# ContractEase — Product Overview
+
+ContractEase is a B2B digital contract platform that lets Brazilian SMBs create, sign, and permanently anchor contracts on the Stellar blockchain. Every signed document is hashed with SHA-256 and recorded on-chain in under 5 seconds, producing tamper-proof, publicly verifiable proof-of-existence that outlasts any centralized server.
+
+---
+
+## Why ContractEase Exists
+
+Traditional digital contract tools store signatures in proprietary databases — if the vendor shuts down, proof of signing disappears. Even PDF-based solutions rely on certificate authorities that can revoke or expire. ContractEase takes a different approach:
+
+1. **Sign** — parties sign via email OTP or Freighter wallet
+2. **Hash** — the completed contract is serialized and SHA-256 hashed deterministically
+3. **Anchor** — the 32-byte hash is written to a Stellar transaction memo, permanently on-chain
+4. **Verify** — anyone can recompute the hash and look up the transaction on Stellar Explorer — forever
+
+The result is legally binding signature evidence combined with cryptographic immutability. No vendor lock-in, no expiry, no single point of failure.
+
+---
+
+## Target Market
+
+| Segment | Pain Point | ContractEase Solution |
+|---|---|---|
+| Brazilian SMBs | Paper contracts, slow notarization | Fully digital, OTP-signed, instantly verifiable |
+| Law firms | Expensive e-signature tools (DocuSign pricing) | Free tier + affordable paid plans |
+| Real estate agencies | Multi-party signing with proof requirements | Multi-party OTP + blockchain anchor |
+| HR departments | Employment contract management | 52 pre-built templates + folder organization |
+| Freelancers & agencies | Client contract disputes | Immutable on-chain timestamp = irrefutable proof |
+
+---
+
+## Core Features
+
+| Feature | Status | Description |
+|---|---|---|
+| Multi-tenant organizations | Complete | Each company is isolated via `organization_id` + RLS |
+| Email OTP signing | Complete | 6-digit code delivered to each signatory |
+| Freighter wallet signing | Complete | Sign with Stellar public key, no email required |
+| Stellar anchoring | Complete | SHA-256 memo on Stellar Testnet (Mainnet planned) |
+| 52 contract templates | Complete | Brazilian legal templates: NDA, service agreements, etc. |
+| Contract analytics | Complete | Completion rates, time-to-sign, signatory reports |
+| Folder organization | Complete | Nested folders per organization |
+| Contract lifecycle | Complete | Draft → Pending → Partial → Completed / Cancelled |
+| Audit log | Complete | Every action timestamped in `contract_logs` |
+| Escrow (Claimable Balances) | Planned | Time-locked payment release on Stellar |
+| Soroban smart clauses | Planned | Programmable contract conditions |
+
+---
+
+## How It Fits in the SGR Ecosystem
+
+ContractEase is one of three products built on the **Stellar Global Rails (SGR)** shared infrastructure:
+
+```
+SGR Ecosystem
+├── ContractEase  — B2B digital contracts + blockchain anchoring
+├── Kivo Pay      — B2B payment platform (M2M, USDC, Stellar)
+└── SocialPay     — Consumer P2P payments
+```
+
+**Shared infrastructure:**
+- **Supabase** (`fpmhcjkadgebcexzkayz`) — single PostgreSQL instance with RLS-based multi-tenancy
+- **Supabase Auth** — magic link and OTP authentication used across all products
+- **Supabase Storage** — contract PDF storage
+- **Cloudflare Pages** — static frontend hosting for all three SPAs
+- **Kivo Pay integration** — ContractEase will use Kivo Pay for subscription billing and escrow funding (roadmap)
+
+---
+
+## Architecture at a Glance
+
+```
+┌─────────────────────────────────────────────┐
+│          ContractEase React SPA              │
+│    (Vite + TypeScript + Tailwind + Zustand)  │
+└──────────────────┬──────────────────────────┘
+                   │ Supabase JS Client
+┌──────────────────▼──────────────────────────┐
+│              Supabase                        │
+│  ┌─────────┐ ┌──────┐ ┌────────┐ ┌───────┐ │
+│  │Postgres │ │ Auth │ │Storage │ │Realtime│ │
+│  │  + RLS  │ │ OTP  │ │  PDFs  │ │ Subs  │ │
+│  └─────────┘ └──────┘ └────────┘ └───────┘ │
+│  ┌──────────────────────────────────────┐   │
+│  │         Edge Functions (Deno)        │   │
+│  │  anchorOnStellar | sendSignatureEmail│   │
+│  └──────────────────────────────────────┘   │
+└──────────────────┬──────────────────────────┘
+                   │ Stellar SDK (Horizon API)
+┌──────────────────▼──────────────────────────┐
+│           Stellar Network                    │
+│     SHA-256 hash stored in tx memo           │
+│     Testnet (Mainnet in roadmap)             │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## Quick Start for Evaluators
+
+### Access the Application
+
+ContractEase is deployed on Cloudflare Pages. Contact the SGR team for the current preview URL or run locally (see [Deployment Guide](/doc/ai/contractease/deployment)).
+
+### Create Your First Contract
+
+1. **Sign up** — enter your work email, receive a magic link
+2. **Create organization** — name your company, invite team members
+3. **New contract** — choose a template (e.g., NDA) or start from scratch
+4. **Add parties** — enter signatory emails and roles
+5. **Send for signing** — each party receives an OTP email
+6. **Sign** — each party visits the signing link, enters OTP (or uses Freighter)
+7. **Anchor** — once all parties have signed, the contract is automatically anchored to Stellar
+8. **Verify** — copy the Stellar transaction ID and look it up on [Stellar Expert](https://stellar.expert)
+
+### Local Development Quick Start
+
+```bash
+# Clone the SGR monorepo
+git clone https://github.com/your-org/StellarGlobalRails
+cd StellarGlobalRails/apps/contractease
+
+# Install dependencies
+npm install
+
+# Copy environment variables
+cp .env.example .env.local
+# Fill in: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_STELLAR_NETWORK=testnet
+
+# Start development server
+npm run dev
+# → http://localhost:5173
+```
+
+---
+
+## Value Proposition Summary
+
+| Dimension | Traditional Tools | ContractEase |
+|---|---|---|
+| Proof durability | Vendor-dependent | Permanent (Stellar blockchain) |
+| Verification | Proprietary portal | Public (Stellar Explorer) |
+| Cost | $15–$50/user/month | Free tier + affordable paid |
+| Templates | Generic | 52 Brazilian legal templates |
+| Multi-tenancy | Often add-on | Native (RLS-enforced) |
+| Signing methods | Email only | Email OTP + Freighter wallet |
+| Escrow | Not available | Planned (Stellar Claimable Balances) |
+
+---
+
+## Next Steps
+
+- [Architecture & ADRs](/doc/ai/contractease/architecture) — technical decisions and system design
+- [Database Schema](/doc/ai/contractease/data-models) — full Supabase PostgreSQL schema
+- [API Reference](/doc/ai/contractease/api-reference) — Supabase client patterns and Edge Functions
+- [Stellar Integration](/doc/ai/contractease/stellar-integration) — anchoring, escrow, and Freighter
+- [Signing Flow](/doc/ai/contractease/signing-flow) — complete contract lifecycle documentation

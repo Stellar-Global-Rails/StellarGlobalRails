@@ -1,0 +1,147 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "Kivo Pay — Architecture"
+description: "Current Kivo Pay MVP architecture after removing Fly.io from the delivery path and moving the backend runtime to Supabase Edge Functions."
+---
+
+# Architecture
+
+Kivo's MVP architecture is now centered on Supabase and Vercel. Fly.io was removed from the delivery path so the product can ship without an extra paid runtime.
+
+```mermaid
+flowchart TD
+  UI["Kivo Web App<br/>Vercel + React"]
+  Auth["Supabase Auth"]
+  API["kivo-api<br/>Supabase Edge Function"]
+  DB[("Supabase Postgres<br/>public.kivo_*")]
+  RT["Supabase Realtime"]
+  Storage["Supabase Storage"]
+  Horizon["Stellar Horizon<br/>testnet"]
+  Etherfuse["Etherfuse Devnet<br/>anchor/ramp"]
+  Device["IoT device / SDK"]
+  Resource["Protected x402 resource"]
+
+  UI --> Auth
+  UI --> API
+  Device --> API
+  API --> DB
+  API --> RT
+  API --> Storage
+  API --> Horizon
+  API --> Etherfuse
+  API --> Resource
+```
+
+## Runtime Roles
+
+| Runtime | Responsibility |
+|---|---|
+| Vercel | Serves the Kivo frontend. Contains only public Vite env vars. |
+| Supabase Edge Function | Owns REST endpoints, x402, Stellar submission, Etherfuse proxy/webhook, and server-side secrets. |
+| Supabase Postgres | Stores devices, payments, x402 nonces, pricing rules, API keys, webhooks, Etherfuse orders, and audit events. |
+| Supabase Auth | Authenticates dashboard users. Edge Functions validate the user token before private routes. |
+| Supabase Realtime | Pushes operational updates to the dashboard. |
+| Supabase Storage | Stores proofs and device assets with private bucket policies. |
+| Stellar Horizon | Receives signed Stellar transactions and provides settlement status. |
+| Etherfuse Devnet | Provides anchor/ramp flows around Stellar testnet liquidity. |
+
+## Backend Decision
+
+The previous Go backend remains in the repository as a temporary local fallback. It should not be treated as the production runtime for the MVP anymore.
+
+The MVP backend target is TypeScript on Supabase Edge Functions because:
+
+- The team already uses Supabase Auth, Postgres, Realtime, Storage, and Edge Function secrets.
+- It removes Fly.io billing and deployment friction.
+- Frontend and backend can share TypeScript contracts faster during the two-week delivery window.
+- Etherfuse webhooks and x402 routes can live close to the database and secrets.
+
+Go can return later if Kivo needs a high-throughput dedicated gateway, but not before the MVP proves the customer-facing product flow.
+
+## Request Flow
+
+### Human Operator
+
+```mermaid
+sequenceDiagram
+  participant User as Operator
+  participant Web as Kivo Web
+  participant Auth as Supabase Auth
+  participant API as kivo-api Edge Function
+  participant DB as Supabase Postgres
+
+  User->>Web: Login
+  Web->>Auth: Supabase session
+  Web->>API: Authorization: Bearer user JWT
+  API->>Auth: Validate user
+  API->>DB: Read/write owner-scoped Kivo data
+  API-->>Web: Dashboard, flows, payments
+```
+
+### x402 Payment
+
+```mermaid
+sequenceDiagram
+  participant Client as Device/SDK
+  participant API as kivo-api Edge Function
+  participant DB as Supabase Postgres
+  participant Horizon as Stellar Horizon
+
+  Client->>API: GET protected resource
+  API->>DB: Persist nonce
+  API-->>Client: 402 challenge
+  Client->>Client: Sign Stellar transaction
+  Client->>API: POST /v1/x402/pay txXDR
+  API->>Horizon: Submit transaction
+  API->>DB: Consume nonce + record payment
+  API-->>Client: X-PAYMENT header
+  Client->>API: Retry resource with X-PAYMENT
+  API-->>Client: Protected data
+```
+
+### Etherfuse Anchor
+
+```mermaid
+sequenceDiagram
+  participant Web as Kivo Web
+  participant API as kivo-api Edge Function
+  participant EF as Etherfuse Devnet
+  participant DB as Supabase Postgres
+
+  Web->>API: Request assets/quote/order
+  API->>EF: Server-side Etherfuse API call
+  EF-->>API: Anchor response
+  API->>DB: Persist order/event state
+  API-->>Web: Safe response
+  EF->>API: Signed webhook
+  API->>DB: Persist verified event
+```
+
+## Security Boundaries
+
+- Browser receives only `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_KIVO_API_URL`.
+- Supabase service role, Etherfuse API key, Etherfuse webhook secret, and Stellar secret keys stay only in server-side runtime secrets.
+- `verify_jwt` is disabled on the unified Edge Function because public x402 and Etherfuse webhook routes need to reach the handler. The handler must enforce route-level auth.
+- RLS remains enabled on all dashboard-facing `public.kivo_*` tables.
+- x402 nonces must be persisted and consumed once.
+- Webhook signature verification must use the base64-decoded Etherfuse webhook secret.
+
+## Migration Boundary
+
+Active Edge Function routes:
+
+- deploy readiness
+- health
+- Etherfuse status/proxy/webhook
+
+Routes still moving from the temporary Go fallback:
+
+- dashboard summary
+- devices
+- payments
+- x402 pay/unlock
+- webhooks
+- API keys
+- MCP tools
+
+Once those are complete and verified, the Go backend can be deleted from `apps/kivo`.

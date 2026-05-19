@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/landing-page-astro/**)",
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat\\(kivo\\): add SDK M2M Templates Gallery, MCP Demo section, and Stellar vs Fiat comparison to ProductPage *)",
+      "Bash(cat > *)",
+      "Bash(git commit -m 'feat\\(i18n\\): add Kivo M2M templates, MCP, and comparison translations *)",
+      "Bash(cd /c/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/contractease && find . -type f -name \"*.json\" -o -name \"*.ts\" -o -name \"*.tsx\" -o -name \"*.js\" -o -name \"*.jsx\" -o -name \"*.md\" | head -100)",
+      "Read(//c/c/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/**)",
+      "Bash(cd /c/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/contractease && ls -la)",
+      "Bash(cd /c/Users/charl/OneDrive/Documentos/GitHub\\\\StellarGlobalRails/apps/contractease && find src -name \"*.tsx\" -type f | wc -l)",
+      "Read(//c/Users/charl/OneDrive/Documentos/GitHubStellarGlobalRails/apps/**)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__list_edge_functions",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__execute_sql"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

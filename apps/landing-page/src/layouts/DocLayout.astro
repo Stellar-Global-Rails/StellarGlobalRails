@@ -1,0 +1,884 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+import '../styles/global.css';
+
+const { title, description, frontmatter } = Astro.props;
+const pageTitle = title || frontmatter?.title;
+const pageDescription = description || frontmatter?.description;
+
+const navProducts = {
+  general: {
+    label: 'General',
+    color: 'emerald',
+    sections: [
+      {
+        title: 'Platform',
+        links: [
+          { href: '/doc/ai', label: 'Platform Overview' },
+          { href: '/doc', label: 'Products Index' },
+        ]
+      }
+    ]
+  },
+  contractease: {
+    label: 'ContractEase',
+    color: 'blue',
+    sections: [
+      {
+        title: 'ContractEase',
+        links: [
+          { href: '/doc/ai/contractease', label: 'Product Overview' },
+          { href: '/doc/ai/contractease/architecture', label: 'Architecture & ADRs' },
+          { href: '/doc/ai/contractease/data-models', label: 'Data Models' },
+          { href: '/doc/ai/contractease/api-reference', label: 'API Reference' },
+          { href: '/doc/ai/contractease/auth-security', label: 'Auth & Security' },
+          { href: '/doc/ai/contractease/stellar-integration', label: 'Stellar Integration' },
+          { href: '/doc/ai/contractease/signing-flow', label: 'Signing Flow' },
+          { href: '/doc/ai/contractease/frontend', label: 'Frontend' },
+          { href: '/doc/ai/contractease/deployment', label: 'Deployment' },
+          { href: '/doc/ai/contractease/roadmap', label: 'Roadmap' },
+        ]
+      }
+    ]
+  },
+  socialpay: {
+    label: 'SocialPay',
+    color: 'violet',
+    sections: [
+      {
+        title: 'SocialPay',
+        links: [
+          { href: '/doc/ai/socialpay', label: 'Product Overview' },
+          { href: '/doc/ai/socialpay/architecture', label: 'Architecture & ADRs' },
+          { href: '/doc/ai/socialpay/data-models', label: 'Data Models' },
+          { href: '/doc/ai/socialpay/api-reference', label: 'API Reference' },
+          { href: '/doc/ai/socialpay/auth-security', label: 'Auth & Security' },
+          { href: '/doc/ai/socialpay/stellar-integration', label: 'Stellar Integration' },
+          { href: '/doc/ai/socialpay/handle-system', label: '@Handle System' },
+          { href: '/doc/ai/socialpay/ramp', label: 'Fiat Ramp' },
+          { href: '/doc/ai/socialpay/deployment', label: 'Deployment' },
+          { href: '/doc/ai/socialpay/roadmap', label: 'Roadmap' },
+        ]
+      }
+    ]
+  },
+  kivo: {
+    label: 'Kivo Pay',
+    color: 'emerald',
+    sections: [
+      {
+        title: 'Kivo Pay',
+        links: [
+          { href: '/doc/ai/kivo', label: 'Product Overview' },
+          { href: '/doc/ai/kivo/architecture', label: 'Architecture & ADRs' },
+          { href: '/doc/ai/kivo/data-models', label: 'Data Models' },
+          { href: '/doc/ai/kivo/api-reference', label: 'API Reference' },
+          { href: '/doc/ai/kivo/auth-security', label: 'Auth & Security' },
+          { href: '/doc/ai/kivo/stellar-integration', label: 'Stellar Integration' },
+          { href: '/doc/ai/kivo/etherfuse-integration', label: 'Etherfuse Integration' },
+          { href: '/doc/ai/kivo/x402-protocol', label: 'x402 Protocol' },
+          { href: '/doc/ai/kivo/mcp-tools', label: 'MCP Tools' },
+          { href: '/doc/ai/kivo/deployment', label: 'Deployment' },
+          { href: '/doc/ai/kivo/roadmap', label: 'Roadmap' },
+        ]
+      }
+    ]
+  }
+};
+
+// Auto-detect active product from URL
+const pathname = Astro.url.pathname;
+let activeProduct = 'general';
+if (pathname.includes('/contractease')) activeProduct = 'contractease';
+else if (pathname.includes('/socialpay')) activeProduct = 'socialpay';
+else if (pathname.includes('/kivo')) activeProduct = 'kivo';
+
+const sections = navProducts[activeProduct].sections;
+const allLinks = sections.flatMap(s => s.links);
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/doc';
+const currentIndex = allLinks.findIndex(l => l.href.replace(/\/$/, '') === currentPath);
+const prevLink = currentIndex > 0 ? allLinks[currentIndex - 1] : null;
+const nextLink = currentIndex < allLinks.length - 1 ? allLinks[currentIndex + 1] : null;
+
+const pathSegments = Astro.url.pathname.split('/').filter(Boolean);
+const breadcrumbs = pathSegments.map((segment, index) => {
+  const href = '/' + pathSegments.slice(0, index + 1).join('/');
+  return { 
+    label: segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' '),
+    href 
+  };
+});
+
+const githubRepo = "https://github.com/LucasVital08/StellarGlobalRails/edit/main/landing-page-astro/src/pages";
+const editUrl = `${githubRepo}${Astro.url.pathname}${Astro.url.pathname.endsWith('/') ? 'index' : ''}.mdx`;
+---
+
+<!DOCTYPE html>
+<html lang="en" class="bg-neutral-950 text-white scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle ? `${pageTitle} | Stellar Global Rails` : 'Stellar Global Rails Docs'}</title>
+    {pageDescription && <meta name="description" content={pageDescription} />}
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Arabic:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <ViewTransitions />
+
+    <script>
+      import { languages, defaultLang, ui } from '../i18n/ui';
+
+      function initLang() {
+        const LANG_KEYS = Object.keys(languages);
+        const saved = localStorage.getItem('sgr-lang');
+        let lang = defaultLang;
+
+        if (saved && LANG_KEYS.includes(saved)) {
+          lang = saved;
+        } else {
+          const browserLang = navigator.language.toLowerCase();
+          const matched = LANG_KEYS.find(k => browserLang.startsWith(k));
+          if (matched) lang = matched;
+          localStorage.setItem('sgr-lang', lang);
+        }
+        
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        
+        updateDocUI(lang);
+      }
+
+      function updateDocUI(lang: string) {
+        // @ts-ignore
+        const t = ui[lang] || ui[defaultLang];
+        
+        document.querySelectorAll('[data-key]').forEach(el => {
+          const key = el.getAttribute('data-key');
+          // @ts-ignore
+          if (key && t[key]) (el as HTMLElement).innerText = t[key];
+        });
+
+        // Update Section Titles based on index/context
+        const isAi = window.location.pathname.includes('/doc/ai');
+        const titles = {
+          'pt-br': isAi ? ['Core', 'Specs por Módulo'] : ['Fundamentos', 'Módulos'],
+          'en': isAi ? ['Core', 'Specs by Module'] : ['Fundamentals', 'Modules'],
+          'es': isAi ? ['Núcleo', 'Especificaciones'] : ['Fundamentos', 'Módulos'],
+          'zh': isAi ? ['核心', '规格'] : ['基础', '模块'],
+          'ko': isAi ? ['코어', '사양'] : ['기초', '모듈'],
+          'ar': isAi ? ['الأصل', 'المواصفات'] : ['الأساسيات', 'الوحدات']
+        };
+        
+        document.querySelectorAll('.section-title').forEach((el, i) => {
+          // @ts-ignore
+          const translated = titles[lang]?.[i] || titles['en']?.[i];
+          if (translated) (el as HTMLElement).innerText = translated;
+        });
+
+        // Specific UI labels
+        const labels = {
+          toc: t['doc.ui.toc'] || 'In this page',
+          focus: t['doc.ui.focus_mode'] || 'Focus Mode',
+          edit: t['doc.ui.edit'] || 'Edit',
+          updated: t['doc.ui.updated'] || 'Updated',
+          business: t['doc.ui.business_docs'] || 'Business Docs',
+          ai: t['doc.ui.ai_specs'] || 'AI Specs'
+        };
+
+        const tocHeader = document.getElementById('toc-header');
+        if (tocHeader) tocHeader.innerText = labels.toc;
+
+        const focusLabel = document.getElementById('focus-mode-label');
+        if (focusLabel) focusLabel.innerText = labels.focus;
+
+        const editLabel = document.querySelector('#edit-link span');
+        if (editLabel) (editLabel as HTMLElement).innerText = labels.edit;
+
+        const contextLabel = document.getElementById('context-switch-label');
+        if (contextLabel) contextLabel.innerText = isAi ? labels.business : labels.ai;
+
+        // Language Notice
+        const notice = document.getElementById('i18n-notice');
+        const noticeText = document.getElementById('i18n-notice-text');
+        if (notice && noticeText) {
+          if (lang !== 'pt-br') {
+            notice.classList.remove('hidden');
+            noticeText.innerText = t['doc.translate_notice'] || 'Content only in PT-BR';
+          } else {
+            notice.classList.add('hidden');
+          }
+        }
+      }
+
+      window.addEventListener('sgr-lang-changed', (e: any) => {
+        const lang = e.detail;
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        updateDocUI(lang);
+      });
+
+      initLang();
+      document.addEventListener('astro:page-load', initLang);
+    </script>
+    <style is:global>
+      :root {
+        --glass-bg: rgba(10, 10, 10, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.08);
+      }
+
+      .glass-effect {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+      }
+
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Reading Progress Bar */
+      #progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: linear-gradient(to right, #10b981, #34d399);
+        z-index: 100;
+        transition: width 0.1s ease-out;
+      }
+
+      /* MDX Styles */
+      .prose h1 { font-family: var(--font-bricolage); font-size: 2.25rem; margin-bottom: 2rem; color: white; font-weight: 700; letter-spacing: -0.025em; }
+      .prose h2 { font-family: var(--font-bricolage); font-size: 1.5rem; margin-top: 3rem; margin-bottom: 1rem; color: white; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 0.5rem; }
+      .prose h3 { font-family: var(--font-bricolage); font-size: 1.25rem; margin-top: 2rem; margin-bottom: 1rem; color: white; font-weight: 500; }
+      .prose p { color: rgba(255, 255, 255, 0.7); line-height: 1.625; margin-bottom: 1.5rem; }
+      .prose ul { list-style-type: disc; list-style-position: inside; margin-bottom: 1.5rem; color: rgba(255, 255, 255, 0.7); }
+      .prose ol { list-style-type: decimal; list-style-position: inside; margin-bottom: 1.5rem; color: rgba(255, 255, 255, 0.7); }
+      .prose li { margin-bottom: 0.5rem; }
+      .prose code { background-color: rgba(255, 255, 255, 0.05); padding: 0.125rem 0.375rem; border-radius: 0.25rem; color: #34d399; font-family: var(--font-mono); font-size: 0.875rem; }
+      .prose pre { background-color: #0D0D0D; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem; overflow-x: auto; position: relative; }
+      .prose pre code { background-color: transparent; padding: 0; color: rgba(255, 255, 255, 0.9); font-size: 0.75rem; }
+      
+      .copy-code-btn {
+        position: absolute; top: 0.75rem; right: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.4);
+        opacity: 0; transition: all 0.2s; cursor: pointer; z-index: 10;
+      }
+      .group:hover .copy-code-btn { opacity: 1; }
+      .copy-code-btn:hover { background-color: rgba(255, 255, 255, 0.1); color: white; }
+
+      .prose blockquote { border-left: 4px solid rgba(16, 185, 129, 0.5); background-color: rgba(16, 185, 129, 0.05); padding: 1rem 1.5rem; border-radius: 0 0.75rem 0.75rem 0; margin-bottom: 2rem; font-style: italic; color: rgba(255, 255, 255, 0.8); }
+      .prose table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-size: 0.875rem; }
+      .prose th { text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 0.75rem; color: rgba(255, 255, 255, 0.4); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+      .prose td { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 0.75rem; color: rgba(255, 255, 255, 0.7); }
+      .prose a { color: #34d399; text-decoration: underline; text-decoration-color: rgba(52, 211, 153, 0.3); text-underline-offset: 4px; transition: all 0.2s; }
+      .prose a:hover { text-decoration-color: #34d399; }
+      .prose img { border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 2rem; }
+      .prose strong { color: white; font-weight: 600; }
+      .prose hr { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.05); margin: 3rem 0; }
+
+      [dir="rtl"] .ml-72 { margin-left: 0 !important; margin-right: 18rem !important; }
+      [dir="rtl"] aside:first-of-type { left: auto !important; right: 0 !important; border-right: none !important; border-left: 1px solid rgba(255,255,255,0.05); }
+      [dir="rtl"] #on-page-toc { right: auto !important; left: 0 !important; }
+      
+      /* Tooltip Styles */
+      .glossary-term {
+        border-bottom: 1px dashed rgba(16, 185, 129, 0.5);
+        cursor: help;
+        color: #34d399;
+        font-weight: 500;
+        position: relative;
+        display: inline-block;
+      }
+      .glossary-tooltip {
+        position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 0.5rem; width: 12rem; padding: 0.75rem; background-color: #171717; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); z-index: 50; font-size: 0.625rem; color: rgba(255, 255, 255, 0.8); pointer-events: none; opacity: 0; transition: all 0.2s; scale: 0.95;
+      }
+      .glossary-term:hover .glossary-tooltip {
+        opacity: 1; scale: 1; transform: translateX(-50%) translateY(0);
+      }
+      .glossary-tooltip::after {
+        content: '';
+        position: absolute; bottom: -0.5rem; left: 50%; transform: translateX(-50%); border: 8px solid transparent; border-top-color: #171717;
+      }
+
+      .toc-link.active {
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.05);
+        border-left: 2px solid #10b981;
+      }
+
+      aside:first-of-type, main, #on-page-toc { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+      @media print {
+        aside, #on-page-toc, #progress-bar, footer, .lg\:hidden { display: none !important; }
+        main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        .prose { max-width: 100% !important; color: black !important; }
+        .prose h1, .prose h2, .prose h3 { color: black !important; }
+        .prose p, .prose li { color: #333 !important; }
+        .prose pre { border: 1px solid #ddd !important; background: #f9f9f9 !important; }
+        .prose pre code { color: black !important; }
+      }
+    </style>
+  </head>
+  <body class="bg-neutral-950 text-white selection:bg-emerald-500/30 overflow-x-hidden">
+    <div id="progress-bar"></div>
+
+    <!-- Mobile Header -->
+    <div class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-white/5 z-[60] flex items-center justify-between px-6">
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded bg-emerald-500 flex items-center justify-center">
+          <svg class="w-4 h-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        </div>
+        <span class="text-sm font-bricolage font-bold tracking-tight uppercase">SGR</span>
+      </a>
+      <button id="mobile-menu-toggle" class="p-2 text-white/50 hover:text-white transition-colors">
+        <iconify-icon icon="solar:hamburger-menu-linear" width="24"></iconify-icon>
+      </button>
+    </div>
+
+    <aside id="doc-sidebar" class="w-72 fixed inset-y-0 left-0 bg-neutral-900/80 backdrop-blur-xl border-r border-white/5 overflow-hidden z-50 -translate-x-full lg:translate-x-0 transition-transform duration-300">
+      <div class="h-full flex flex-col p-6 overflow-y-auto">
+        <a href="/" class="flex items-center gap-3 mb-10 group">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-shadow">
+            <svg class="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          </div>
+          <div>
+            <span class="text-sm font-bricolage font-bold text-white block leading-tight">Stellar Global Rails</span>
+            <span class="text-[10px] text-white/30 uppercase tracking-widest font-medium">Documentation</span>
+          </div>
+        </a>
+
+        <!-- Doc Search -->
+        <div class="mb-6 relative group">
+          <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-white/20 group-focus-within:text-emerald-500 transition-colors">
+            <iconify-icon icon="solar:magnifer-linear" width="16"></iconify-icon>
+          </div>
+          <input 
+            type="text" 
+            id="doc-search"
+            placeholder="Search docs..."
+            class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-white/20"
+          />
+        </div>
+
+        <div class="mb-6">
+          <select 
+            id="doc-lang-selector"
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white/70 focus:outline-none focus:border-emerald-500/50 transition-all cursor-pointer"
+          >
+            <option value="pt-br">🇧🇷 Português</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="es">🇪🇸 Español</option>
+            <option value="zh">🇨🇳 Mandarin</option>
+            <option value="ko">🇰🇷 Korean</option>
+            <option value="ar">🇸🇦 Arabic</option>
+          </select>
+        </div>
+
+        <!-- Product Tabs -->
+        <div class="mb-5" id="product-tabs-container">
+          <div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+            {Object.entries(navProducts).map(([key, product]) => (
+              <button
+                data-product-tab={key}
+                class={`product-tab px-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all text-center ${
+                  activeProduct === key
+                    ? 'bg-emerald-500/20 text-emerald-400 shadow-sm'
+                    : 'text-white/30 hover:text-white/60 hover:bg-white/5'
+                }`}
+              >
+                {product.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <!-- Nav: all products rendered, hidden/shown by JS -->
+        <nav class="flex-1 overflow-y-auto" id="doc-nav-sections">
+          {Object.entries(navProducts).map(([productKey, product]) => (
+            <div
+              data-product-nav={productKey}
+              class={activeProduct === productKey ? 'block' : 'hidden'}
+            >
+              {product.sections.map(section => (
+                <div class="doc-section mb-6">
+                  <h3 class="text-[10px] font-bold text-white/25 uppercase tracking-widest mb-2 px-3">
+                    {section.title}
+                  </h3>
+                  <ul class="space-y-0.5">
+                    {section.links.map(link => {
+                      const isActive = currentPath === link.href.replace(/\/$/, '');
+                      return (
+                        <li>
+                          <a
+                            href={link.href}
+                            class={`block px-3 py-2 rounded-lg text-sm transition-all duration-150 nav-link ${
+                              isActive
+                                ? 'bg-emerald-500/10 text-emerald-400 font-medium border-l-2 border-emerald-500'
+                                : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                            }`}
+                          >
+                            {link.label}
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        <div class="mt-auto pt-4 border-t border-white/5">
+          <button
+            id="focus-mode-toggle"
+            class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-white/40 hover:text-emerald-400 hover:bg-white/5 transition-all duration-200"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span id="focus-mode-label">Focus Mode</span>
+            <kbd class="ml-auto text-[10px] bg-white/5 px-1.5 py-0.5 rounded border border-white/10 uppercase">F</kbd>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <aside id="on-page-toc" class="hidden xl:block w-64 fixed inset-y-0 right-0 p-8 pt-24 z-40 overflow-y-auto">
+      <h4 class="text-[11px] font-bold uppercase tracking-widest text-white/30 mb-4 px-3" id="toc-header">Nesta página</h4>
+      <nav id="toc-nav" class="space-y-1"></nav>
+    </aside>
+
+    <main class="flex-1 ml-72 min-h-screen">
+      <div class="max-w-4xl mx-auto px-8 py-16 md:px-16 md:py-20">
+        <div class="flex items-center justify-between mb-8 text-[11px] uppercase tracking-widest font-semibold">
+          <nav class="flex items-center gap-2 text-white/30">
+            <a href="/doc" class="hover:text-emerald-400 transition-colors">SGR</a>
+            {breadcrumbs.map((bc) => (
+              <span class="flex items-center gap-2">
+                <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 5l7 7-7 7" stroke-width="3"/></svg>
+                <a href={bc.href} class="hover:text-emerald-400 transition-colors">{bc.label}</a>
+              </span>
+            ))}
+          </nav>
+          <div class="flex items-center gap-4 text-emerald-500/50">
+            <span id="reading-time" class="flex items-center gap-2">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/></svg>
+              Calculando...
+            </span>
+            <a href={editUrl} target="_blank" class="hover:text-emerald-400 transition-colors flex items-center gap-2" id="edit-link">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="2"/></svg>
+              <span>Editar</span>
+            </a>
+          </div>
+        </div>
+
+        <div id="i18n-notice" class="hidden mb-8 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm">
+          <div class="flex items-start gap-3">
+            {/* @ts-ignore */}
+            <iconify-icon icon="solar:translation-bold-duotone" class="text-emerald-400 mt-0.5" width="20"></iconify-icon>
+            <div><p id="i18n-notice-text" class="text-sm text-emerald-100/80 leading-relaxed"></p></div>
+          </div>
+        </div>
+
+        <article class="prose prose-invert prose-emerald max-w-none prose-headings:font-bricolage prose-headings:tracking-tight prose-h1:text-4xl prose-h1:font-bold prose-h2:text-2xl prose-h3:text-xl prose-p:text-white/70 prose-p:leading-relaxed prose-li:text-white/70 prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-code:text-emerald-300 prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-normal prose-pre:bg-neutral-900 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl prose-hr:border-white/10 prose-blockquote:border-emerald-500/30 prose-blockquote:text-white/50">
+          <!-- Doc Header (Breadcrumbs + Date) -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <nav id="breadcrumbs" class="flex items-center gap-2 text-xs font-medium text-white/40 uppercase tracking-widest">
+            <a href="/" class="hover:text-emerald-400 transition-colors">SGR</a>
+            <span class="w-1 h-1 rounded-full bg-white/10"></span>
+            <a href="/doc" class="hover:text-emerald-400 transition-colors">Docs</a>
+            <span class="w-1 h-1 rounded-full bg-white/10"></span>
+            <span class="text-white/60" id="breadcrumb-current">{title}</span>
+          </nav>
+          <div class="flex items-center gap-2 text-[10px] font-mono text-white/20 uppercase tracking-tighter">
+            <iconify-icon icon="solar:history-linear"></iconify-icon>
+            <span>Last Updated: {new Date().toLocaleDateString('pt-BR')}</span>
+          </div>
+        </div>
+
+        <!-- Language Notice Banner -->
+        <div id="i18n-notice" class="hidden mb-8 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-500">
+              <iconify-icon icon="solar:global-bold" width="24"></iconify-icon>
+            </div>
+            <div>
+              <p id="i18n-notice-text" class="text-sm font-medium text-amber-200/80 leading-tight">
+                Este conteúdo está disponível apenas em Português.
+              </p>
+              <p class="text-[10px] text-amber-200/40 uppercase tracking-wider">Tradução automática em breve</p>
+            </div>
+          </div>
+          <button onclick="document.getElementById('i18n-notice').remove()" class="text-amber-500/50 hover:text-amber-500 transition-colors">
+            <iconify-icon icon="solar:close-circle-linear" width="20"></iconify-icon>
+          </button>
+        </div>
+
+        <slot />
+        
+        <!-- Footer Actions -->
+        <div class="mt-20 flex flex-col md:flex-row md:items-center justify-between gap-8 border-t border-white/5 pt-12">
+          <div class="flex items-center gap-6">
+            <span class="text-xs font-medium text-white/20 uppercase tracking-widest">Share</span>
+            <div class="flex items-center gap-3">
+              <button onclick="window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(document.title)}&url=${encodeURIComponent(window.location.href)}`, '_blank')" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all">
+                <iconify-icon icon="ri:twitter-x-fill" width="18"></iconify-icon>
+              </button>
+              <button onclick="window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank')" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all">
+                <iconify-icon icon="ri:linkedin-fill" width="18"></iconify-icon>
+              </button>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-6">
+            <span id="feedback-label" class="text-xs font-medium text-white/20 uppercase tracking-widest">Helpful?</span>
+            <div class="flex items-center gap-2">
+              <button onclick="handleFeedback('yes')" class="px-4 py-2 rounded-lg border border-white/10 text-xs font-bold hover:bg-emerald-500 hover:text-black transition-all">Yes</button>
+              <button onclick="handleFeedback('no')" class="px-4 py-2 rounded-lg border border-white/10 text-xs font-bold hover:bg-red-500 hover:text-white transition-all">No</button>
+            </div>
+          </div>
+        </div>
+        </article>
+
+        <div class="mt-20 grid grid-cols-2 gap-4 border-t border-white/5 pt-12">
+          {prevLink ? (
+            <a href={prevLink.href} class="group p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-all">
+              <span class="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-1 next-prev-label" data-type="prev">Anterior</span>
+              <span class="text-sm text-white/70 group-hover:text-white transition-colors">← {prevLink.label}</span>
+            </a>
+          ) : <div/>}
+          
+          {nextLink ? (
+            <a href={nextLink.href} class="group p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-all text-right">
+              <span class="text-[10px] uppercase tracking-widest text-white/30 font-bold block mb-1 next-prev-label" data-type="next">Próximo</span>
+              <span class="text-sm text-white/70 group-hover:text-white transition-colors">{nextLink.label} →</span>
+            </a>
+          ) : <div/>}
+        </div>
+
+        <footer class="mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p class="text-xs text-white/20">Stellar Global Rails &copy; 2026 — Documentação Interna</p>
+          <div class="flex items-center gap-6">
+            <span class="text-[10px] text-white/20 uppercase tracking-widest font-bold" id="footer-update-label">Atualizado: 09 Maio, 2026</span>
+          </div>
+        </footer>
+      </div>
+    </main>
+
+    <script is:inline src="/i18n-engine.js"></script>
+    <script is:inline>
+      function initDocs() {
+        if (window.i18n) window.i18n.updateUI();
+        
+        const article = document.querySelector('article');
+        const readingTimeEl = document.getElementById('reading-time');
+        if (article && readingTimeEl) {
+          const text = article.innerText || article.textContent;
+          const words = text.trim().split(/\s+/).length;
+          const minutes = Math.max(1, Math.ceil(words / 200));
+          const lang = localStorage.getItem('sgr-lang') || 'en';
+          const labels = { 'pt-br': 'min de leitura', 'en': 'min read', 'es': 'min de lectura', 'zh': '分钟阅读', 'ko': '분 소요', 'ar': 'دقائق للقراءة' };
+          readingTimeEl.innerHTML = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/></svg> ${minutes} ${labels[lang] || labels['en']}`;
+        }
+
+        const selector = document.getElementById('doc-lang-selector');
+        if (selector) {
+          selector.value = localStorage.getItem('sgr-lang') || 'en';
+          selector.onchange = (e) => {
+            const lang = e.target.value;
+            localStorage.setItem('sgr-lang', lang);
+            window.dispatchEvent(new CustomEvent('sgr-lang-changed', { detail: lang }));
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            if (window.i18n) window.i18n.updateUI();
+          };
+        }
+
+        window.addEventListener('sgr-lang-changed', () => {
+           if (window.i18n) window.i18n.updateUI();
+        });
+
+        // Mermaid
+        if (window.mermaid) {
+          mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose', fontFamily: 'Inter' });
+          mermaid.run({ querySelector: '.mermaid' });
+        }
+
+        // Copy Buttons
+        document.querySelectorAll('pre').forEach(block => {
+          if (block.classList.contains('mermaid')) return;
+          if (!block.querySelector('.copy-button')) {
+            const button = document.createElement('button');
+            button.className = 'copy-button';
+            button.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-width="2"/></svg>';
+            button.onclick = () => {
+              const text = block.querySelector('code').innerText;
+              navigator.clipboard.writeText(text);
+              button.innerHTML = '<svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 13l4 4L19 7" stroke-width="3"/></svg>';
+              setTimeout(() => { button.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-width="2"/></svg>'; }, 2000);
+            };
+            block.appendChild(button);
+          }
+        });
+
+        // TOC Generation
+        const tocNav = document.getElementById('toc-nav');
+        if (tocNav && article) {
+          tocNav.innerHTML = '';
+          article.querySelectorAll('h2, h3').forEach((heading, i) => {
+            if (!heading.id) heading.id = `heading-${i}`;
+            const link = document.createElement('a');
+            link.href = `#${heading.id}`;
+            link.className = `toc-link block px-3 py-1.5 rounded-lg text-xs transition-all ${heading.tagName === 'H3' ? 'ml-4 text-white/30' : 'text-white/50 font-medium'} hover:text-white hover:bg-white/5`;
+            link.innerText = heading.innerText;
+            tocNav.appendChild(link);
+          });
+        }
+      }
+
+      initDocs();
+      document.addEventListener('astro:page-load', initDocs);
+    </script>
+    <script is:inline>
+      // Product tab switching
+      function initProductTabs() {
+        const tabs = document.querySelectorAll('[data-product-tab]');
+        const navs = document.querySelectorAll('[data-product-nav]');
+
+        tabs.forEach(function(tab) {
+          tab.addEventListener('click', function() {
+            var product = tab.getAttribute('data-product-tab');
+
+            // Update tab styles
+            tabs.forEach(function(t) {
+              t.classList.remove('bg-emerald-500/20', 'text-emerald-400', 'shadow-sm');
+              t.classList.add('text-white/30');
+            });
+            tab.classList.add('bg-emerald-500/20', 'text-emerald-400', 'shadow-sm');
+            tab.classList.remove('text-white/30');
+
+            // Show/hide nav sections
+            navs.forEach(function(nav) {
+              if (nav.getAttribute('data-product-nav') === product) {
+                nav.classList.remove('hidden');
+                nav.classList.add('block');
+              } else {
+                nav.classList.add('hidden');
+                nav.classList.remove('block');
+              }
+            });
+          });
+        });
+      }
+
+      initProductTabs();
+      document.addEventListener('astro:page-load', initProductTabs);
+    </script>
+    <script is:inline>
+      // Reading Progress Bar logic
+      window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        document.getElementById("progress-bar").style.width = scrolled + "%";
+      });
+
+      // Breadcrumb Dynamic Label (from sidebar if available)
+      document.addEventListener('DOMContentLoaded', () => {
+        const currentPath = window.location.pathname;
+        const activeLink = document.querySelector(`a[href="${currentPath}"]`);
+        if (activeLink) {
+          const text = activeLink.innerText.trim();
+          const bcLabel = document.getElementById('breadcrumb-current');
+          if (bcLabel) bcLabel.innerText = text;
+        }
+      });
+
+      // Copy to Clipboard logic
+      // Copy to Clipboard logic
+      function initCopyButtons() {
+        const blocks = document.querySelectorAll('pre');
+        blocks.forEach((block) => {
+          if (block.querySelector('.copy-code-btn')) return;
+          
+          const isSql = block.classList.contains('language-sql') || block.querySelector('code.language-sql');
+          
+          const button = document.createElement('button');
+          button.className = 'copy-code-btn flex items-center gap-2';
+          button.innerHTML = `<iconify-icon icon="solar:copy-linear"></iconify-icon> ${isSql ? '<span class="text-[10px] font-bold">SQL</span>' : ''}`;
+          
+          button.addEventListener('click', async () => {
+            const code = block.querySelector('code');
+            const text = code ? code.innerText : block.innerText;
+            
+            await navigator.clipboard.writeText(text);
+            
+            button.innerHTML = '<iconify-icon icon="solar:check-read-linear"></iconify-icon>';
+            button.classList.add('text-emerald-400');
+            
+            setTimeout(() => {
+              button.innerHTML = `<iconify-icon icon="solar:copy-linear"></iconify-icon> ${isSql ? '<span class="text-[10px] font-bold">SQL</span>' : ''}`;
+              button.classList.remove('text-emerald-400');
+            }, 2000);
+          });
+          
+          block.appendChild(button);
+        });
+      }
+
+      function checkLanguageNotice() {
+        const lang = localStorage.getItem('sgr-lang') || 'pt-br';
+        const notice = document.getElementById('i18n-notice');
+        if (notice && lang !== 'pt-br') {
+          notice.classList.remove('hidden');
+          const noticeText = document.getElementById('i18n-notice-text');
+          if (noticeText && window.i18nEngine) {
+            noticeText.innerText = window.i18nEngine.translate('doc.translate_notice');
+          }
+        }
+      }
+
+      function handleFeedback(type) {
+        const label = document.getElementById('feedback-label');
+        if (label) {
+          label.innerText = type === 'yes' ? 'Thanks! ❤️' : 'Thanks for letting us know!';
+          label.classList.add('text-emerald-400');
+        }
+        // In a real app, send to Supabase here
+        console.log('Feedback:', type, window.location.pathname);
+      }
+
+      function initGlossary() {
+        const glossary = {
+          'SEP-24': 'Protocolo Stellar para depósitos e saques com integração de KYC.',
+          'Ledger': 'A blockchain pública da Stellar onde as transações são registradas.',
+          'RLS': 'Row Level Security - segurança a nível de linha no PostgreSQL.',
+          'On-chain': 'Registrado diretamente na blockchain.',
+          'Asset': 'Representação digital de um valor ou direito na rede.',
+          'Soroban': 'A plataforma de Smart Contracts da rede Stellar.',
+          'Anchor': 'Entidade que conecta a rede Stellar ao sistema bancário tradicional.'
+        };
+
+        const article = document.querySelector('article');
+        if (!article) return;
+
+        const walker = document.createTreeWalker(article, NodeFilter.SHOW_TEXT, null, false);
+        const nodes = [];
+        let node;
+        while(node = walker.nextNode()) {
+          if (node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE' && node.parentElement.tagName !== 'CODE' && node.parentElement.tagName !== 'PRE') {
+            nodes.push(node);
+          }
+        }
+
+        nodes.forEach(textNode => {
+          let text = textNode.nodeValue;
+          let changed = false;
+          
+          Object.keys(glossary).forEach(term => {
+            const regex = new RegExp(`\\b${term}\\b`, 'g');
+            if (regex.test(text)) {
+              changed = true;
+              text = text.replace(regex, `<span class="glossary-term">${term}<span class="glossary-tooltip">${glossary[term]}</span></span>`);
+            }
+          });
+
+          if (changed) {
+            const span = document.createElement('span');
+            span.innerHTML = text;
+            textNode.parentNode.replaceChild(span, textNode);
+          }
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        initCopyButtons();
+        checkLanguageNotice();
+        initGlossary();
+      });
+      document.addEventListener('astro:page-load', () => {
+        initCopyButtons();
+        checkLanguageNotice();
+        initGlossary();
+      });
+
+      // Mobile Menu Toggle
+      const mobileToggle = document.getElementById('mobile-menu-toggle');
+      const sidebar = document.getElementById('doc-sidebar');
+      
+      if (mobileToggle && sidebar) {
+        mobileToggle.addEventListener('click', () => {
+          sidebar.classList.toggle('-translate-x-full');
+        });
+      }
+
+      // Search Logic
+      const searchInput = document.getElementById('doc-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase();
+          const links = document.querySelectorAll('.nav-link');
+          const sections = document.querySelectorAll('.doc-section');
+          
+          links.forEach(link => {
+            const text = link.innerText.toLowerCase();
+            if (text.includes(query)) {
+              link.parentElement.style.display = 'block';
+            } else {
+              link.parentElement.style.display = 'none';
+            }
+          });
+
+          // Hide sections with no visible links
+          sections.forEach(section => {
+            const visibleLinks = section.querySelectorAll('li[style="display: block;"], li:not([style])');
+            section.style.display = visibleLinks.length > 0 ? 'block' : 'none';
+          });
+        });
+      }
+
+      // Smooth Scroll and TOC
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    </script>
+    <script is:inline src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script is:inline>
+      mermaid.initialize({ 
+        startOnLoad: true, 
+        theme: 'dark',
+        themeVariables: {
+          primaryColor: '#10b981',
+          primaryTextColor: '#fff',
+          primaryBorderColor: '#10b981',
+          lineColor: '#34d399',
+          secondaryColor: '#064e3b',
+          tertiaryColor: '#0a0a0a'
+        }
+      });
+    </script>
+  </body>
+</html>

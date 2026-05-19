@@ -17,6 +17,9 @@ out/
 dist/
 build/
 coverage/
+.superpowers/
+supabase/.temp/
+.vscode/
 
 # Env
 .env

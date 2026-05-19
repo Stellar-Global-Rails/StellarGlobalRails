@@ -1,0 +1,278 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "ContractEase — Architecture & ADRs"
+description: "System architecture, directory structure, and the five architectural decision records that shaped ContractEase."
+---
+
+# Architecture & ADRs
+
+This document records the key architectural decisions made during ContractEase development, explains the overall system design, and provides the canonical directory structure for contributors.
+
+---
+
+## System Architecture Diagram
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    Browser / Client                       │
+│                                                          │
+│   ContractEase SPA (React + Vite + TypeScript)           │
+│   ┌────────────┐ ┌──────────────┐ ┌──────────────────┐  │
+│   │Zustand     │ │React Router  │ │Freighter Wallet  │  │
+│   │Stores      │ │v6 Routes     │ │Extension (Ext.)  │  │
+│   └────────────┘ └──────────────┘ └──────────────────┘  │
+└────────────────────────┬─────────────────────────────────┘
+                         │ HTTPS (Supabase JS v2)
+┌────────────────────────▼─────────────────────────────────┐
+│                    Supabase Cloud                         │
+│  project: fpmhcjkadgebcexzkayz                           │
+│                                                          │
+│  ┌──────────────┐  ┌────────────┐  ┌──────────────────┐ │
+│  │  PostgreSQL  │  │  Auth      │  │  Storage         │ │
+│  │  + RLS       │  │  OTP/Magic │  │  contract-pdfs/  │ │
+│  │  13 tables   │  │  link/JWT  │  │  signatures/     │ │
+│  └──────────────┘  └────────────┘  └──────────────────┘ │
+│  ┌──────────────┐  ┌────────────────────────────────┐   │
+│  │  Realtime    │  │  Edge Functions (Deno)         │   │
+│  │  contract    │  │  - anchorOnStellar             │   │
+│  │  status subs │  │  - sendSignatureEmail          │   │
+│  └──────────────┘  │  - validateOTP                 │   │
+│                    └─────────────────┬──────────────┘   │
+└──────────────────────────────────────┼──────────────────┘
+                                       │ Stellar SDK
+┌──────────────────────────────────────▼──────────────────┐
+│                  Stellar Network                          │
+│  Horizon API (testnet.stellar.org / horizon.stellar.org) │
+│  SHA-256 hash → transaction memo → immutable record      │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Directory Structure
+
+```
+apps/contractease/
+├── public/
+│   └── fonts/                    # Bricolage Grotesque
+├── src/
+│   ├── main.tsx                  # App entry point
+│   ├── App.tsx                   # Root component + router
+│   ├── vite-env.d.ts
+│   │
+│   ├── components/               # Reusable UI components
+│   │   ├── contract/
+│   │   │   ├── ContractEditor.tsx
+│   │   │   ├── ContractCard.tsx
+│   │   │   ├── AnchorStatus.tsx
+│   │   │   └── PDFViewer.tsx
+│   │   ├── signing/
+│   │   │   ├── SignatureCanvas.tsx
+│   │   │   ├── OTPInput.tsx
+│   │   │   └── FreighterSign.tsx
+│   │   ├── ui/                   # Generic: Button, Modal, Badge
+│   │   └── layout/               # Sidebar, Header, PageWrapper
+│   │
+│   ├── pages/                    # Route-level components
+│   │   ├── Dashboard.tsx
+│   │   ├── Contracts.tsx
+│   │   ├── ContractDetail.tsx
+│   │   ├── NewContract.tsx
+│   │   ├── Templates.tsx
+│   │   ├── Analytics.tsx
+│   │   ├── Settings.tsx
+│   │   ├── Auth.tsx
+│   │   └── PublicSign.tsx        # /sign/:token — public route
+│   │
+│   ├── hooks/                    # Custom React hooks
+│   │   ├── useContracts.ts
+│   │   ├── useOrganization.ts
+│   │   ├── useStellar.ts
+│   │   ├── useAuth.ts
+│   │   └── useTemplates.ts
+│   │
+│   ├── stores/                   # Zustand state stores
+│   │   ├── authStore.ts
+│   │   └── notificationStore.ts
+│   │
+│   ├── lib/                      # Shared utilities
+│   │   ├── supabase.ts           # Supabase client singleton
+│   │   ├── stellar.ts            # Stellar SDK helpers
+│   │   ├── crypto.ts             # SHA-256 hash utility
+│   │   └── pdf.ts                # PDF generation (react-pdf)
+│   │
+│   ├── types/                    # TypeScript interfaces
+│   │   ├── contract.ts
+│   │   ├── organization.ts
+│   │   └── supabase.ts           # Generated DB types
+│   │
+│   └── i18n/                     # Internationalization
+│       ├── pt-BR.json
+│       └── en.json
+│
+├── supabase/
+│   ├── migrations/               # SQL migration files
+│   ├── functions/                # Edge Functions (Deno)
+│   │   ├── anchor-on-stellar/
+│   │   ├── send-signature-email/
+│   │   └── validate-otp/
+│   └── seed.sql                  # Template seed data
+│
+├── index.html
+├── vite.config.ts
+├── tailwind.config.ts
+├── tsconfig.json
+└── package.json
+```
+
+---
+
+## ADR-001: React SPA over Next.js
+
+**Status:** Accepted
+
+**Context:**
+ContractEase is a fully authenticated B2B application. Nearly every route requires a valid session. The only public route is `/sign/:token` (the signing page for external parties). We needed to choose between a React SPA and Next.js with SSR/SSG.
+
+**Decision:**
+Use React + Vite as a pure client-side SPA deployed on Cloudflare Pages.
+
+**Rationale:**
+- All meaningful content is behind auth — SSR provides no SEO or performance benefit for authenticated pages
+- Freighter wallet extension communicates via `window.stellar` — it requires a browser context and cannot be used in a Node.js SSR environment
+- Vite's HMR is significantly faster than Next.js dev server for a TypeScript codebase of this size
+- Static SPA deployments on Cloudflare Pages are zero-cost and globally distributed via CDN
+- The signing page (`/sign/:token`) is a one-time use link — SEO is irrelevant
+
+**Alternatives Rejected:**
+- *Next.js App Router* — SSR complexity without benefit; Freighter incompatibility at the RSC boundary
+- *Remix* — same Freighter issue; overkill for a B2B authenticated app
+- *Astro* — excellent for content sites but the island architecture adds friction for a rich interactive app
+
+**Consequences:**
+- All routing is client-side; Cloudflare Pages must be configured with a `_redirects` file to serve `index.html` for all paths
+- Initial bundle must be kept lean (code splitting per route is required)
+- No server-side rendering means the app shell loads before data — skeleton loaders are required
+
+---
+
+## ADR-002: Supabase over Custom Backend
+
+**Status:** Accepted
+
+**Context:**
+ContractEase needed: PostgreSQL database with multi-tenant row isolation, user authentication (magic link + OTP), file storage for contract PDFs, and real-time updates when contract status changes. Building these from scratch would require significant infrastructure investment.
+
+**Decision:**
+Use Supabase as the sole backend platform. One Supabase project serves all ContractEase data.
+
+**Rationale:**
+- **RLS for multi-tenancy** — PostgreSQL Row Level Security policies enforce organization-level data isolation without application-level filtering boilerplate
+- **Auth built-in** — magic link and OTP are first-class Supabase Auth features; no separate auth service needed
+- **Storage** — S3-compatible object storage for contract PDFs with per-bucket RLS policies
+- **Realtime** — WebSocket-based subscription to database changes; contract status updates propagate instantly
+- **Edge Functions** — Deno runtime at the edge for Stellar operations (anchor, OTP generation) that must not expose private keys to the browser
+- **Free tier** — adequate for MVP and early paying customers; upgrade path is linear
+
+**Alternatives Rejected:**
+- *Custom Express/Fastify + Prisma* — significant development and ops overhead; requires separate auth, storage, and realtime solutions
+- *Firebase* — NoSQL document model is a poor fit for relational contract/party/clause data; no native PostgreSQL
+- *PlanetScale + Clerk + S3* — three separate services, three billing accounts, three integration points
+
+**Consequences:**
+- Vendor dependency on Supabase; mitigated by the fact that Supabase is open-source and self-hostable
+- The free tier has a 500 MB database limit — monitoring required as contract volume grows
+- Edge Functions have a 150 ms CPU time limit (free tier); Stellar transactions must complete within this budget
+
+---
+
+## ADR-003: Stellar over Ethereum/IPFS for Anchoring
+
+**Status:** Accepted
+
+**Context:**
+Contract anchoring requires writing a SHA-256 hash to an immutable, publicly verifiable ledger. We evaluated Ethereum, IPFS, and Stellar as anchoring targets.
+
+**Decision:**
+Use Stellar Testnet for development and Stellar Mainnet for production anchoring. The SHA-256 hash is encoded as a 32-byte `Memo.hash` on a self-payment transaction.
+
+**Rationale:**
+
+| Dimension | Ethereum | IPFS | Stellar |
+|---|---|---|---|
+| Transaction cost | $5–$50 (gas fees) | Pinning service cost | ~$0.00001 |
+| Finality time | 12 s (PoS) | Content-addressed, no finality | 3–5 s |
+| Hash storage mechanism | Event log / calldata | CID in DNS/ENS | Memo field (32 bytes, perfect for SHA-256) |
+| Node requirement | None (RPC providers) | None (public gateways) | None (Horizon API) |
+| Complexity | High (ABI, gas estimation) | Medium (CID format, pinning) | Low (stellar-sdk, memo) |
+
+- Stellar's `Memo.hash` is designed exactly for this use case — 32 bytes, immutable, indexed
+- Horizon API is a simple REST interface — no ABI, no wallet connection required for reading
+- The operational cost of anchoring 10,000 contracts on Stellar is less than $0.10
+
+**Alternatives Rejected:**
+- *Ethereum* — prohibitive gas costs for a Brazilian SMB product; UX friction of MetaMask for non-crypto users
+- *IPFS* — not a blockchain; data persistence depends on pinning services; no timestamp proof
+- *Bitcoin OP_RETURN* — no ecosystem tooling; Ordinals are overkill; no smart contract path for future escrow
+
+**Consequences:**
+- Stellar Testnet resets periodically — production must use Mainnet
+- The demo keypair used for custodial anchoring holds a small XLM balance that must be funded
+- Future Soroban smart contract integration is native to Stellar — no migration needed
+
+---
+
+## ADR-004: Claimable Balances over Soroban for Escrow MVP
+
+**Status:** Accepted
+
+**Context:**
+Escrow functionality (hold payment until contract milestones are met) is a planned feature. We needed to decide between implementing it with Stellar Claimable Balances (native protocol feature) or Soroban smart contracts.
+
+**Decision:**
+Implement the escrow MVP using Stellar Claimable Balances with time-based predicates. Soroban is deferred to Phase 2.
+
+**Rationale:**
+- Claimable Balances are a mature, audited Stellar protocol feature — no smart contract expertise required
+- Time-lock predicates cover the primary escrow use case: "release funds after X days if not disputed"
+- The Stellar SDK has full Claimable Balance support — no Soroban toolchain setup needed
+- Claimable Balances work today on Mainnet; Soroban is production-ready but requires Rust expertise
+- 80% of Brazilian SMB escrow cases are simple time-locks — the 20% requiring complex logic can wait for Phase 2
+
+**Alternatives Rejected:**
+- *Soroban smart contracts* — requires Rust, a separate Soroban SDK, and a more complex deployment pipeline; premature for MVP
+- *Centralized escrow (Supabase-controlled wallet)* — introduces custodial risk and regulatory complexity; contradicts the trustless value proposition
+
+**Consequences:**
+- Claimable Balance predicates are limited — complex multi-party conditions require Soroban in Phase 2
+- The escrow flow requires XLM for transaction fees — users need a funded Stellar account or we sponsor fees via Freighter's fee-bumping
+- Migrating from Claimable Balances to Soroban will require a data migration for in-flight escrows
+
+---
+
+## ADR-005: Zustand over Redux / React Context
+
+**Status:** Accepted
+
+**Context:**
+ContractEase needs global state for: authentication session + user profile, notification toasts, and organization context. We needed a state management solution that is lightweight, TypeScript-friendly, and integrates cleanly with Supabase's async patterns.
+
+**Decision:**
+Use Zustand for all global client state. Supabase query results are managed locally with `useState`/`useEffect` or custom hooks — not put into global stores.
+
+**Rationale:**
+- Zustand is ~1 KB gzipped — trivial bundle cost compared to Redux (15 KB+)
+- No boilerplate: no action types, reducers, or dispatchers — just a typed store with setters
+- Works with React's concurrent features without extra adapters
+- Middleware support (devtools, persist) available when needed
+- Supabase's `onAuthStateChange` callback integrates directly into a Zustand auth store with a single subscriber
+
+**Alternatives Rejected:**
+- *Redux Toolkit* — still verbose relative to the app's complexity; overkill for two global stores
+- *React Context + useReducer* — causes full subtree re-renders on every state change; performance degrades as the app grows
+- *Jotai / Recoil* — atom model is well-suited for fine-grained state but adds conceptual overhead for a small team; Zustand's slice model is more familiar
+
+**Consequences:**
+- Server state (contract lists, org members) lives in hooks, not Zustand — developers must understand the distinction
+- No built-in cache invalidation — Supabase Realtime subscriptions handle live updates; manual refetch required after mutations
+- DevTools integration requires adding the `devtools` middleware to each store

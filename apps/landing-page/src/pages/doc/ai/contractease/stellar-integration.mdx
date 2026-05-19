@@ -1,0 +1,358 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "ContractEase — Stellar Integration"
+description: "Contract anchoring on Stellar, SHA-256 hashing, Freighter wallet signing, Claimable Balance escrow, and Edge Function patterns."
+---
+
+# Stellar Integration
+
+ContractEase uses the Stellar blockchain for two purposes:
+
+1. **Proof-of-existence anchoring** — writing a SHA-256 hash of a completed contract into a Stellar transaction memo, creating a permanent, publicly verifiable timestamp
+2. **Escrow (planned)** — using Stellar Claimable Balances to hold payment until contract milestones are met
+
+---
+
+## Why Stellar
+
+| Dimension | Ethereum | Bitcoin | IPFS | Stellar |
+|---|---|---|---|---|
+| Cost per anchor | $5–$50 (gas) | $1–$20 (OP_RETURN) | Pinning fee | ~$0.00001 |
+| Finality | ~12 s | ~60 min | No finality | 3–5 s |
+| Native hash storage | No (calldata hack) | OP_RETURN (80 bytes) | CID (not timestamped) | Memo.hash (32 bytes, native) |
+| Smart contract path | Solidity/EVM | Limited | None | Soroban (Rust, native) |
+| Brazilian user friction | MetaMask required | Bitcoin wallet | No wallet | Freighter (Stellar wallet) |
+| Ecosystem | Large | Large | Protocol | Growing (SGR uses it) |
+
+Stellar's `Memo.hash` field accepts exactly 32 bytes — a SHA-256 hash is exactly 32 bytes. This is not a workaround; it is the designed use case.
+
+---
+
+## SHA-256 Hash Generation
+
+The contract hash is computed from a deterministic JSON serialization of the signed contract document. Determinism is critical: any party must be able to recompute the same hash from the same contract data.
+
+```typescript
+// src/lib/crypto.ts
+
+interface ContractHashInput {
+  id: string
+  title: string
+  content: string
+  parties: Array<{
+    email: string
+    full_name: string | null
+    role: string
+    signed_at: string | null
+    signing_method: string | null
+  }>
+  created_at: string
+}
+
+export async function computeContractHash(input: ContractHashInput): Promise<string> {
+  // Sort parties by email for determinism — insertion order must not matter
+  const normalized = {
+    ...input,
+    parties: [...input.parties].sort((a, b) => a.email.localeCompare(b.email)),
+  }
+
+  const json = JSON.stringify(normalized, Object.keys(normalized).sort())
+  const encoded = new TextEncoder().encode(json)
+
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')  // 64-char hex
+}
+```
+
+The hash is computed **in the browser** immediately after all parties have signed. It is stored in `contracts.sha256_hash` and then passed to the Edge Function for Stellar anchoring.
+
+---
+
+## Custodial Anchor Flow (`anchorOnStellar`)
+
+For organizations without a Stellar account, ContractEase anchors contracts using a **demo keypair** funded by the SGR team. This keypair holds a minimal XLM balance and pays for transaction fees.
+
+```typescript
+// src/hooks/useStellar.ts
+import { supabase } from '../lib/supabase'
+
+export async function anchorOnStellar(contractId: string, sha256Hash: string) {
+  const { data, error } = await supabase.functions.invoke('anchor-on-stellar', {
+    body: {
+      contractId,
+      sha256Hash,   // 64-char hex string
+      network: import.meta.env.VITE_STELLAR_NETWORK ?? 'testnet',
+    },
+  })
+
+  if (error) throw error
+  return data as {
+    success: boolean
+    txId: string
+    explorerUrl: string
+  }
+}
+```
+
+**Edge Function internals (Deno):**
+
+```typescript
+// supabase/functions/anchor-on-stellar/index.ts
+import * as StellarSdk from 'https://esm.sh/stellar-sdk@11'
+
+const HORIZON_URL = network === 'mainnet'
+  ? 'https://horizon.stellar.org'
+  : 'https://horizon-testnet.stellar.org'
+
+const NETWORK_PASSPHRASE = network === 'mainnet'
+  ? StellarSdk.Networks.PUBLIC
+  : StellarSdk.Networks.TESTNET
+
+const server = new StellarSdk.Horizon.Server(HORIZON_URL)
+const keypair = StellarSdk.Keypair.fromSecret(Deno.env.get('STELLAR_SECRET_KEY')!)
+
+const account = await server.loadAccount(keypair.publicKey())
+const hashBytes = Buffer.from(sha256Hash, 'hex')  // 32 bytes
+
+const tx = new StellarSdk.TransactionBuilder(account, {
+  fee: StellarSdk.BASE_FEE,  // 100 stroops = 0.00001 XLM
+  networkPassphrase: NETWORK_PASSPHRASE,
+})
+  .addOperation(StellarSdk.Operation.payment({
+    destination: keypair.publicKey(),  // self-payment (no value transfer)
+    asset: StellarSdk.Asset.native(),
+    amount: '0.0000001',
+  }))
+  .addMemo(StellarSdk.Memo.hash(hashBytes))  // 32-byte hash in memo
+  .setTimeout(30)
+  .build()
+
+tx.sign(keypair)
+const result = await server.submitTransaction(tx)
+```
+
+---
+
+## Freighter Anchor Flow (`anchorWithFreighter`)
+
+Users with a Freighter wallet can sign the anchor transaction themselves — their own Stellar keypair signs the memo transaction, producing cryptographic proof that they specifically authorized the anchor.
+
+```typescript
+// src/hooks/useStellar.ts
+import { signTransaction } from '@stellar/freighter-api'
+import * as StellarSdk from 'stellar-sdk'
+
+export async function anchorWithFreighter(
+  sha256Hash: string,
+  signerAddress: string,
+  network: 'testnet' | 'mainnet'
+) {
+  const horizonUrl = network === 'mainnet'
+    ? 'https://horizon.stellar.org'
+    : 'https://horizon-testnet.stellar.org'
+
+  const server = new StellarSdk.Horizon.Server(horizonUrl)
+  const account = await server.loadAccount(signerAddress)
+  const hashBytes = Buffer.from(sha256Hash, 'hex')
+
+  const tx = new StellarSdk.TransactionBuilder(account, {
+    fee: StellarSdk.BASE_FEE,
+    networkPassphrase: network === 'mainnet'
+      ? StellarSdk.Networks.PUBLIC
+      : StellarSdk.Networks.TESTNET,
+  })
+    .addOperation(StellarSdk.Operation.payment({
+      destination: signerAddress,
+      asset: StellarSdk.Asset.native(),
+      amount: '0.0000001',
+    }))
+    .addMemo(StellarSdk.Memo.hash(hashBytes))
+    .setTimeout(30)
+    .build()
+
+  // Freighter signs and returns XDR
+  const result = await signTransaction(tx.toXDR(), {
+    networkPassphrase: network === 'mainnet'
+      ? StellarSdk.Networks.PUBLIC
+      : StellarSdk.Networks.TESTNET,
+    address: signerAddress,
+  })
+
+  if (result.error) throw new Error(result.error)
+
+  // Submit via Edge Function (browser cannot submit directly due to CORS on some Horizon endpoints)
+  const { data } = await supabase.functions.invoke('submit-freighter-tx', {
+    body: { signedXdr: result.signedTx, network },
+  })
+
+  return data as { txId: string; explorerUrl: string }
+}
+```
+
+---
+
+## Stellar Explorer Links
+
+```typescript
+// src/lib/stellar.ts
+export function getStellarExplorerUrl(txId: string, network: 'testnet' | 'mainnet') {
+  const base = 'https://stellar.expert/explorer'
+  return `${base}/${network}/tx/${txId}`
+}
+
+// Usage in AnchorStatus component
+<a
+  href={getStellarExplorerUrl(contract.stellar_tx_id!, 'testnet')}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  View on Stellar Explorer
+</a>
+```
+
+---
+
+## Claimable Balances for Escrow (Planned)
+
+Stellar Claimable Balances allow funds to be locked on-chain with a predicate that controls who can claim them and when.
+
+### Create a Claimable Balance (Buyer locks funds)
+
+```typescript
+// supabase/functions/create-escrow/index.ts
+import * as StellarSdk from 'https://esm.sh/stellar-sdk@11'
+
+async function createClaimableBalance(
+  buyerKeypair: StellarSdk.Keypair,
+  sellerAddress: string,
+  amount: string,          // in XLM
+  releaseDaysFromNow: number,
+  network: 'testnet' | 'mainnet'
+) {
+  const server = new StellarSdk.Horizon.Server(HORIZON_URL)
+  const account = await server.loadAccount(buyerKeypair.publicKey())
+
+  // Time predicate: seller can only claim after N days
+  const releaseTime = Math.floor(Date.now() / 1000) + releaseDaysFromNow * 86400
+  const timePredicate = StellarSdk.Claimant.predicateNot(
+    StellarSdk.Claimant.predicateBeforeAbsoluteTime(releaseTime.toString())
+  )
+
+  // Buyer can always reclaim (for disputes)
+  const buyerClaimant = new StellarSdk.Claimant(buyerKeypair.publicKey())
+
+  // Seller can only claim after release time
+  const sellerClaimant = new StellarSdk.Claimant(sellerAddress, timePredicate)
+
+  const tx = new StellarSdk.TransactionBuilder(account, {
+    fee: StellarSdk.BASE_FEE,
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(StellarSdk.Operation.createClaimableBalance({
+      asset: StellarSdk.Asset.native(),
+      amount,
+      claimants: [buyerClaimant, sellerClaimant],
+    }))
+    .setTimeout(30)
+    .build()
+
+  tx.sign(buyerKeypair)
+  return server.submitTransaction(tx)
+}
+```
+
+### Claim Balance (Seller receives funds after delivery)
+
+```typescript
+async function claimBalance(
+  claimantKeypair: StellarSdk.Keypair,
+  balanceId: string,
+  network: 'testnet' | 'mainnet'
+) {
+  const server = new StellarSdk.Horizon.Server(HORIZON_URL)
+  const account = await server.loadAccount(claimantKeypair.publicKey())
+
+  const tx = new StellarSdk.TransactionBuilder(account, {
+    fee: StellarSdk.BASE_FEE,
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(StellarSdk.Operation.claimClaimableBalance({ balanceId }))
+    .setTimeout(30)
+    .build()
+
+  tx.sign(claimantKeypair)
+  return server.submitTransaction(tx)
+}
+```
+
+---
+
+## Testnet vs Mainnet Configuration
+
+```typescript
+// src/lib/stellar.ts
+export const STELLAR_CONFIG = {
+  testnet: {
+    networkPassphrase: 'Test SDF Network ; September 2015',
+    horizonUrl: 'https://horizon-testnet.stellar.org',
+    friendbotUrl: 'https://friendbot.stellar.org',  // free testnet XLM
+    explorerBase: 'https://stellar.expert/explorer/testnet',
+  },
+  mainnet: {
+    networkPassphrase: 'Public Global Stellar Network ; September 2015',
+    horizonUrl: 'https://horizon.stellar.org',
+    friendbotUrl: null,  // must purchase XLM
+    explorerBase: 'https://stellar.expert/explorer/public',
+  },
+} as const
+
+export type StellarNetwork = keyof typeof STELLAR_CONFIG
+
+// Fund a new testnet account (development only)
+export async function fundTestnetAccount(publicKey: string) {
+  const response = await fetch(
+    `${STELLAR_CONFIG.testnet.friendbotUrl}?addr=${publicKey}`
+  )
+  if (!response.ok) throw new Error('Friendbot funding failed')
+}
+```
+
+### Environment Variable Configuration
+
+```bash
+# .env.local
+VITE_STELLAR_NETWORK=testnet
+
+# Production (Cloudflare Pages environment variables)
+VITE_STELLAR_NETWORK=mainnet
+
+# Edge Function secrets (Supabase Vault — never in .env)
+# STELLAR_SECRET_KEY=S...  (the custodial anchor keypair)
+```
+
+---
+
+## Verifying a Contract Hash
+
+Any third party can verify a ContractEase contract without using our platform:
+
+```bash
+# 1. Download the signed contract PDF from ContractEase or via direct URL
+
+# 2. Recompute the SHA-256 hash (requires the JSON contract data)
+node -e "
+const crypto = require('crypto');
+const contract = require('./contract-export.json');
+// Normalize: sort parties by email, sort JSON keys
+const normalized = { ...contract, parties: contract.parties.sort((a,b) => a.email.localeCompare(b.email)) };
+const json = JSON.stringify(normalized, Object.keys(normalized).sort());
+const hash = crypto.createHash('sha256').update(json).digest('hex');
+console.log('Hash:', hash);
+"
+
+# 3. Look up the transaction on Stellar Expert
+# https://stellar.expert/explorer/testnet/tx/{stellar_tx_id}
+# → Expand the transaction → Check the Memo field (type: hash)
+# → The memo bytes should equal your computed hash
+```

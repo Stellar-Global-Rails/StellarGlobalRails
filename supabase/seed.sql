@@ -1,0 +1,2 @@
+-- Kivo local seed placeholder.
+-- Keep this file tracked because supabase/config.toml enables db seed by default.

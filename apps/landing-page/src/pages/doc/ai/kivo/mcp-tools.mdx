@@ -1,0 +1,487 @@
+---
+layout: '../../../../layouts/DocLayout.astro'
+title: "Kivo Pay — MCP Server & AI Agent Integration"
+description: "Model Context Protocol server implementation in Go, complete tool specifications, Claude Desktop integration, and real AI agent payment examples."
+---
+
+# MCP Server & AI Agent Integration
+
+The Model Context Protocol (MCP) is a standard interface that allows AI agents (Claude, GPT-4, open-weight models) to call external tools during inference. Kivo Pay's MCP server exposes payment tools that AI agents can call natively — no custom integration required.
+
+---
+
+## What MCP Is
+
+MCP is an open standard (originally developed by Anthropic) that defines how AI models discover and invoke tools. An MCP server registers tools with JSON Schema definitions. The AI model sees the tools as native capabilities and calls them using structured inputs. The MCP runtime handles the transport (stdio, HTTP/SSE).
+
+Kivo's MCP server makes autonomous payments as natural to an AI agent as browsing the web or reading a file.
+
+---
+
+## Why Kivo Needs MCP
+
+Without MCP, an AI agent that encounters a payment wall must:
+
+1. Stop and ask the human user for payment authorization
+2. Wait for human to complete the payment out-of-band
+3. Resume — if the human comes back
+
+With MCP:
+
+1. Agent encounters `402 Payment Required`
+2. Agent calls `kivo_create_payment` tool
+3. Payment settles in 3–5 seconds on Stellar
+4. Agent continues autonomously
+
+This enables the **AI Agent Economy** — a network of AI agents that autonomously pay for API access, data, compute, and services, as naturally as a human swipes a card.
+
+---
+
+## MCP Server Implementation in Go
+
+```go
+// internal/mcp/server.go
+
+package mcp
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/kivo-pay/kivo/internal/db"
+    "github.com/kivo-pay/kivo/internal/stellar"
+)
+
+type Server struct {
+    queries *db.Queries
+    stellar *stellar.Client
+}
+
+type Tool struct {
+    Name        string          `json:"name"`
+    Description string          `json:"description"`
+    InputSchema json.RawMessage `json:"inputSchema"`
+}
+
+type ToolCall struct {
+    Name  string          `json:"name"`
+    Input json.RawMessage `json:"input"`
+}
+
+type ToolResult struct {
+    Content []ContentBlock `json:"content"`
+    IsError bool           `json:"isError,omitempty"`
+}
+
+type ContentBlock struct {
+    Type string `json:"type"`
+    Text string `json:"text"`
+}
+
+func New(q *db.Queries, sc *stellar.Client) *Server {
+    return &Server{queries: q, stellar: sc}
+}
+
+// ListTools returns all registered MCP tools.
+func (s *Server) ListTools() []Tool {
+    return []Tool{
+        toolCreatePayment(),
+        toolExecuteContract(),
+        toolCheckStatus(),
+        toolSubscribeWebhook(),
+        toolSimulatePayment(),
+    }
+}
+
+// CallTool dispatches a tool call by name.
+func (s *Server) CallTool(ctx context.Context, call ToolCall) ToolResult {
+    switch call.Name {
+    case "kivo_create_payment":
+        return s.handleCreatePayment(ctx, call.Input)
+    case "kivo_execute_contract":
+        return s.handleExecuteContract(ctx, call.Input)
+    case "kivo_check_status":
+        return s.handleCheckStatus(ctx, call.Input)
+    case "kivo_subscribe_webhook":
+        return s.handleSubscribeWebhook(ctx, call.Input)
+    case "kivo_simulate_payment":
+        return s.handleSimulatePayment(ctx, call.Input)
+    default:
+        return errorResult(fmt.Sprintf("unknown tool: %s", call.Name))
+    }
+}
+
+func errorResult(msg string) ToolResult {
+    return ToolResult{
+        IsError: true,
+        Content: []ContentBlock{{Type: "text", Text: msg}},
+    }
+}
+
+func textResult(text string) ToolResult {
+    return ToolResult{
+        Content: []ContentBlock{{Type: "text", Text: text}},
+    }
+}
+```
+
+---
+
+## Tool: `kivo_create_payment`
+
+**Full JSON Schema:**
+
+```json
+{
+  "name": "kivo_create_payment",
+  "description": "Create an M2M payment between two Kivo-registered devices on Stellar. Returns a payment ID that can be used to track status. For conditional payments (energy_kwh, service_complete), the payment is held until the condition is met.",
+  "inputSchema": {
+    "type": "object",
+    "required": ["from_device_id", "to_device_id", "amount", "currency"],
+    "properties": {
+      "from_device_id": {
+        "type": "string",
+        "description": "UUID of the device making the payment"
+      },
+      "to_device_id": {
+        "type": "string",
+        "description": "UUID of the device receiving the payment"
+      },
+      "amount": {
+        "type": "string",
+        "description": "Payment amount as a decimal string (e.g. '10.50')"
+      },
+      "currency": {
+        "type": "string",
+        "enum": ["USDC", "XLM"],
+        "description": "Payment asset. Use USDC for stable-value payments."
+      },
+      "condition": {
+        "type": "string",
+        "enum": ["none", "energy_kwh", "time_elapsed", "service_complete", "custom"],
+        "default": "none",
+        "description": "Condition that must be met before payment executes"
+      },
+      "condition_value": {
+        "type": "string",
+        "description": "Threshold for the condition (e.g. '10.5' for 10.5 kWh)"
+      },
+      "timeout_seconds": {
+        "type": "integer",
+        "minimum": 60,
+        "maximum": 86400,
+        "default": 3600,
+        "description": "Seconds before the payment expires if not executed"
+      },
+      "memo": {
+        "type": "string",
+        "maxLength": 28,
+        "description": "Optional memo attached to the Stellar transaction"
+      }
+    }
+  }
+}
+```
+
+**Go handler:**
+
+```go
+// internal/mcp/tools.go
+
+func (s *Server) handleCreatePayment(ctx context.Context, input json.RawMessage) ToolResult {
+    var req struct {
+        FromDeviceID   string `json:"from_device_id"`
+        ToDeviceID     string `json:"to_device_id"`
+        Amount         string `json:"amount"`
+        Currency       string `json:"currency"`
+        Condition      string `json:"condition"`
+        ConditionValue string `json:"condition_value"`
+        TimeoutSeconds int    `json:"timeout_seconds"`
+        Memo           string `json:"memo"`
+    }
+    if err := json.Unmarshal(input, &req); err != nil {
+        return errorResult("invalid input: " + err.Error())
+    }
+
+    fromID, err := uuid.Parse(req.FromDeviceID)
+    if err != nil {
+        return errorResult("invalid from_device_id UUID")
+    }
+    toID, err := uuid.Parse(req.ToDeviceID)
+    if err != nil {
+        return errorResult("invalid to_device_id UUID")
+    }
+
+    if req.TimeoutSeconds == 0 {
+        req.TimeoutSeconds = 3600
+    }
+    timeoutAt := time.Now().Add(time.Duration(req.TimeoutSeconds) * time.Second)
+
+    payment, err := s.queries.CreatePayment(ctx, db.CreatePaymentParams{
+        FromDeviceID:   fromID,
+        ToDeviceID:     toID,
+        Amount:         decimal.RequireFromString(req.Amount),
+        AssetCode:      req.Currency,
+        ConditionType:  req.Condition,
+        ConditionValue: &req.ConditionValue,
+        TimeoutAt:      &timeoutAt,
+    })
+    if err != nil {
+        return errorResult("failed to create payment: " + err.Error())
+    }
+
+    result := map[string]any{
+        "payment_id": payment.ID.String(),
+        "status":     payment.Status,
+        "timeout_at": payment.TimeoutAt,
+        "created_at": payment.CreatedAt,
+    }
+    out, _ := json.Marshal(result)
+    return textResult(string(out))
+}
+```
+
+---
+
+## Tool: `kivo_execute_contract`
+
+Execute a conditional payment by submitting proof that the condition was met.
+
+```json
+{
+  "name": "kivo_execute_contract",
+  "description": "Submit proof that a payment condition has been met, triggering Stellar settlement. Use after kivo_create_payment with a condition.",
+  "inputSchema": {
+    "type": "object",
+    "required": ["payment_id"],
+    "properties": {
+      "payment_id":    { "type": "string", "description": "UUID from kivo_create_payment" },
+      "actual_value":  { "type": "string", "description": "Actual measured value (e.g. '10.5' kWh)" },
+      "proof_data":    {
+        "type": "object",
+        "description": "Signed oracle or device proof confirming condition"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Tool: `kivo_check_status`
+
+```json
+{
+  "name": "kivo_check_status",
+  "description": "Check the current status of a Kivo payment including Stellar confirmation details and explorer link.",
+  "inputSchema": {
+    "type": "object",
+    "required": ["payment_id"],
+    "properties": {
+      "payment_id": { "type": "string" }
+    }
+  }
+}
+```
+
+**Example output (confirmed payment):**
+```json
+{
+  "payment_id": "pay_9f3e2c1b-...",
+  "status": "confirmed",
+  "stellar_hash": "8a3f1e2b9c4d5e6f...",
+  "stellar_ledger": 49823041,
+  "explorer_url": "https://stellar.expert/explorer/testnet/tx/8a3f1e2b9c4d5e6f...",
+  "amount": "10.0000000",
+  "currency": "USDC",
+  "confirmed_at": "2025-06-01T12:00:05Z"
+}
+```
+
+---
+
+## Tool: `kivo_subscribe_webhook`
+
+```json
+{
+  "name": "kivo_subscribe_webhook",
+  "description": "Register a webhook URL to receive payment event notifications. Returns a signing secret for verifying delivery authenticity.",
+  "inputSchema": {
+    "type": "object",
+    "required": ["url", "events"],
+    "properties": {
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "HTTPS endpoint to receive webhook POSTs"
+      },
+      "events": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["payment.confirmed", "payment.failed", "payment.expired", "device.created"]
+        }
+      },
+      "description": { "type": "string" }
+    }
+  }
+}
+```
+
+---
+
+## Tool: `kivo_simulate_payment`
+
+Testnet-only simulation tool. Returns a mock result without touching real funds. Useful for AI agent development and testing flows.
+
+```json
+{
+  "name": "kivo_simulate_payment",
+  "description": "Simulate a payment on Stellar testnet. Does NOT use real funds. Returns a mock payment result for testing agent logic.",
+  "inputSchema": {
+    "type": "object",
+    "required": ["from_device_id", "to_device_id", "amount"],
+    "properties": {
+      "from_device_id": { "type": "string" },
+      "to_device_id":   { "type": "string" },
+      "amount":         { "type": "string" },
+      "currency":       { "type": "string", "enum": ["USDC", "XLM"], "default": "USDC" },
+      "condition":      { "type": "string" },
+      "condition_value":{ "type": "string" }
+    }
+  }
+}
+```
+
+**Example output:**
+```json
+{
+  "simulated": true,
+  "mock_payment_id": "sim_abc123def456",
+  "mock_stellar_hash": "SIM_8a3f1e2b...",
+  "estimated_fee_xlm": "0.00001",
+  "estimated_settlement_seconds": 4,
+  "network": "testnet"
+}
+```
+
+---
+
+## Claude Desktop Integration
+
+Add the Kivo MCP server to your Claude Desktop configuration:
+
+```json
+// ~/Library/Application Support/Claude/claude_desktop_config.json (macOS)
+// %APPDATA%\Claude\claude_desktop_config.json (Windows)
+
+{
+  "mcpServers": {
+    "kivo": {
+      "command": "kivo-mcp",
+      "args": ["--port", "0"],
+      "env": {
+        "KIVO_API_KEY": "kivo_live_your_api_key_here",
+        "KIVO_DEVICE_ID": "your-device-uuid-here",
+        "KIVO_BASE_URL": "https://api.kivo.pay",
+        "STELLAR_NETWORK": "testnet"
+      }
+    }
+  }
+}
+```
+
+Or run the MCP server as a local HTTP+SSE transport:
+
+```bash
+# Start Kivo MCP server on localhost
+kivo-mcp serve --transport sse --port 3100
+```
+
+Then connect from any MCP-compatible client pointing to `http://localhost:3100/sse`.
+
+---
+
+## Example: AI Agent Autonomously Charges an EV
+
+Step-by-step tool call trace from a Claude agent:
+
+```
+User: "Charge EV fleet vehicle #42 with 50 kWh at the nearest available charger"
+
+Agent thinking:
+  - I need to find the nearest charger device ID
+  - Create a payment with condition energy_kwh=50
+  - Monitor until condition met and payment confirms
+
+Tool call 1 — kivo_create_payment:
+  Input: {
+    "from_device_id": "ev-42-uuid",
+    "to_device_id":   "charger-station-a12-uuid",
+    "amount":         "15.00",
+    "currency":       "USDC",
+    "condition":      "energy_kwh",
+    "condition_value":"50",
+    "timeout_seconds": 7200,
+    "memo":           "EV42 fleet charge"
+  }
+  Output: { "payment_id": "pay_9f3e...", "status": "pending" }
+
+[EV charges for 47 minutes — charger firmware reports kWh via Kivo SDK]
+
+Tool call 2 — kivo_check_status:
+  Input: { "payment_id": "pay_9f3e..." }
+  Output: { "status": "confirmed", "stellar_hash": "8a3f...", "confirmed_at": "..." }
+
+Agent response to user:
+  "EV #42 has been charged with 50 kWh at Station A12.
+   Payment of 15.00 USDC confirmed on Stellar.
+   Transaction: https://stellar.expert/explorer/testnet/tx/8a3f..."
+```
+
+---
+
+## Example: AI Agent Pays for x402 API Access
+
+```
+Agent task: Fetch real-time grid carbon intensity data for Berlin
+
+Step 1 — Agent calls external API:
+  GET https://carbon-api.gridwatch.io/intensity/berlin
+  → 402 Payment Required
+  → X-PAYMENT-REQUIRED: amount=0.05,asset=USDC:GA5Z...,payTo=GCARBX...
+
+Step 2 — Agent calls kivo_create_payment:
+  Input: {
+    "from_device_id": "agent-wallet-uuid",
+    "to_device_id":   "gridwatch-device-uuid",
+    "amount":         "0.05",
+    "currency":       "USDC"
+  }
+  Output: { "payment_id": "pay_abc...", "x_payment_header": "eyJ..." }
+
+Step 3 — Agent retries with X-PAYMENT header:
+  GET https://carbon-api.gridwatch.io/intensity/berlin
+  X-PAYMENT: eyJ...
+  → 200 OK
+  → { "gCO2/kWh": 185, "timestamp": "..." }
+
+Agent: carbon intensity is 185 gCO2/kWh — recommending delay of EV charging by 2 hours.
+```
+
+---
+
+## Security Scoping
+
+| Tool | Auth Required | Safe for Agent Auto-Use |
+|---|---|---|
+| `kivo_check_status` | Read-only scope | Yes — no funds movement |
+| `kivo_subscribe_webhook` | Webhook scope | Yes — read-only side effect |
+| `kivo_simulate_payment` | Testnet only | Yes — no real funds |
+| `kivo_create_payment` | Payment scope + amount limit | Conditional — enforce max_amount |
+| `kivo_execute_contract` | Payment scope | Conditional — requires prior payment ID |
+
+Agents should be configured with a **max_payment_amount** threshold below which they auto-approve, and a confirmation prompt above. This is configurable in the Kivo dashboard per device/agent.

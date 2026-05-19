@@ -1,0 +1,31 @@
+export const colors = {
+  neutral: {
+    950: '#0a0a0a',
+    900: '#171717',
+    800: '#2a2a2a',
+    700: '#3f3f3f',
+    600: '#525252',
+    500: '#737373',
+    400: '#a3a3a3',
+    300: '#d4d4d4',
+    200: '#e5e5e5',
+    100: '#f5f5f5',
+  },
+  emerald: '#10b981',
+  amber: '#f59e0b',
+  red: '#ef4444',
+  blue: '#3b82f6',
+  cyan: '#06b6d4',
+  violet: '#8b5cf6',
+  background: {
+    primary: '#0a0a0a',
+    panel: '#171717',
+    panelSoft: 'rgba(23, 23, 23, 0.72)',
+    hover: 'rgba(255, 255, 255, 0.05)',
+  },
+  border: {
+    faint: 'rgba(255, 255, 255, 0.05)',
+    default: 'rgba(255, 255, 255, 0.1)',
+    strong: 'rgba(255, 255, 255, 0.16)',
+  },
+} as const;
