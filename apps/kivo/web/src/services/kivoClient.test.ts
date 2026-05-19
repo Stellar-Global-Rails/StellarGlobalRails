@@ -81,6 +81,79 @@ describe('HttpKivoApiClient', () => {
     expect(paid.stellarHash).toBe('hash_real');
   });
 
+  it('creates Power Totems through the documented API route', async () => {
+    let requestedUrl = '';
+    let body = '';
+    const input = {
+      name: 'Station A',
+      price: '0.2500000',
+      unit: 'session' as const,
+      sessionDurationSeconds: 30,
+    };
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        body = String(init?.body);
+        return jsonResponse({
+          id: 'totem_1',
+          ownerId: 'user_1',
+          name: input.name,
+          resource: 'kivo:power-totem:totem_1',
+          price: input.price,
+          unit: input.unit,
+          sessionDurationSeconds: input.sessionDurationSeconds,
+          status: 'draft',
+          qrSlug: 'station-a-totem-1',
+          metadata: {},
+          createdAt: '2026-05-18T20:00:00Z',
+          updatedAt: '2026-05-18T20:00:00Z',
+        });
+      },
+    });
+
+    const totem = await client.createPowerTotem(input);
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/power-totems');
+    expect(JSON.parse(body)).toEqual(input);
+    expect(totem.resource).toBe('kivo:power-totem:totem_1');
+  });
+
+  it('creates Power Totem pairing tokens without exposing service secrets', async () => {
+    let requestedUrl = '';
+    let method = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        return jsonResponse({
+          gateway: {
+            id: 'gateway_1',
+            totemId: 'totem_1',
+            name: 'Station A gateway',
+            tokenPreview: 'kgw_...1234',
+            pairingTokenPreview: 'kpair_...5678',
+            status: 'pairing',
+            adapter: 'simulator',
+            metadata: {},
+            createdAt: '2026-05-18T20:00:00Z',
+            updatedAt: '2026-05-18T20:00:00Z',
+          },
+          gatewayToken: 'kgw_secret_token',
+        });
+      },
+    });
+
+    const result = await client.createPowerTotemPairingToken('totem_1');
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/power-totems/totem_1/pairing-token');
+    expect(method).toBe('POST');
+    expect(result.gatewayToken).toBe('kgw_secret_token');
+    expect(result).not.toHaveProperty('serviceRoleKey');
+    expect(result).not.toHaveProperty('serviceRoleSecret');
+  });
+
   it('proxies Etherfuse quote creation through the Kivo API', async () => {
     let requestedUrl = '';
     let body = '';

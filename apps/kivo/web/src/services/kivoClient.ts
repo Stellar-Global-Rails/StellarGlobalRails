@@ -4,7 +4,9 @@ import type {
   ApiKeyResult,
   ConditionProofInput,
   ConditionProofResult,
+  CreateGatewayEventInput,
   CreatePaymentInput,
+  CreatePowerTotemInput,
   DashboardSummary,
   DeployCheck,
   DeployServiceStatus,
@@ -18,10 +20,15 @@ import type {
   EtherfuseQuoteInput,
   EtherfuseQuoteResponse,
   EtherfuseStatus,
+  Gateway,
+  GatewayEvent,
+  GatewayPairingResult,
   McpAgentConfig,
   McpTool,
   McpToolCallResult,
   Payment,
+  PowerSession,
+  PowerTotem,
   RegisterDeviceInput,
   SystemHealth,
   Webhook,
@@ -64,6 +71,17 @@ export interface KivoApiClient {
   unlockX402Resource(resource: string, paymentHeader: string): Promise<X402UnlockedResponse>;
   listX402PricingRules(): Promise<X402PricingRule[]>;
   upsertX402PricingRule(input: X402PricingRuleInput): Promise<X402PricingRule>;
+  listPowerTotems(): Promise<PowerTotem[]>;
+  createPowerTotem(input: CreatePowerTotemInput): Promise<PowerTotem>;
+  getPowerTotem(id: string): Promise<PowerTotem>;
+  createPowerTotemPairingToken(totemId: string): Promise<GatewayPairingResult>;
+  listPowerSessions(): Promise<PowerSession[]>;
+  createPowerSession(totemId: string): Promise<PowerSession>;
+  authorizePowerSession(sessionId: string): Promise<{ session: PowerSession }>;
+  completePowerSession(sessionId: string): Promise<PowerSession>;
+  sendGatewayHeartbeat(gatewayId: string, gatewayToken: string): Promise<Gateway>;
+  getGatewayAuthorization(gatewayId: string, gatewayToken: string): Promise<{ authorization: PowerSession | null }>;
+  createGatewayEvent(gatewayId: string, gatewayToken: string, input: CreateGatewayEventInput): Promise<GatewayEvent>;
   listWorkflows(): Promise<Workflow[]>;
   listDeployChecks(): Promise<DeployCheck[]>;
   listDeployServices(): Promise<DeployServiceStatus[]>;
@@ -225,6 +243,59 @@ export class HttpKivoApiClient implements KivoApiClient {
 
   async upsertX402PricingRule(input: X402PricingRuleInput): Promise<X402PricingRule> {
     return this.request('/v1/x402/pricing-rules', { method: 'PUT', body: JSON.stringify(input) });
+  }
+
+  async listPowerTotems(): Promise<PowerTotem[]> {
+    return this.request('/v1/power-totems');
+  }
+
+  async createPowerTotem(input: CreatePowerTotemInput): Promise<PowerTotem> {
+    return this.request('/v1/power-totems', { method: 'POST', body: JSON.stringify(input) });
+  }
+
+  async getPowerTotem(id: string): Promise<PowerTotem> {
+    return this.request(`/v1/power-totems/${encodeURIComponent(id)}`);
+  }
+
+  async createPowerTotemPairingToken(totemId: string): Promise<GatewayPairingResult> {
+    return this.request(`/v1/power-totems/${encodeURIComponent(totemId)}/pairing-token`, { method: 'POST' });
+  }
+
+  async listPowerSessions(): Promise<PowerSession[]> {
+    return this.request('/v1/power-sessions');
+  }
+
+  async createPowerSession(totemId: string): Promise<PowerSession> {
+    return this.request('/v1/power-sessions', { method: 'POST', body: JSON.stringify({ totemId }) });
+  }
+
+  async authorizePowerSession(sessionId: string): Promise<{ session: PowerSession }> {
+    return this.request(`/v1/power-sessions/${encodeURIComponent(sessionId)}/authorize`, { method: 'POST' });
+  }
+
+  async completePowerSession(sessionId: string): Promise<PowerSession> {
+    return this.request(`/v1/power-sessions/${encodeURIComponent(sessionId)}/complete`, { method: 'POST' });
+  }
+
+  async sendGatewayHeartbeat(gatewayId: string, gatewayToken: string): Promise<Gateway> {
+    return this.request(`/v1/gateways/${encodeURIComponent(gatewayId)}/heartbeat`, {
+      method: 'POST',
+      headers: { 'x-gateway-token': gatewayToken },
+    });
+  }
+
+  async getGatewayAuthorization(gatewayId: string, gatewayToken: string): Promise<{ authorization: PowerSession | null }> {
+    return this.request(`/v1/gateways/${encodeURIComponent(gatewayId)}/authorization`, {
+      headers: { 'x-gateway-token': gatewayToken },
+    });
+  }
+
+  async createGatewayEvent(gatewayId: string, gatewayToken: string, input: CreateGatewayEventInput): Promise<GatewayEvent> {
+    return this.request(`/v1/gateways/${encodeURIComponent(gatewayId)}/events`, {
+      method: 'POST',
+      headers: { 'x-gateway-token': gatewayToken },
+      body: JSON.stringify(input),
+    });
   }
 
   async listWorkflows(): Promise<Workflow[]> {
