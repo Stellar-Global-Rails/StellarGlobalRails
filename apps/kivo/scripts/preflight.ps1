@@ -45,6 +45,9 @@ if (!$ApiUrl) {
 }
 
 $ApiUrl = $ApiUrl.TrimEnd("/")
+if ($null -eq (Get-Variable -Name headers -ErrorAction SilentlyContinue)) {
+  $headers = @{}
+}
 
 Write-Output "Kivo delivery preflight"
 Write-Output "API: $ApiUrl"
@@ -88,6 +91,18 @@ foreach ($path in @("/v1/health", "/v1/etherfuse/status", "/v1/deploy/checks")) 
     $status = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { "n/a" }
     Write-Check "api:$path" $false "HTTP $status"
   }
+}
+
+Write-Output "Checking Power Totem health..."
+$totemsUrl = "$ApiUrl/v1/power-totems"
+try {
+  $response = Invoke-WebRequest -Uri $totemsUrl -Headers $headers -Method GET -TimeoutSec 20 -UseBasicParsing -ErrorAction Stop
+  Write-Check "api:/v1/power-totems" ($response.StatusCode -ge 200 -and $response.StatusCode -lt 300) "HTTP $($response.StatusCode)"
+} catch {
+  $status = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { "n/a" }
+  $reachable = $status -eq 401 -or $status -eq 403
+  $detail = if ($reachable) { "HTTP $status auth required; route reachable" } else { "HTTP $status" }
+  Write-Check "api:/v1/power-totems" $reachable $detail
 }
 
 $platformKey = Get-EnvValue "X402_PLATFORM_KEY"

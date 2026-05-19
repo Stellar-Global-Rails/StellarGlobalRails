@@ -1,10 +1,16 @@
 # Kivo MVP
 
-Kivo is the M2M payment product for solo operators who want to monetize a device, paid API, or IoT data feed with Stellar/x402 and Etherfuse rails.
+Kivo is the M2M payment product for solo operators who want to monetize a physical Power Totem, paid API, or IoT data feed with Stellar/x402 and Etherfuse rails.
 
 ```txt
-operator creates flow -> Etherfuse Devnet funding -> x402 challenge -> signed Stellar tx -> protected resource unlock -> dashboard status
+operator creates Power Totem -> gateway pairs once -> x402 challenge -> signed Stellar tx -> gateway authorization -> physical session event -> dashboard status
 ```
+
+## Hackathon Path: Power Totem
+
+The active hackathon path is Power Totem first. The operator creates a Power Totem in Studio, copies the one-time gateway token, runs the simulator or Raspberry gateway package, starts checkout for `/power-totem/{id}/session`, signs the Stellar payment, and lets the gateway fetch a short authorization before reporting session events.
+
+Other templates remain useful product context, but demo readiness is judged by the Power Totem path: Studio creation, one-time gateway token, x402 checkout, Stellar settlement, Etherfuse funding, gateway heartbeat, and safe physical authorization.
 
 ## Runtime Decision
 
@@ -76,7 +82,7 @@ supabase functions list --project-ref <project-ref>
 supabase functions deploy kivo-api --project-ref <project-ref> --use-api --no-verify-jwt
 ```
 
-The Edge Function owns deployment health, Etherfuse proxy/webhook routes, dashboard, devices, payments, x402, webhooks, API keys, MCP config, and workflows.
+The Edge Function owns deployment health, Etherfuse proxy/webhook routes, dashboard, Power Totems, Power Sessions, gateway heartbeat/authorization/events, devices, payments, x402, webhooks, API keys, MCP config, and workflows.
 
 ## Frontend
 
@@ -126,7 +132,49 @@ Solo MVP routes now served by Supabase Edge:
 - `GET /v1/mcp/config`
 - `POST /mcp`
 
+Power Totem routes active now:
+
+- `GET|POST /v1/power-totems`
+- `POST /v1/power-totems/:id/pairing-token`
+- `GET|POST /v1/power-sessions`
+- `POST /v1/power-sessions/:id/start-checkout`
+- `POST /v1/gateways/:id/heartbeat`
+- `GET /v1/gateways/:id/authorization`
+- `POST /v1/gateways/:id/events`
+- `GET /power-totem/{id}/session`
+
 Known external step: `POST /v1/x402/pay` requires a valid signed Stellar `txXDR` from a wallet or SDK. The Edge API validates the nonce memo, destination, amount, and asset before submitting to Horizon.
+
+## Power Totem Gateway
+
+The gateway package lives in `apps/kivo/gateway` and can run against the Supabase Edge API:
+
+```bash
+cd apps/kivo/gateway
+npm install
+npm run dev -- once
+npm run dev -- start
+```
+
+Required environment:
+
+```txt
+KIVO_API_URL=https://<project-ref>.supabase.co/functions/v1/kivo-api
+KIVO_GATEWAY_ID=gw_...
+KIVO_GATEWAY_TOKEN=kgw_...
+KIVO_API_TOKEN=<workspace-or-user-token-for-current-completion-route>
+KIVO_GATEWAY_ADAPTER=simulator
+```
+
+Simulator mode is the browser-safe and laptop-safe fallback for the hackathon. Raspberry mode is available with:
+
+```txt
+KIVO_GATEWAY_ADAPTER=raspberry
+KIVO_GATEWAY_ENABLE_COMMAND="node ./scripts/relay-on.js"
+KIVO_GATEWAY_DISABLE_COMMAND="node ./scripts/relay-off.js"
+```
+
+The Raspberry demo must use only low-voltage relay/controller output with proper isolation. The gateway package does not control mains power directly.
 
 ## Delivery Preflight
 

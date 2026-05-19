@@ -5,112 +5,152 @@ import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatCard } from '@/components/ui/StatCard';
 import { WorkspaceContextBanner } from '@/components/WorkspaceContextBanner';
-import { deriveSoloFlows } from '@/data/soloMvp';
 import { useAsyncData } from '@/hooks/useAsyncData';
 import { kivoClient } from '@/services/kivoClient';
-import { formatCurrency, formatDateTime } from '@/utils/format';
+import { formatDateTime } from '@/utils/format';
+
+const readySessionStatuses = new Set(['authorized', 'running', 'completed']);
 
 export default function HealthPage() {
-  const summary = useAsyncData(() => kivoClient.getDashboardSummary(), []);
-  const devices = useAsyncData(() => kivoClient.listDevices(), []);
-  const payments = useAsyncData(() => kivoClient.listPayments(), []);
-  const pricingRules = useAsyncData(() => kivoClient.listX402PricingRules(), []);
+  const health = useAsyncData(() => kivoClient.getHealth(), []);
+  const etherfuse = useAsyncData(() => kivoClient.getEtherfuseStatus(), []);
+  const powerTotems = useAsyncData(() => kivoClient.listPowerTotems(), []);
+  const powerSessions = useAsyncData(() => kivoClient.listPowerSessions(), []);
 
-  const flows = deriveSoloFlows({
-    devices: devices.data ?? [],
-    payments: payments.data ?? [],
-    pricingRules: pricingRules.data ?? [],
-  });
-  const activeFlows = flows.filter((flow) => flow.status === 'active');
-  const flowsWithFailures = flows.filter((flow) => flow.failedPaymentsCount > 0);
-  const completedChecklist = flows.reduce((total, flow) => total + flow.setupChecklist.filter((item) => item.complete).length, 0);
-  const totalChecklist = flows.reduce((total, flow) => total + flow.setupChecklist.length, 0);
-  const loadError = summary.error || devices.error || payments.error || pricingRules.error;
-  const overallTone = loadError || flowsWithFailures.length ? 'warning' : flows.length ? 'ready' : 'processing';
-  const overallLabel = loadError ? 'Dados incompletos' : flowsWithFailures.length ? 'Requer atencao' : flows.length ? 'Flows saudaveis' : 'Pronto para criar';
+  const totems = powerTotems.data ?? [];
+  const sessions = powerSessions.data ?? [];
+  const activeTotems = totems.filter((totem) => ['active', 'testing', 'pairing'].includes(totem.status));
+  const readySessions = sessions.filter((session) => readySessionStatuses.has(session.status));
+  const failedSessions = sessions.filter((session) => session.status === 'failed' || session.status === 'expired');
+  const latestTotem = [...totems].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+  const loadError = health.error || etherfuse.error || powerTotems.error || powerSessions.error;
+  const platformReady = health.data?.api === 'ok' && health.data?.stellar === 'ok' && etherfuse.data?.configured;
+  const overallTone = loadError || failedSessions.length ? 'warning' : platformReady && activeTotems.length ? 'ready' : 'processing';
+  const overallLabel = loadError
+    ? 'Leitura parcial'
+    : platformReady && activeTotems.length
+      ? 'Demo pronta'
+      : 'Preparando demo';
+
+  const readiness = [
+    {
+      id: 'totem',
+      label: 'Power Totem criado',
+      complete: activeTotems.length > 0,
+      detail: activeTotems.length ? `${activeTotems.length} totem ativo/teste` : 'Crie no Studio antes do checkout.',
+    },
+    {
+      id: 'x402',
+      label: 'x402 de sessao',
+      complete: sessions.some((session) => session.x402Nonce || session.status !== 'requested'),
+      detail: sessions.length ? `${sessions.length} sessoes registradas` : 'Inicie um checkout para gerar o challenge.',
+    },
+    {
+      id: 'stellar',
+      label: 'Stellar settlement',
+      complete: health.data?.stellar === 'ok',
+      detail: health.data?.stellar === 'ok' ? 'Horizon e validacao ativos.' : 'Aguardando health ok do backend.',
+    },
+    {
+      id: 'etherfuse',
+      label: 'Etherfuse funding',
+      complete: Boolean(etherfuse.data?.configured),
+      detail: etherfuse.data?.configured ? `${etherfuse.data.mode} em ${etherfuse.data.network}` : 'Anchor/funding ainda nao confirmado.',
+    },
+    {
+      id: 'gateway',
+      label: 'Gateway fisico',
+      complete: sessions.some((session) => ['running', 'completed'].includes(session.status)),
+      detail: 'Use o simulador ou Raspberry low-voltage para reportar eventos.',
+    },
+  ];
 
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Flows"
-        title="Saude dos seus flows"
-        icon="solar:heart-pulse-bold-duotone"
-        description="Acompanhe se seus recursos pagos estao prontos para receber usuarios finais."
-        action={<Link to="/create-flow" className="rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">Criar flow</Link>}
+        eyebrow="Power Totem"
+        title="Saude da demo fisica"
+        icon="solar:electric-refueling-bold-duotone"
+        description="Power Totem: flow, gateway, x402, Stellar, Etherfuse e autorizacao fisica."
+        action={<Link to="/studio" className="rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">Abrir Studio</Link>}
       />
 
       <WorkspaceContextBanner
-        eyebrow="Seu produto"
+        eyebrow="Demo readiness"
         title={overallLabel}
-        icon="solar:heart-pulse-bold-duotone"
+        icon="solar:shield-check-bold-duotone"
         tone={overallTone}
-        description="Esta pagina responde a pergunta: meus dispositivos, APIs ou feeds estao cobrando e liberando acesso do jeito esperado?"
-        checkpoints={['Configuracao', 'Checkout', 'Pagamentos', 'Falhas']}
+        description="Esta pagina acompanha se o caminho de palco esta pronto: criar Totem, cobrar por x402/Stellar, autorizar uma sessao curta e receber evento do gateway."
+        checkpoints={['Power Totem', 'x402', 'Stellar', 'Etherfuse', 'Gateway']}
         primaryAction={{ to: '/checkout', label: 'Testar checkout' }}
-        secondaryAction={{ to: '/status', label: 'Status do Kivo' }}
+        secondaryAction={{ to: '/totem-simulator', label: 'Abrir simulador' }}
       />
 
       <div className="grid gap-4 md:grid-cols-4">
-        <StatCard title="Flows ativos" value={activeFlows.length.toString()} detail={`${flows.length} no total`} icon="solar:bolt-circle-bold-duotone" tone="emerald" />
-        <StatCard title="Setup" value={totalChecklist ? `${completedChecklist}/${totalChecklist}` : '0/0'} detail="Checks completos" icon="solar:checklist-minimalistic-bold-duotone" tone={completedChecklist === totalChecklist && totalChecklist ? 'emerald' : 'amber'} />
-        <StatCard title="Receita" value={formatCurrency(summary.data?.totalVolumeUsdc ?? 0)} detail={`${summary.data?.confirmedPayments ?? 0} confirmados`} icon="solar:wallet-money-bold-duotone" tone="blue" />
-        <StatCard title="Falhas" value={flowsWithFailures.length.toString()} detail={flowsWithFailures.length ? 'flows com falha' : 'nenhuma falha recente'} icon="solar:danger-circle-bold-duotone" tone={flowsWithFailures.length ? 'red' : 'neutral'} />
+        <StatCard title="Totems" value={activeTotems.length.toString()} detail={`${totems.length} cadastrados`} icon="solar:electric-refueling-bold-duotone" tone={activeTotems.length ? 'emerald' : 'amber'} />
+        <StatCard title="Sessoes" value={readySessions.length.toString()} detail={`${sessions.length} no total`} icon="solar:bolt-circle-bold-duotone" tone={readySessions.length ? 'emerald' : 'blue'} />
+        <StatCard title="Stellar" value={health.data?.stellar === 'ok' ? 'OK' : 'Pendente'} detail={health.error ?? 'health do backend'} icon="solar:star-fall-bold-duotone" tone={health.data?.stellar === 'ok' ? 'emerald' : 'amber'} />
+        <StatCard title="Gateway" value={readiness[4].complete ? 'Eventos' : 'Aguardando'} detail={readiness[4].detail} icon="solar:radio-minimalistic-bold-duotone" tone={readiness[4].complete ? 'emerald' : 'amber'} />
       </div>
 
       <Card>
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-bricolage text-xl font-bold text-white">Flows monitorados</h2>
-            <p className="mt-1 text-sm text-neutral-500">Cada flow mostra configuracao, uso e risco operacional em linguagem de produto.</p>
+            <h2 className="font-bricolage text-xl font-bold text-white">Checklist Power Totem</h2>
+            <p className="mt-1 text-sm text-neutral-500">O que precisa estar verde antes da apresentacao ou fallback no browser.</p>
           </div>
           <Badge tone={overallTone}>{overallLabel}</Badge>
         </div>
 
-        <div className="mt-5 space-y-3">
-          {flows.map((flow) => {
-            const complete = flow.setupChecklist.filter((item) => item.complete).length;
-            const total = flow.setupChecklist.length;
-            const tone = flow.failedPaymentsCount ? 'failed' : complete === total ? 'ready' : 'warning';
-            return (
-              <Link key={flow.id} to={`/flows/${flow.id}`} className="block rounded-2xl border border-white/5 bg-black/25 p-4 transition hover:border-emerald-500/25 hover:bg-white/[0.04]">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-bold text-white">{flow.name}</h3>
-                      <Badge tone={tone}>{flow.failedPaymentsCount ? 'Atenção' : complete === total ? 'Pronto' : 'Setup pendente'}</Badge>
-                    </div>
-                    <p className="mt-1 break-all text-sm text-neutral-500">{flow.resource}</p>
-                    <p className="mt-2 text-sm text-neutral-400">
-                      {flow.price} por {flow.unit} · {flow.paymentsCount} pagamentos · {formatCurrency(flow.revenueUsdc)} em receita
-                    </p>
-                  </div>
-                  <p className="text-xs text-neutral-600">{flow.lastActivityAt ? `Atualizado ${formatDateTime(flow.lastActivityAt)}` : 'Sem atividade ainda'}</p>
+        <div className="mt-5 grid gap-3 lg:grid-cols-2">
+          {readiness.map((item) => (
+            <div key={item.id} className={`rounded-2xl border p-4 ${item.complete ? 'border-emerald-500/20 bg-emerald-500/10' : 'border-amber-500/20 bg-amber-500/10'}`}>
+              <div className="flex items-start gap-3">
+                <Icon icon={item.complete ? 'solar:check-circle-bold' : 'solar:clock-circle-bold'} className={`mt-0.5 text-xl ${item.complete ? 'text-emerald-300' : 'text-amber-300'}`} />
+                <div>
+                  <p className="font-bold text-white">{item.label}</p>
+                  <p className="mt-1 text-sm leading-6 text-neutral-400">{item.detail}</p>
                 </div>
-                <div className="mt-4 grid gap-2 md:grid-cols-3">
-                  {flow.setupChecklist.map((item) => (
-                    <div key={item.id} className={`rounded-xl border px-3 py-2 text-xs font-bold ${item.complete ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-amber-500/20 bg-amber-500/10 text-amber-200'}`}>
-                      <Icon icon={item.complete ? 'solar:check-circle-bold' : 'solar:clock-circle-bold'} className="mr-1 inline text-sm" />
-                      {item.label}
-                    </div>
-                  ))}
-                </div>
-              </Link>
-            );
-          })}
-
-          {!flows.length && (
-            <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-center">
-              <Icon icon="solar:bolt-circle-bold-duotone" className="mx-auto text-4xl text-emerald-300" />
-              <h3 className="mt-3 font-bricolage text-xl font-bold text-white">Nenhum flow para monitorar ainda</h3>
-              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-neutral-500">
-                Crie um flow de device, API ou dados para acompanhar saude, setup e pagamentos aqui.
-              </p>
-              <Link to="/create-flow" className="mt-5 inline-flex rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
-                Criar primeiro flow
-              </Link>
+              </div>
             </div>
-          )}
+          ))}
         </div>
+      </Card>
+
+      <Card>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="font-bricolage text-xl font-bold text-white">Ultimo Power Totem</h2>
+            <p className="mt-1 text-sm text-neutral-500">Resumo operacional para conferir QR, duracao e recurso protegido.</p>
+          </div>
+          {latestTotem && <Badge tone={latestTotem.status}>{latestTotem.status}</Badge>}
+        </div>
+
+        {latestTotem ? (
+          <div className="mt-5 rounded-2xl border border-white/5 bg-black/25 p-4">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0">
+                <h3 className="font-bold text-white">{latestTotem.name}</h3>
+                <p className="mt-1 break-all font-mono text-xs text-emerald-200">{latestTotem.resource}</p>
+                <p className="mt-2 text-sm text-neutral-400">
+                  {latestTotem.price} por {latestTotem.unit} - {latestTotem.sessionDurationSeconds}s de autorizacao
+                </p>
+              </div>
+              <p className="text-xs text-neutral-600">Atualizado {formatDateTime(latestTotem.updatedAt)}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-5 rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-center">
+            <Icon icon="solar:electric-refueling-bold-duotone" className="mx-auto text-4xl text-emerald-300" />
+            <h3 className="mt-3 font-bricolage text-xl font-bold text-white">Nenhum Power Totem criado ainda</h3>
+            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-neutral-500">
+              Use o Studio para criar o Totem, gerar o token do gateway e iniciar o checkout fisico.
+            </p>
+            <Link to="/studio" className="mt-5 inline-flex rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
+              Criar Power Totem
+            </Link>
+          </div>
+        )}
 
         {loadError && <p className="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">{loadError}</p>}
       </Card>
