@@ -68,7 +68,6 @@ export interface CreateFlowDraft {
 
 export interface PowerTotem {
   id: string;
-  ownerId: string;
   name: string;
   resource: string;
   price: string;

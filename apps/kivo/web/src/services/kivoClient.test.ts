@@ -97,9 +97,8 @@ describe('HttpKivoApiClient', () => {
         body = String(init?.body);
         return jsonResponse({
           id: 'totem_1',
-          ownerId: 'user_1',
           name: input.name,
-          resource: 'kivo:power-totem:totem_1',
+          resource: '/power-totem/totem_1/session',
           price: input.price,
           unit: input.unit,
           sessionDurationSeconds: input.sessionDurationSeconds,
@@ -116,7 +115,7 @@ describe('HttpKivoApiClient', () => {
 
     expect(requestedUrl).toBe('https://api.kivo.example/v1/power-totems');
     expect(JSON.parse(body)).toEqual(input);
-    expect(totem.resource).toBe('kivo:power-totem:totem_1');
+    expect(totem.resource).toBe('/power-totem/totem_1/session');
   });
 
   it('creates Power Totem pairing tokens without exposing service secrets', async () => {
@@ -152,6 +151,44 @@ describe('HttpKivoApiClient', () => {
     expect(result.gatewayToken).toBe('kgw_secret_token');
     expect(result).not.toHaveProperty('serviceRoleKey');
     expect(result).not.toHaveProperty('serviceRoleSecret');
+  });
+
+  it('sends gateway events with the gateway token header', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let gatewayToken = '';
+    let body = '';
+    const input = {
+      sessionId: 'session_1',
+      eventType: 'relay.closed',
+      payload: { watts: 1200 },
+    };
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        gatewayToken = new Headers(init?.headers).get('x-gateway-token') ?? '';
+        body = String(init?.body);
+        return jsonResponse({
+          id: 'event_1',
+          gatewayId: 'gw_1',
+          totemId: 'totem_1',
+          sessionId: input.sessionId,
+          eventType: input.eventType,
+          payload: input.payload,
+          createdAt: '2026-05-18T20:00:00Z',
+        });
+      },
+    });
+
+    const event = await client.createGatewayEvent('gw_1', 'kivo_gateway_secret', input);
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/gateways/gw_1/events');
+    expect(method).toBe('POST');
+    expect(gatewayToken).toBe('kivo_gateway_secret');
+    expect(JSON.parse(body)).toEqual(input);
+    expect(event.eventType).toBe(input.eventType);
   });
 
   it('proxies Etherfuse quote creation through the Kivo API', async () => {
