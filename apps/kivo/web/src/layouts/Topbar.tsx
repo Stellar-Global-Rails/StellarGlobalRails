@@ -2,9 +2,13 @@ import { Icon } from '@iconify/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore, useUIStore } from '@/stores';
 
-const routeTitles: Record<string, { title: string; icon: string }> = {
+const routeTitles: Record<string, { title: string; subtitle?: string; icon: string }> = {
   '/dashboard': { title: 'Power Totem Home', icon: 'solar:home-2-bold-duotone' },
-  '/studio': { title: 'Kivo Studio', icon: 'solar:electric-refueling-bold-duotone' },
+  '/studio': { title: 'Kivo Studio', subtitle: 'Agentes guiam do recurso ao launch', icon: 'solar:stars-line-duotone' },
+  '/gateway': { title: 'Kivo Gateway', subtitle: 'Runtime que libera o recurso real', icon: 'solar:server-square-cloud-linear' },
+  '/sdk': { title: 'Kivo SDK', subtitle: 'Bundle TypeScript local para testar e adaptar', icon: 'solar:code-square-linear' },
+  '/validation': { title: 'Validacao', subtitle: 'Evidencia real com x402, Etherfuse e Gateway', icon: 'solar:shield-check-linear' },
+  '/launch': { title: 'Launch', subtitle: 'Mainnet privada, testnet ou template publico', icon: 'solar:rocket-linear' },
   '/totems': { title: 'Power Totems', icon: 'solar:electric-refueling-bold-duotone' },
   '/totem': { title: 'Power Totem', icon: 'solar:electric-refueling-bold-duotone' },
   '/totem-simulator': { title: 'Simulador do totem', icon: 'solar:bolt-circle-bold-duotone' },
@@ -25,7 +29,7 @@ const routeTitles: Record<string, { title: string; icon: string }> = {
   '/api-keys': { title: 'API Keys', icon: 'solar:key-minimalistic-bold-duotone' },
   '/mcp': { title: 'MCP Console', icon: 'solar:cpu-bolt-bold-duotone' },
   '/x402': { title: 'Regras x402', icon: 'solar:shield-keyhole-bold-duotone' },
-  '/templates': { title: 'Templates roadmap', icon: 'solar:bolt-circle-bold-duotone' },
+  '/templates': { title: 'Templates roadmap', subtitle: 'Power Totem agora, marketplace depois', icon: 'solar:widget-linear' },
   '/workflows': { title: 'Workflows', icon: 'solar:routing-2-bold-duotone' },
   '/deploy': { title: 'Deploy', icon: 'solar:rocket-bold-duotone' },
   '/settings': { title: 'Configuracoes', icon: 'solar:settings-bold-duotone' },
@@ -40,7 +44,8 @@ export default function Topbar() {
   const setEnvironment = useUIStore((state) => state.setEnvironment);
   const setCommandOpen = useUIStore((state) => state.setCommandOpen);
   const basePath = `/${location.pathname.split('/')[1] || 'dashboard'}`;
-  const info = routeTitles[basePath] ?? { title: 'Kivo Pay', icon: 'solar:wallet-linear' };
+  const info = routeTitles[basePath] ?? { title: 'Kivo', subtitle: 'Studio, Gateway e SDK para recursos pagos', icon: 'solar:wallet-linear' };
+  const subtitle = info.subtitle ?? 'Configure, cobre e libere recursos pelo Gateway Kivo';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/5 bg-neutral-950/85 px-4 backdrop-blur-xl md:px-8">
@@ -50,7 +55,7 @@ export default function Topbar() {
         </div>
         <div className="min-w-0">
           <h1 className="hidden truncate font-bricolage text-xl font-bold text-white sm:block">{info.title}</h1>
-          <p className="hidden text-xs text-neutral-500 sm:block">Configure, cobre e libere energia pelo gateway Power Totem</p>
+          <p className="hidden text-xs text-neutral-500 sm:block">{subtitle}</p>
         </div>
       </div>
 

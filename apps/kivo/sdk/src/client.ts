@@ -71,6 +71,16 @@ export class KivoClient {
       throw new Error(`Kivo request failed: ${response.status}`);
     }
 
-    return response.json() as Promise<T>;
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    const text = await response.text();
+
+    if (!text) {
+      return undefined as T;
+    }
+
+    return JSON.parse(text) as T;
   }
 }

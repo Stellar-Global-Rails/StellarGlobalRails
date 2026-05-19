@@ -90,7 +90,7 @@ export default function App() {
             <Route path="api-keys" element={<ApiKeysPage />} />
             <Route path="mcp" element={<DevOnlyRoute><McpConsolePage /></DevOnlyRoute>} />
             <Route path="x402" element={<DevOnlyRoute><X402Page /></DevOnlyRoute>} />
-            <Route path="templates" element={<DevOnlyRoute><TemplatesPage /></DevOnlyRoute>} />
+            <Route path="templates" element={<TemplatesPage />} />
             <Route path="workflows" element={<DevOnlyRoute><WorkflowsPage /></DevOnlyRoute>} />
             <Route path="deploy" element={<DevOnlyRoute><DeployPage /></DevOnlyRoute>} />
             <Route path="settings" element={<SettingsPage />} />
