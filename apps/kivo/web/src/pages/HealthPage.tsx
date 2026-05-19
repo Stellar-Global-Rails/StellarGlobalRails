@@ -25,12 +25,16 @@ export default function HealthPage() {
   const latestTotem = [...totems].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
   const loadError = health.error || etherfuse.error || powerTotems.error || powerSessions.error;
   const platformReady = health.data?.api === 'ok' && health.data?.stellar === 'ok' && etherfuse.data?.configured;
-  const overallTone = loadError || failedSessions.length ? 'warning' : platformReady && activeTotems.length ? 'ready' : 'processing';
+  const gatewayReady = sessions.some((session) => ['running', 'completed'].includes(session.status));
+  const demoReady = platformReady && activeTotems.length > 0 && gatewayReady;
+  const overallTone = loadError || failedSessions.length || (platformReady && activeTotems.length && !gatewayReady) ? 'warning' : demoReady ? 'ready' : 'processing';
   const overallLabel = loadError
     ? 'Leitura parcial'
-    : platformReady && activeTotems.length
+    : demoReady
       ? 'Demo pronta'
-      : 'Preparando demo';
+      : platformReady && activeTotems.length && !gatewayReady
+        ? 'Aguardando gateway'
+        : 'Preparando demo';
 
   const readiness = [
     {
@@ -60,7 +64,7 @@ export default function HealthPage() {
     {
       id: 'gateway',
       label: 'Gateway fisico',
-      complete: sessions.some((session) => ['running', 'completed'].includes(session.status)),
+      complete: gatewayReady,
       detail: 'Use o simulador ou Raspberry low-voltage para reportar eventos.',
     },
   ];

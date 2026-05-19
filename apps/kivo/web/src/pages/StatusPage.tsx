@@ -35,7 +35,7 @@ export default function StatusPage() {
   const stellarReady = system?.stellar === 'ok';
   const etherfuseReady = Boolean(etherfuse.data?.configured);
   const gatewayReady = gatewaySignal === 'ok' || gatewaySignal === 'online';
-  const powerPathReady = apiReady && stellarReady && etherfuseReady;
+  const powerPathReady = apiReady && stellarReady && etherfuseReady && gatewayReady;
 
   const readinessChecks = [
     {
