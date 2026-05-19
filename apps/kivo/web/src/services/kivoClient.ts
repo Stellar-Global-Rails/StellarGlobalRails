@@ -77,6 +77,9 @@ export interface KivoApiClient {
   createPowerTotemPairingToken(totemId: string): Promise<GatewayPairingResult>;
   listPowerSessions(): Promise<PowerSession[]>;
   createPowerSession(totemId: string): Promise<PowerSession>;
+  startPowerSessionCheckout(
+    sessionId: string,
+  ): Promise<{ session: PowerSession; checkoutResource: string; challenge: X402Challenge }>;
   authorizePowerSession(sessionId: string): Promise<{ session: PowerSession }>;
   completePowerSession(sessionId: string): Promise<PowerSession>;
   sendGatewayHeartbeat(gatewayId: string, gatewayToken: string): Promise<Gateway>;
@@ -267,6 +270,12 @@ export class HttpKivoApiClient implements KivoApiClient {
 
   async createPowerSession(totemId: string): Promise<PowerSession> {
     return this.request('/v1/power-sessions', { method: 'POST', body: JSON.stringify({ totemId }) });
+  }
+
+  async startPowerSessionCheckout(
+    sessionId: string,
+  ): Promise<{ session: PowerSession; checkoutResource: string; challenge: X402Challenge }> {
+    return this.request(`/v1/power-sessions/${encodeURIComponent(sessionId)}/start-checkout`, { method: 'POST' });
   }
 
   async authorizePowerSession(sessionId: string): Promise<{ session: PowerSession }> {

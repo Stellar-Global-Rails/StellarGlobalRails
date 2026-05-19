@@ -1888,7 +1888,7 @@ const handleGateways = async (req: Request, path: string) => {
 const handlePowerSessions = async (req: Request, path: string) => {
   const user = await requireUser(req);
   const detail = path.match(
-    /^\/v1\/power-sessions\/([^/]+)(?:\/(authorize|complete))?$/,
+    /^\/v1\/power-sessions\/([^/]+)(?:\/(start-checkout|authorize|complete))?$/,
   );
 
   if (path === "/v1/power-sessions" && req.method === "GET") {
@@ -1957,6 +1957,67 @@ const handlePowerSessions = async (req: Request, path: string) => {
       ],
     });
     return json(req, 201, toPowerSession(row));
+  }
+
+  if (detail && req.method === "POST" && detail[2] === "start-checkout") {
+    const rows = await selectRows<DbPowerSession>("kivo_power_sessions", {
+      select: "*",
+      id: `eq.${detail[1]}`,
+      owner_id: `eq.${user.id}`,
+      limit: 1,
+    });
+    const session = rows[0];
+    if (!session) {
+      return apiError(
+        req,
+        404,
+        "power_session_not_found",
+        "Power Session not found.",
+      );
+    }
+    let nextStatus: PowerSessionStatus;
+    try {
+      nextStatus = nextSessionStatus(session.status, "require_payment");
+    } catch (error) {
+      return apiError(
+        req,
+        409,
+        "power_session_checkout_not_available",
+        error instanceof Error
+          ? error.message
+          : "Power Session cannot start checkout from its current status.",
+      );
+    }
+    const challenge = await buildChallenge(req, session.resource, user);
+    const updated = await patchRows<DbPowerSession>("kivo_power_sessions", {
+      id: `eq.${session.id}`,
+      owner_id: `eq.${user.id}`,
+      status: "eq.requested",
+    }, {
+      status: nextStatus,
+      x402_nonce: challenge.nonce,
+      events: [
+        ...session.events,
+        paymentEvent(
+          "Checkout started",
+          "x402 payment challenge issued for Power Totem session.",
+          "current",
+        ),
+      ],
+    });
+    if (!updated[0]) {
+      return apiError(
+        req,
+        409,
+        "power_session_checkout_conflict",
+        "Power Session is no longer requested.",
+      );
+    }
+    return json(req, 200, {
+      session: toPowerSession(updated[0]),
+      checkoutResource: session.resource,
+      challenge,
+    });
   }
 
   if (detail && req.method === "POST" && detail[2] === "authorize") {
@@ -2239,7 +2300,7 @@ const handleX402 = async (req: Request, path: string) => {
 
     if (nonce.owner_id) {
       const { code, issuer } = splitAsset(nonce.asset);
-      await insertRow<DbPayment>("kivo_payments", {
+      const paymentRow = await insertRow<DbPayment>("kivo_payments", {
         owner_id: nonce.owner_id,
         from_device_id: null,
         to_device_id: null,
@@ -2262,6 +2323,32 @@ const handleX402 = async (req: Request, path: string) => {
           ),
         ],
       });
+      const sessions = await selectRows<DbPowerSession>("kivo_power_sessions", {
+        select: "*",
+        owner_id: `eq.${nonce.owner_id}`,
+        x402_nonce: `eq.${nonce.nonce}`,
+        status: "eq.payment_required",
+        limit: 1,
+      });
+      const session = sessions[0];
+      if (session) {
+        await patchRows<DbPowerSession>("kivo_power_sessions", {
+          id: `eq.${session.id}`,
+          owner_id: `eq.${nonce.owner_id}`,
+          status: "eq.payment_required",
+        }, {
+          status: nextSessionStatus(session.status, "mark_paid"),
+          payment_id: paymentRow.id,
+          events: [
+            ...session.events,
+            paymentEvent(
+              "Payment confirmed",
+              "x402 payment confirmed for Power Totem session.",
+              "done",
+            ),
+          ],
+        });
+      }
     }
 
     return json(req, 200, {

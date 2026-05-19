@@ -64,7 +64,7 @@ export default function PowerTotemDetailPage() {
         eyebrow="Power Totem"
         title={totem.name}
         icon="solar:bolt-circle-bold-duotone"
-        description="Superficie operacional para acompanhar recurso x402, sessoes e o proximo passo de checkout."
+        description="Superficie operacional para acompanhar recurso x402, checkout, autorizacao curta e sessoes do gateway."
         action={<Badge tone={totem.status}>{statusLabel(totem.status)}</Badge>}
       />
 
@@ -81,7 +81,7 @@ export default function PowerTotemDetailPage() {
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Resource protegido</p>
               <h2 className="mt-2 font-bricolage text-xl font-bold text-white">x402 na frente do totem</h2>
-              <p className="mt-2 text-sm leading-6 text-neutral-400">O recurso abaixo e a ancora do checkout. A etapa de binding completo entre pagamento x402 e sessao entra no Task 8; aqui o operador ja consegue criar sessao, mostrar QR e testar o gateway.</p>
+              <p className="mt-2 text-sm leading-6 text-neutral-400">O recurso abaixo e a ancora do checkout. A sessao nasce solicitada, passa por pagamento x402 e depois fica autorizada para o gateway acionar a saida por uma janela curta.</p>
             </div>
             <CopyButton value={totem.resource} />
           </div>
@@ -93,7 +93,7 @@ export default function PowerTotemDetailPage() {
             </Link>
             <Link to="/checkout" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10">
               <Icon icon="solar:wallet-money-bold-duotone" />
-              Contexto checkout
+              Pagar via Checkout
             </Link>
             <Link to="/totem-simulator" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10">
               <Icon icon="solar:gamepad-bold-duotone" />
@@ -106,18 +106,32 @@ export default function PowerTotemDetailPage() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Sessao manual</p>
-              <h2 className="mt-2 font-bricolage text-xl font-bold text-white">Preparar autorizacao</h2>
+              <h2 className="mt-2 font-bricolage text-xl font-bold text-white">Preparar checkout</h2>
             </div>
-            <Badge tone="pending">Task 8 conecta pagamento</Badge>
+            <Badge tone="ready">checkout conectado</Badge>
           </div>
-          <p className="mt-3 text-sm leading-6 text-neutral-400">Crie uma sessao solicitada para validar o fluxo operacional. O checkout x402 ainda nao escreve o pagamento na sessao neste task.</p>
+          <p className="mt-3 text-sm leading-6 text-neutral-400">Crie uma sessao solicitada aqui ou va direto para Checkout. Depois do pagamento confirmado, a sessao muda para paga e pode ser autorizada para o gateway.</p>
           {error && <p className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">{error}</p>}
           <button type="button" onClick={createSession} disabled={creatingSession} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-emerald-400 disabled:opacity-60">
             <Icon icon={creatingSession ? 'solar:refresh-bold-duotone' : 'solar:play-circle-bold-duotone'} />
             {creatingSession ? 'Criando sessao...' : 'Criar sessao solicitada'}
           </button>
+          <Link to="/checkout" className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-100 hover:bg-emerald-500/15">
+            <Icon icon="solar:card-transfer-bold-duotone" />
+            Abrir Checkout do Power Totem
+          </Link>
         </Card>
       </div>
+
+      <Card>
+        <h2 className="font-bricolage text-xl font-bold text-white">Caminho de autorizacao</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-4">
+          <StatusMeaning title="Solicitada" detail="Sessao criada para este totem, ainda sem challenge ativo." tone="neutral" />
+          <StatusMeaning title="Pagamento" detail="Checkout emitiu o x402 challenge e amarrou o nonce a sessao." tone="pending" />
+          <StatusMeaning title="Paga" detail="Pagamento Stellar confirmado; a sessao pode gerar autorizacao." tone="processing" />
+          <StatusMeaning title="Autorizada" detail="Gateway pode consultar e acionar a saida fisica." tone="ready" />
+        </div>
+      </Card>
 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -164,6 +178,15 @@ function MetricCard({ title, value, icon, tone = 'emerald' }: { title: string; v
       <p className="mt-4 text-xs font-bold uppercase tracking-wider text-neutral-500">{title}</p>
       <p className="mt-1 font-bricolage text-2xl font-bold text-white">{value}</p>
     </Card>
+  );
+}
+
+function StatusMeaning({ title, detail, tone }: { title: string; detail: string; tone: string }) {
+  return (
+    <div className="rounded-2xl border border-white/5 bg-black/25 p-4">
+      <Badge tone={tone}>{title}</Badge>
+      <p className="mt-3 text-sm leading-6 text-neutral-400">{detail}</p>
+    </div>
   );
 }
 

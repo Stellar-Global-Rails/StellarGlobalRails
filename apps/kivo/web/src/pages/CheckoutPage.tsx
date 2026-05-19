@@ -1,5 +1,5 @@
 import { Icon } from '@iconify/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
@@ -37,6 +37,7 @@ import type {
   EtherfuseOnboardingResponse,
   EtherfuseOrderResponse,
   EtherfuseQuoteResponse,
+  PowerSession,
   X402Challenge,
   X402PaidResponse,
   X402UnlockedResponse,
@@ -54,7 +55,11 @@ const shortAsset = (asset: string) => {
 
 export default function CheckoutPage() {
   const etherfuse = useAsyncData(() => kivoClient.getEtherfuseStatus(), []);
+  const powerTotems = useAsyncData(() => kivoClient.listPowerTotems(), []);
   const [selectedResource, setSelectedResource] = useState(x402CheckoutResources[0]);
+  const [selectedTotemId, setSelectedTotemId] = useState('');
+  const [powerSession, setPowerSession] = useState<PowerSession | null>(null);
+  const [authorizedPowerSession, setAuthorizedPowerSession] = useState<PowerSession | null>(null);
   const [txXDR, setTxXDR] = useState('');
   const [challenge, setChallenge] = useState<X402Challenge | null>(null);
   const [paid, setPaid] = useState<X402PaidResponse | null>(null);
@@ -77,6 +82,13 @@ export default function CheckoutPage() {
   const [anchorError, setAnchorError] = useState('');
 
   const checkoutState = getX402CheckoutState({ challenge, paid, unlocked });
+  const selectedPowerTotem = useMemo(
+    () =>
+      (powerTotems.data ?? []).find((totem) => totem.id === selectedTotemId) ??
+      powerTotems.data?.[0] ??
+      null,
+    [powerTotems.data, selectedTotemId],
+  );
   const asset = challenge ? formatX402AssetLabel(challenge.asset) : null;
   const fiatCurrency = etherfuse.data?.default_fiat ?? 'MXN';
   const assets = getEtherfuseAssets(anchorAssets);
@@ -98,6 +110,8 @@ export default function CheckoutPage() {
     setUnlocked(null);
     setTxXDR('');
     setError('');
+    setPowerSession(null);
+    setAuthorizedPowerSession(null);
   };
 
   const runAnchorStep = async <T,>(step: AnchorStep, action: () => Promise<T>, onSuccess: (value: T) => void) => {
@@ -295,6 +309,32 @@ export default function CheckoutPage() {
     }
   };
 
+  const startPowerTotemCheckout = async () => {
+    if (!selectedPowerTotem) {
+      setError('Crie ou selecione um Power Totem antes de iniciar o checkout fisico.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setPaid(null);
+    setUnlocked(null);
+    setAuthorizedPowerSession(null);
+    setTxXDR('');
+    try {
+      const session = await kivoClient.createPowerSession(selectedPowerTotem.id);
+      const checkout = await kivoClient.startPowerSessionCheckout(session.id);
+      setPowerSession(checkout.session);
+      setChallenge(checkout.challenge);
+      if (!anchorWallet.trim()) {
+        setAnchorWallet(checkout.challenge.payTo);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nao foi possivel iniciar o checkout do Power Totem.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const payAndUnlock = async () => {
     if (!challenge) return;
     setLoading(true);
@@ -302,7 +342,12 @@ export default function CheckoutPage() {
     try {
       const paidResponse = await kivoClient.payX402Challenge(challenge.nonce, txXDR);
       setPaid(paidResponse);
-      setUnlocked(await kivoClient.unlockX402Resource(selectedResource.resource, paidResponse.paymentHeader));
+      setUnlocked(await kivoClient.unlockX402Resource(challenge.resource, paidResponse.paymentHeader));
+      if (powerSession) {
+        const authorized = await kivoClient.authorizePowerSession(powerSession.id);
+        setPowerSession(authorized.session);
+        setAuthorizedPowerSession(authorized.session);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Pagamento nao confirmado pela API.');
     } finally {
@@ -450,6 +495,70 @@ export default function CheckoutPage() {
 
       <section className="grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
         <Card className="min-w-0">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Power Totem session</p>
+                <h2 className="mt-2 font-bricolage text-xl font-bold text-white">Checkout para sessao fisica</h2>
+              </div>
+              <Badge tone={authorizedPowerSession ? 'ready' : powerSession ? powerSession.status : 'neutral'}>
+                {authorizedPowerSession ? 'autorizada' : powerSession ? sessionStatusLabel(powerSession.status) : 'sem sessao'}
+              </Badge>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-neutral-300">
+              Este pagamento libera uma sessao fisica no Power Totem. Depois da confirmacao, o Gateway recebe uma autorizacao curta para acionar a saida.
+            </p>
+            <div className="mt-4 grid gap-3">
+              <label className="block">
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">Totem</span>
+                <select
+                  value={selectedPowerTotem?.id ?? ''}
+                  onChange={(event) => {
+                    setSelectedTotemId(event.target.value);
+                    resetPaymentState();
+                  }}
+                  className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-3 text-sm text-white outline-none focus:border-emerald-500"
+                  disabled={powerTotems.loading || (powerTotems.data ?? []).length === 0}
+                >
+                  {(powerTotems.data ?? []).map((totem) => (
+                    <option key={totem.id} value={totem.id}>
+                      {totem.name} - {totem.price}/{totem.unit}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {selectedPowerTotem && (
+                <div className="rounded-xl border border-white/5 bg-black/25 p-3">
+                  <p className="break-all font-mono text-xs text-emerald-200">{selectedPowerTotem.resource}</p>
+                  <p className="mt-1 text-xs text-neutral-500">{selectedPowerTotem.sessionDurationSeconds}s por sessao</p>
+                </div>
+              )}
+              {powerTotems.error && <p className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-100">{powerTotems.error}</p>}
+              {!powerTotems.loading && !selectedPowerTotem && (
+                <Link to="/studio" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
+                  <Icon icon="solar:add-circle-bold-duotone" />
+                  Criar Power Totem no Studio
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={startPowerTotemCheckout}
+                disabled={loading || !selectedPowerTotem}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Icon icon="solar:bolt-circle-bold-duotone" />
+                {loading && selectedPowerTotem ? 'Preparando...' : 'Criar sessao e iniciar x402'}
+              </button>
+              {authorizedPowerSession && (
+                <Link to={`/totems/${authorizedPowerSession.totemId}`} className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-100 hover:bg-emerald-500/15">
+                  <Icon icon="solar:clipboard-list-bold-duotone" />
+                  Ver autorizacao no totem
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Catalogo pago</p>
@@ -496,14 +605,19 @@ export default function CheckoutPage() {
           <button type="button" onClick={requestPrice} disabled={loading} className="mt-5 w-full rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50">
             {loading ? 'Solicitando...' : challenge ? 'Atualizar preco' : 'Ver preco e pagar'}
           </button>
+          </div>
         </Card>
 
         <Card className="min-w-0 overflow-hidden">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Recurso protegido</p>
-              <h2 className="mt-2 font-bricolage text-3xl font-bold text-white">{selectedResource.label}</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-400">{selectedResource.outcome}</p>
+              <h2 className="mt-2 font-bricolage text-3xl font-bold text-white">{powerSession ? 'Sessao fisica Power Totem' : selectedResource.label}</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-400">
+                {powerSession
+                  ? 'Pagamento x402 vinculado a uma sessao fisica. Quando confirmado, a sessao fica pronta para autorizacao do gateway.'
+                  : selectedResource.outcome}
+              </p>
             </div>
             <Badge tone={checkoutState.tone}>{checkoutState.primaryStatus}</Badge>
           </div>
@@ -607,4 +721,18 @@ export default function CheckoutPage() {
       </section>
     </div>
   );
+}
+
+function sessionStatusLabel(status: PowerSession['status']) {
+  const labels: Record<PowerSession['status'], string> = {
+    requested: 'solicitada',
+    payment_required: 'pagamento',
+    paid: 'paga',
+    authorized: 'autorizada',
+    running: 'rodando',
+    completed: 'completa',
+    expired: 'expirada',
+    failed: 'falhou',
+  };
+  return labels[status] ?? status;
 }
