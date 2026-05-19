@@ -77,8 +77,6 @@ async function runAuthorizedSession(
 
   let enabled = false;
   try {
-    await adapter.enable(authorization);
-    enabled = true;
     await client.createGatewayEvent({
       eventType: "session.started",
       sessionId: authorization.id,
@@ -87,6 +85,8 @@ async function runAuthorizedSession(
         durationSeconds: authorization.durationSeconds,
       },
     });
+    await adapter.enable(authorization);
+    enabled = true;
 
     if (shouldWaitForDuration) {
       await sleep(Math.max(0, authorization.durationSeconds) * 1000);

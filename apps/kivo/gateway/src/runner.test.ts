@@ -122,7 +122,7 @@ describe("runOnce", () => {
     expect(waited).toEqual([7000]);
   });
 
-  it("disables output if reporting the start event fails", async () => {
+  it("does not enable output if reporting the start event fails", async () => {
     const adapter = new SimulatorPowerAdapter();
     const client = new FakeGatewayClient({
       id: "session_1",
@@ -137,10 +137,7 @@ describe("runOnce", () => {
     })).rejects.toThrow("Failed to send session.started");
 
     expect(adapter.enabled).toBe(false);
-    expect(adapter.history).toEqual([
-      { action: "enable", sessionId: "session_1" },
-      { action: "disable", sessionId: "session_1" },
-    ]);
+    expect(adapter.history).toEqual([]);
     expect(client.completedSessions).toEqual([]);
   });
 

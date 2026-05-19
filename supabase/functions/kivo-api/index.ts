@@ -1842,6 +1842,7 @@ const handleGateways = async (req: Request, path: string) => {
         input.sessionId.trim()
       ? input.sessionId.trim()
       : "";
+    let session: DbPowerSession | undefined;
     if (sessionId) {
       if (!gateway.totem_id) {
         return apiError(
@@ -1854,7 +1855,7 @@ const handleGateways = async (req: Request, path: string) => {
       const sessions = await selectRows<DbPowerSession>(
         "kivo_power_sessions",
         {
-          select: "id",
+          select: "*",
           id: `eq.${sessionId}`,
           owner_id: `eq.${gateway.owner_id}`,
           gateway_id: `eq.${gateway.id}`,
@@ -1868,6 +1869,83 @@ const handleGateways = async (req: Request, path: string) => {
           404,
           "gateway_session_not_found",
           "Power Session does not belong to this gateway.",
+        );
+      }
+      session = sessions[0];
+    }
+    if (session && eventType === "session.started") {
+      let nextStatus: PowerSessionStatus;
+      try {
+        nextStatus = nextSessionStatus(session.status, "start");
+      } catch (error) {
+        return apiError(
+          req,
+          409,
+          "gateway_session_start_conflict",
+          error instanceof Error
+            ? error.message
+            : "Power Session cannot be started from its current status.",
+        );
+      }
+      const startedAt = nowISO();
+      const updated = await patchRows<DbPowerSession>("kivo_power_sessions", {
+        id: `eq.${session.id}`,
+        owner_id: `eq.${gateway.owner_id}`,
+        gateway_id: `eq.${gateway.id}`,
+        totem_id: `eq.${gateway.totem_id}`,
+        status: "eq.authorized",
+      }, {
+        status: nextStatus,
+        started_at: startedAt,
+        events: [
+          ...session.events,
+          paymentEvent(
+            "Session started",
+            "Gateway claimed authorization and enabled output.",
+            "done",
+          ),
+        ],
+      });
+      if (!updated[0]) {
+        return apiError(
+          req,
+          409,
+          "gateway_session_start_conflict",
+          "Power Session was already claimed or changed status.",
+        );
+      }
+      session = updated[0];
+    }
+    if (session && eventType === "session.completed") {
+      if (session.status === "running") {
+        const completedAt = nowISO();
+        const updated = await patchRows<DbPowerSession>("kivo_power_sessions", {
+          id: `eq.${session.id}`,
+          owner_id: `eq.${gateway.owner_id}`,
+          gateway_id: `eq.${gateway.id}`,
+          totem_id: `eq.${gateway.totem_id}`,
+          status: "eq.running",
+        }, {
+          status: nextSessionStatus(session.status, "complete"),
+          completed_at: completedAt,
+          events: [
+            ...session.events,
+            paymentEvent(
+              "Session completed",
+              "Gateway reported the output cycle completed.",
+              "done",
+            ),
+          ],
+        });
+        if (updated[0]) {
+          session = updated[0];
+        }
+      } else if (session.status !== "completed") {
+        return apiError(
+          req,
+          409,
+          "gateway_session_complete_conflict",
+          "Power Session cannot be completed from its current status.",
         );
       }
     }
