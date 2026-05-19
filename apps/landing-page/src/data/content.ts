@@ -18,6 +18,14 @@ export interface Feature {
   originModule: string;
 }
 
+export interface ProductTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  useCase: string;
+}
+
 export interface Product {
   id: string;
   path: string;
@@ -40,6 +48,8 @@ export interface Product {
     description: string;
   };
   responsibilities: string[];
+  templates?: ProductTemplate[];
+  sdkFeatures?: string[];
   aiAgents: AIAgent[];
   features: Feature[];
   differentials: string[];
@@ -187,7 +197,7 @@ const socialPay: Product = {
   faq: [
     { question: "Preciso entender de blockchain para usar?", answer: "Não. A experiência é idêntica a um app social comum. Chaves, transações e tokens são totalmente abstraídos." },
     { question: "Meus dados de saúde ficam na blockchain?", answer: "Nunca. Os dados ficam cifrados na nuvem. A blockchain guarda apenas as chaves de posse e consentimento." },
-    { question: "Como funciona a monetização dos dados?", answer: "Quando um pesquisador solicita acesso, você aprova ou recusa. Se aprovar, o pagamento em USDC é automático via Kivo Pay." }
+    { question: "Como funciona a monetização dos dados?", answer: "Quando um pesquisador solicita acesso, você aprova ou recusa. Se aprovar, o pagamento em USDC é automático via Kivo payment engine." }
   ],
   finalCta: "Criar minha identidade digital",
   apiSnippet: {
@@ -352,197 +362,260 @@ const contractEase: Product = {
 };
 
 // ============================================================
-// PRODUCT 3: Kivo Pay — Motor de Liquidação Global
+// PRODUCT 3: Kivo — Gateway fisico e digital
 // ============================================================
 
 const kivoPay: Product = {
   id: "kivopay",
   path: "/products/kivo",
-  icon: "solar:wallet-linear",
+  icon: "solar:server-square-cloud-linear",
   color: "#10B981",
   gradient: "from-emerald-500 to-teal-600",
-  name: "Kivo Pay",
-  tagline: "Máquinas precisam de rede. Kivo é a rede.",
+  name: "Kivo",
+  tagline: "Gateway fisico e digital para monetizar acesso.",
   hero: {
-    title: "SDK M2M + Gateway Programável + MCP para Agentes de IA",
-    subtitle: "Infraestrutura de pagamentos para máquinas. Veículos elétricos carregando autonomamente, casas negociando energia, agentes de IA pagando por serviços. Tudo liquidado em 3-5 segundos na Stellar.",
-    ctas: ["Explorar SDK", "Ver Demo"]
+    title: "Gateway fisico e digital para acesso pago",
+    subtitle:
+      "Transforme dispositivos, APIs, agentes de IA, dados e automacoes em recursos pagos com x402, Stellar, Etherfuse e um SDK TypeScript completo.",
+    ctas: ["Explorar Kivo", "Ver arquitetura"]
   },
   problem: {
-    title: "Máquinas precisam de liquidação, não de pagamentos.",
+    title: "Recursos reais e digitais ainda sao dificeis de monetizar com seguranca.",
     items: [
-      "Fiat não consegue liquidar em tempo real para transações autônomas",
-      "Intermediários bloqueiam autonomia das máquinas",
-      "Sem programabilidade de condições em transações tradicionais",
-      "Sem garantia de atomicidade e irreversibilidade instantânea"
+      "Dispositivos fisicos precisam liberar acesso sem expor chaves ou logica critica",
+      "APIs, dados e automacoes precisam cobrar por uso sem montar um checkout do zero",
+      "Agentes de IA precisam pagar por ferramentas e servicos com autorizacao verificavel",
+      "Times querem validar em testnet antes de assumir risco operacional em mainnet"
     ]
   },
   solution: {
-    title: "Uma infraestrutura nativa para a economia de máquinas.",
-    description: "SDK M2M com protocolo x402, Gateway Programável com Path Payments, MCP para conectar agentes de IA. Três camadas de funcionalidade para máquinas transacionarem de forma autônoma, segura e irreversível."
+    title: "Um gateway para proteger, cobrar, validar e liberar acesso.",
+    description:
+      "Kivo combina Gateway fisico ou digital, Studio com AI agents, SDK TypeScript, checkout x402, liquidacao Stellar e trilha Etherfuse para transformar recursos em fluxos pagos testaveis."
   },
   responsibilities: [
-    "SDK M2M: Protocolo x402 com conditional payments e smart contracts",
-    "Gateway Programável: Path Payments, Atomic Bundling, Webhooks",
-    "MCP: Ferramentas para conectar agentes de IA autônomos",
-    "Compliance: ONYX monitora cada transação em tempo real",
-    "Templates: Prontos para EV Charging, Energy Trading, AI Agents"
+    "Gateway fisico: roda perto de Raspberry Pi, totem, kiosk, edge box ou controlador local",
+    "Gateway digital: protege APIs, workers, automacoes, sidecars, proxies e agent tools",
+    "Studio com AI agents: guia a criacao de solucoes customizadas usando o SDK Kivo",
+    "SDK TypeScript: integra checkout, autorizacao, webhooks, gateway pairing e testes",
+    "x402 + Stellar + Etherfuse: valida pagamento, settlement e contexto de anchor/funding",
+    "Private mainnet billing: permite manter flows validados como infraestrutura privada"
   ],
   templates: [
     {
-      id: "ev-charging",
-      name: "EV Charging Network",
-      description: "Veículos elétricos pagando por energia em tempo real",
-      icon: "solar:car-2-linear",
-      useCase: "Eletroposte liquida pagamento de recarga em segundos"
-    },
-    {
-      id: "energy-trading",
-      name: "Energy Trading P2P",
-      description: "Casas vendendo energia solar para vizinhos",
+      id: "power-totem",
+      name: "Power Totem",
+      description: "Template funcional do hackathon para liberar um recurso fisico via gateway",
       icon: "solar:bolt-circle-linear",
-      useCase: "Smart meter negocia e liquida energia automaticamente"
+      useCase: "Raspberry Pi exibe QR, valida x402/Stellar/Etherfuse e libera uma carga segura"
     },
     {
-      id: "ai-agents",
-      name: "Autonomous AI Agents",
-      description: "Agentes pagando por serviços computacionais",
+      id: "api-toll",
+      name: "API Toll",
+      description: "Roadmap para cobrar acesso a endpoints, dados ou automacoes",
+      icon: "solar:programming-linear",
+      useCase: "Gateway digital protege uma API e libera resposta apos pagamento x402"
+    },
+    {
+      id: "agent-tool-paywall",
+      name: "Agent Tool Paywall",
+      description: "Roadmap para agentes de IA pagarem por ferramentas e servicos",
       icon: "solar:cpu-bolt-linear",
-      useCase: "Agent pagando por API calls e compute resources"
+      useCase: "Agente paga por tool call, compute ou dado premium antes de executar"
     }
   ],
   sdkFeatures: [
-    "M2M Protocol (x402) Support",
-    "Conditional Payment Execution",
-    "Zero-Knowledge Proof Integration",
-    "Smart Contract Compatibility",
-    "Webhooks & Real-time Callbacks",
-    "Rate Limiting & Throttling",
-    "Fallback & Redundancy Built-in"
+    "Typed Kivo API client",
+    "x402 challenge helpers",
+    "Gateway pairing helpers",
+    "Resource authorization helpers",
+    "Webhook verification",
+    "Testnet simulator utilities",
+    "Physical and digital gateway examples"
   ],
   aiAgents: [
     {
-      id: "settlement",
-      title: "Agente de Liquidação Inteligente (H2M)",
-      description: "IA que atua como um Radar de Liquidação, escolhendo a rota mais barata e rápida entre Pix, cartões e stablecoins.",
-      icon: "solar:route-linear"
+      id: "studio-architect",
+      title: "Agente Arquiteto do Studio",
+      description:
+        "Ajuda o usuario a descrever o recurso, escolher gateway fisico ou digital, definir restricoes e montar a arquitetura Kivo.",
+      icon: "solar:compass-linear"
     },
     {
-      id: "autonomous",
-      title: "Agente Autônomo (M2M)",
-      description: "IA embarcada em dispositivos IoT (carro elétrico, smart home) que negocia preços de energia, tempo de recarga ou microtransações sem intervenção humana.",
-      icon: "solar:cpu-bolt-linear"
+      id: "integration-builder",
+      title: "Agente Builder de Integracao",
+      description:
+        "Gera configuracao, snippets do SDK TypeScript, adapters de gateway, testes e instrucoes de deploy para o flow.",
+      icon: "solar:code-square-linear"
     },
     {
-      id: "compliance",
-      title: "Agente de Compliance Financeiro",
-      description: "IA que monitora transações em tempo real para detectar lavagem de dinheiro, padrões suspeitos e garantir conformidade regulatória.",
+      id: "testnet-validator",
+      title: "Agente Validador Testnet",
+      description:
+        "Ajuda a validar x402, Stellar, Etherfuse, eventos do gateway, health checks e recibos antes de mainnet.",
       icon: "solar:shield-check-linear"
     },
     {
-      id: "fraud-predictor",
-      title: "Oráculo de Previsão de Fraude",
-      description: "Motor neural de zero-day fraud prediction. Analisa vetores biométricos, device fingerprint e IP velocity para barrar transações fraudulentas antes que atinjam o ledger.",
-      icon: "solar:radar-2-linear"
+      id: "billing-advisor",
+      title: "Agente de Mainnet Billing",
+      description:
+        "Explica o caminho comercial: manter o flow privado em mainnet ou publicar um template sanitizado com consentimento.",
+      icon: "solar:wallet-money-linear"
     }
   ],
   features: [
     {
-      id: "m2m-protocol",
-      name: "M2M Protocol (x402)",
-      description: "Pagamentos autônomos via protocolo x402 sem intervenção humana. Máquinas negociando e pagando diretamente com lógica embarcada.",
-      icon: "solar:cpu-bolt-linear",
-      originModule: "Kivo Core"
-    },
-    {
-      id: "conditional-payments",
-      name: "Conditional Execution",
-      description: "Pague apenas quando condições são cumpridas. Smart contracts Soroban integrados com lógica de negócio.",
-      icon: "solar:settings-linear",
-      originModule: "Soroban"
-    },
-    {
-      id: "iot-financial",
-      name: "IoT Financial",
-      description: "Veículos, smart homes e dispositivos IoT transacionando autonomamente. Micropagamentos contínuos via payment channels.",
+      id: "physical-gateway",
+      name: "Gateway fisico",
+      description:
+        "Rode o Kivo perto de Raspberry Pi, totem, kiosk, edge box ou controlador local para liberar um recurso real apos autorizacao paga.",
       icon: "solar:devices-linear",
-      originModule: "QuiloVolt"
+      originModule: "Gateway"
     },
     {
-      id: "smart-contracts",
-      name: "Smart Contracts",
-      description: "Contratos inteligentes Soroban com lógica de negócio embarcada. Execução automática baseada em eventos.",
-      icon: "solar:document-text-linear",
-      originModule: "Soroban"
+      id: "digital-gateway",
+      name: "Gateway digital",
+      description:
+        "Proteja APIs, workers, automacoes, proxies, sidecars e ferramentas de agentes com cobranca por acesso via x402.",
+      icon: "solar:server-square-cloud-linear",
+      originModule: "Gateway"
     },
     {
-      id: "webhooks-m2m",
-      name: "Webhooks & Event-Driven",
-      description: "Comunicação em tempo real entre máquinas. Event-driven architecture para reatividade instantânea.",
-      icon: "solar:widget-2-linear",
-      originModule: "Kivo Core"
+      id: "studio-ai-agents",
+      name: "Studio com AI agents",
+      description:
+        "Descreva o que quer construir e deixe agentes guiarem arquitetura, SDK, testes, adapters e validacao em testnet.",
+      icon: "solar:stars-linear",
+      originModule: "Studio"
     },
     {
-      id: "zero-intermediaries",
-      name: "Zero Intermediários",
-      description: "Comunicação P2P direta entre máquinas. Nenhum terceiro no meio. Liquidação direta na Stellar.",
-      icon: "solar:shield-check-linear",
-      originModule: "Stellar"
+      id: "typescript-sdk",
+      name: "SDK TypeScript completo",
+      description:
+        "Cliente tipado, helpers x402, pairing de gateway, autorizacao de recursos, verificacao de webhooks e exemplos de deploy.",
+      icon: "solar:code-square-linear",
+      originModule: "SDK"
+    },
+    {
+      id: "x402-checkout",
+      name: "Checkout x402",
+      description:
+        "Transforme um recurso protegido em pagamento verificavel: requisito x402, liquidacao Stellar, autorizacao Kivo e recibo.",
+      icon: "solar:card-recive-linear",
+      originModule: "x402"
+    },
+    {
+      id: "etherfuse-rail",
+      name: "Etherfuse rail",
+      description:
+        "Mostre a trilha de anchor/funding junto da validacao Stellar, sem esconder a rota financeira por tras do acesso pago.",
+      icon: "solar:link-round-angle-linear",
+      originModule: "Etherfuse"
+    },
+    {
+      id: "private-mainnet-billing",
+      name: "Private mainnet billing",
+      description:
+        "Depois de validar em testnet, o usuario paga para manter o flow privado em mainnet ou opta por publicar um template sanitizado.",
+      icon: "solar:lock-keyhole-linear",
+      originModule: "Billing"
+    },
+    {
+      id: "power-totem-template",
+      name: "Power Totem",
+      description:
+        "Template funcional do hackathon: QR em um totem, pagamento x402, validacao Stellar/Etherfuse e gateway liberando uma carga segura.",
+      icon: "solar:bolt-circle-linear",
+      originModule: "Template"
     }
   ],
   differentials: [
-    "M2M Protocol (x402) — Pagamentos autônomos sem intervenção humana",
-    "Liquidação T+0 — 3 a 5 segundos na Stellar Network",
-    "Conditional Execution — Pague apenas quando condições são cumpridas",
-    "Zero Intermediários — P2P direto entre máquinas",
-    "Pronto para Agentes de IA — MCP nativo integrado e funcionando",
-    "Compliance Automático — ONYX monitora cada transação em tempo real"
+    "Gateway fisico e digital no mesmo modelo de autorizacao",
+    "Studio com AI agents para criar solucoes customizadas",
+    "SDK TypeScript completo para integrar em sistemas reais",
+    "x402 + Stellar + Etherfuse visiveis no fluxo de validacao",
+    "Power Totem como template funcional do hackathon",
+    "Private mainnet billing para flows validados e privados"
   ],
   steps: [
-    "Integre o SDK M2M via NPM ou API Gateway",
-    "Implemente contratos inteligentes com lógica de negócio",
-    "Configure webhooks para comunicação em tempo real",
-    "Conecte agentes de IA via MCP",
-    "Teste em Stellar Testnet",
-    "Deploy em produção com Stellar Public Network"
+    "Descreva o recurso que voce quer monetizar no Kivo Studio",
+    "Escolha gateway fisico, gateway digital ou fluxo hibrido",
+    "Gere configuracao, SDK code, adapters e checklist com AI agents",
+    "Valide x402, Stellar, Etherfuse, health e recibos em testnet",
+    "Publique como flow privado em mainnet com billing Kivo",
+    "Ou transforme a solucao em template publico sanitizado com consentimento"
   ],
   forWhom: [
-    "Operadores de redes de recarga EV (eletrificação veicular)",
-    "Plataformas de trading de energia (smart grids)",
-    "Startups de agentes de IA autônomos",
-    "IoT industrial e dispositivos conectados",
-    "Pesquisadores de economia descentralizada de máquinas"
+    "Builders criando gateways fisicos com Raspberry Pi, totems, kiosks e edge devices",
+    "Times que querem cobrar acesso a APIs, dados, automacoes e workflows",
+    "Empresas que precisam monetizar recursos privados sem montar billing do zero",
+    "Criadores de agentes de IA que precisam pagar ou cobrar por ferramentas",
+    "Operadores que querem validar em testnet antes de publicar em mainnet"
   ],
   benefits: [
-    { icon: "lucide:check-circle", title: "Zero Intermediários", description: "Comunicação direta machine-to-machine sem terceiros bloqueando autonomia." },
-    { icon: "lucide:zap", title: "Autonomous Execution", description: "Agentes tomam decisões e executam pagamentos sem intervenção humana." },
-    { icon: "lucide:code", title: "Programmable Payments", description: "Lógica de negócio embarcada com smart contracts Soroban." }
+    {
+      icon: "lucide:split-square-horizontal",
+      title: "Fisico e digital",
+      description: "O mesmo modelo protege uma carga fisica, uma API, uma automacao ou uma ferramenta de agente."
+    },
+    {
+      icon: "lucide:bot",
+      title: "Construido com AI agents",
+      description: "Studio guia arquitetura, codigo, testes e publicacao sem exigir que o usuario comece do zero."
+    },
+    {
+      icon: "lucide:shield-check",
+      title: "Validacao antes da mainnet",
+      description: "Testnet primeiro, pagamento privado depois, com Etherfuse e Stellar visiveis no caminho."
+    }
   ],
   techDetails: {
-    description: "O Kivo Pay combina o protocolo nativo da Stellar com Soroban smart contracts para criar um motor de liquidação programável que atende tanto humanos (H2M) quanto máquinas (M2M).",
+    description:
+      "Kivo coordena recurso, politica, requisito x402, validacao Stellar, contexto Etherfuse, autorizacao, gateway execution, recibos e health events.",
     points: [
-      "Path Payment Strict Receive para conversão on-the-fly de ativos",
-      "Atomic Transaction Bundling (até 100 operações por tx) para pagamentos em massa",
-      "Protocolo x402 da Stellar para micropagamentos M2M autônomos",
-      "Integração com âncoras locais brasileiras via SEP-24 para Pix",
-      "Payment Channels para micro-pagamentos IoT contínuos",
-      "Hardware NFC compatível para POS offline (Kivo Terminal)",
-      "Webhook callbacks para confirmação de recebimento em tempo real",
-      "Multi-sig para aprovação corporativa de lotes de alto valor"
+      "Resource policy define preco, duracao, unidade e permissao",
+      "x402 challenge bloqueia acesso ate existir pagamento valido",
+      "Stellar confirma settlement e prova transacional",
+      "Etherfuse aparece como trilha de anchor/funding para o ativo usado",
+      "Gateway fisico ou digital libera o recurso somente apos autorizacao",
+      "SDK TypeScript oferece client, helpers, webhooks e exemplos",
+      "Studio com AI agents gera arquitetura, adapters, testes e setup",
+      "Private mainnet billing monetiza flows que o usuario quer manter privados"
     ]
   },
   faq: [
-    { question: "Qual é a diferença entre H2M e M2M?", answer: "H2M (Human-to-Machine) é para pessoas transacionando com sistemas. M2M (Machine-to-Machine) é máquinas negociando e pagando entre si de forma autônoma, sem intervenção humana." },
-    { question: "Como os agentes de IA pagam?", answer: "Agentes conectados ao MCP Kivo podem chamar kivo_create_payment para iniciar transações. O sistema executa automaticamente baseado em smart contracts pré-definidos." },
-    { question: "Qual é a latência de transação?", answer: "3 a 5 segundos da criação à confirmação final e irreversibilidade na Stellar Network. Zero intermediários para bloquear ou atrasar." },
-    { question: "Preciso entender de blockchain?", answer: "Para usar o SDK M2M, você só precisa entender APIs REST. A complexidade de blockchain é abstraída. Conheça a documentação sobre protocolo x402." },
-    { question: "Como é garantida a conformidade?", answer: "Toda transação M2M passa pelo ONYX Compliance Engine em tempo real. Monitoramento contínuo de padrões suspeitos e conformidade regulatória." }
+    {
+      question: "Kivo e apenas um gateway fisico?",
+      answer:
+        "Nao. Kivo pode rodar perto de hardware, como Raspberry Pi e totems, mas tambem pode proteger APIs, workers, automacoes, proxies, sidecars e ferramentas digitais."
+    },
+    {
+      question: "Onde entram x402, Stellar e Etherfuse?",
+      answer:
+        "x402 cria o requisito de pagamento, Stellar valida settlement e prova transacional, e Etherfuse aparece como contexto de anchor/funding para o caminho financeiro."
+    },
+    {
+      question: "O que o Kivo Studio faz?",
+      answer:
+        "Studio usa AI agents para ajudar o usuario a modelar a solucao, gerar SDK code, configurar gateway, criar testes e validar o flow em testnet."
+    },
+    {
+      question: "O que existe funcional para o hackathon?",
+      answer:
+        "O template funcional e o Power Totem: QR checkout, pagamento x402, validacao Stellar/Etherfuse e gateway liberando um recurso fisico seguro."
+    },
+    {
+      question: "Como Kivo ganha dinheiro?",
+      answer:
+        "O usuario testa em testnet. Se quiser manter um flow privado em mainnet, paga pelo private mainnet billing. Caso nao pague, pode optar por publicar um template sanitizado com consentimento."
+    }
   ],
-  finalCta: "Explorar SDK M2M",
+  finalCta: "Explorar Kivo",
   apiSnippet: {
     method: "POST",
-    endpoint: "/v1/m2m/create-payment",
-    body: '{"from_device": "EV-001", "to_device": "charger-05", "amount": 2.50, "condition": "energy_delivered_kwh:10", "timeout": 3600}'
+    endpoint: "/v1/resources/power-totem/access",
+    body:
+      '{"resource_id":"power-totem-rj-01","price":"1.00","asset":"USDC","condition":"session_60_seconds"}'
   }
 };
 
@@ -551,6 +624,8 @@ const kivoPay: Product = {
 // ============================================================
 
 export const productsData: Product[] = [socialPay, contractEase, kivoPay];
+
+export const modulesData = productsData;
 
 // Helper: find product by ID or path
 export function getProductBySlug(slug: string): Product | undefined {

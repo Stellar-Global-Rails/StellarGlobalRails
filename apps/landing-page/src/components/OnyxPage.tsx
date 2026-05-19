@@ -106,7 +106,7 @@ export default function OnyxPage() {
           <div className="flex-1">
             <h2 className="text-3xl md:text-4xl font-bricolage text-white mb-6">Presente em toda a Suíte</h2>
             <p className="text-white/50 text-lg leading-relaxed mb-8">
-              O ONYX não é um módulo isolado que você precisa integrar. Ele é a camada de segurança inerente ao <strong>SocialPay</strong>, <strong>ContractEase</strong> e <strong>Kivo Pay</strong>. Nenhuma transação é executada sem o carimbo de conformidade do ONYX.
+              O ONYX não é um módulo isolado que você precisa integrar. Ele é a camada de segurança inerente ao <strong>SocialPay</strong>, <strong>ContractEase</strong> e <strong>Kivo</strong>. Nenhuma transação é executada sem o carimbo de conformidade do ONYX.
             </p>
             <div className="flex gap-4">
               <div className="flex flex-col items-center gap-2">

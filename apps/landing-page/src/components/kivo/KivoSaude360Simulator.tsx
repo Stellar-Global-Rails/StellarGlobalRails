@@ -16,7 +16,7 @@ export default function KivoSaude360Simulator() {
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-5xl font-bricolage text-white mb-6">Simulador Saúde 360</h2>
         <p className="text-white/50 text-lg max-w-2xl mx-auto">
-          Veja como a infraestrutura de carteira do Kivo Pay viabiliza a monetização de dados de saúde. Você aprova o acesso e os fundos caem instantaneamente na sua Wallet.
+          Veja como o Kivo payment engine viabiliza a monetização de dados de saúde. Você aprova o acesso e os fundos caem instantaneamente na sua Wallet.
         </p>
       </div>
 

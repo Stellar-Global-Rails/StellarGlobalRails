@@ -1,12 +1,31 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo Pay — Roadmap & Technical Decisions"
-description: "Current build status, phased implementation plan, open technical decisions, and changelog for Kivo Pay."
+title: "Kivo — Roadmap & Technical Decisions"
+description: "Current build status, phased implementation plan, open technical decisions, and changelog for Kivo."
 ---
 
 # Roadmap & Technical Decisions
 
-This document tracks where Kivo Pay is today, where it is going, the open architectural questions that are not yet resolved, and a changelog of significant decisions.
+This document tracks where Kivo is today, where it is going, the open architectural questions that are not yet resolved, and a changelog of significant decisions.
+
+---
+
+## Hackathon
+
+- Power Totem as the functional template.
+- Kivo Gateway physical flow.
+- x402, Stellar, and Etherfuse validation visible.
+- Health/status and receipt surfaces.
+
+---
+
+## After Hackathon
+
+- Kivo Studio as a Tauri app with AI agents.
+- Complete TypeScript SDK.
+- Digital gateway adapters.
+- Private mainnet billing.
+- Additional templates: API Toll, Agent Tool Paywall, Compute Gate, Automation Gate, IoT Device Access, EV Charging, and P2P Energy.
 
 ---
 
@@ -218,12 +237,12 @@ Go + Fiber, sqlc, pgx v5, and Supabase PostgreSQL selected as the core technolog
 After reviewing the Anthropic MCP specification, the Kivo MCP server was added to the product roadmap as Layer 3. Tool specifications drafted for `kivo_create_payment`, `kivo_check_status`, `kivo_execute_contract`, `kivo_subscribe_webhook`, `kivo_simulate_payment`.
 
 ### 2025-03-01 — Project Initiated
-Kivo Pay initiated as the third product in the Stellar Global Rails platform, targeting M2M payments and the emerging AI Agent Economy.
+Kivo initiated as the third product in the Stellar Global Rails platform, targeting M2M payments and the emerging AI Agent Economy.
 
 ---
 
 ## Contributing
 
-Kivo Pay is pre-launch. If you are building M2M payment infrastructure, AI agent tooling, or EV charging systems and want to integrate Kivo, reach out via the SGR platform or open a discussion on the GitHub repository.
+Kivo is pre-launch. If you are building M2M payment infrastructure, AI agent tooling, or EV charging systems and want to integrate Kivo, reach out via the SGR platform or open a discussion on the GitHub repository.
 
 Architecture proposals, alternative ADRs, and use case contributions are welcome. Open a GitHub Issue tagged `RFC` for substantive architectural changes.

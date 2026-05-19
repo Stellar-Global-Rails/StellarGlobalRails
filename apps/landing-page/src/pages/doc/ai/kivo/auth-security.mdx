@@ -1,12 +1,12 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo Pay — Auth & Security"
+title: "Kivo — Auth & Security"
 description: "Two-realm authentication, device API key lifecycle, JWT verification, x402 payment verification, RLS device isolation, and replay attack prevention."
 ---
 
 # Auth & Security
 
-Kivo Pay operates two authentication realms simultaneously: human dashboard users authenticated via Supabase Auth, and autonomous devices authenticated via hashed API keys. This document covers both realms, the security properties of each, and the defense-in-depth mechanisms protecting payments.
+Kivo operates two authentication realms simultaneously: human Studio/dashboard users authenticated via Supabase Auth, and physical or digital gateways authenticated via hashed API keys. This document covers both realms, the security properties of each, and the defense-in-depth mechanisms protecting paid access.
 
 ---
 

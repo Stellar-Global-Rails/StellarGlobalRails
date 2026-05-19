@@ -112,7 +112,7 @@ export default function KivoSimulator() {
                   {/* @ts-ignore */}
                   <iconify-icon icon="solar:bolt-circle-linear" width="24"></iconify-icon>
                 </div>
-                <h3 className="text-xl font-medium text-white">Kivo Pay</h3>
+                <h3 className="text-xl font-medium text-white">Kivo</h3>
               </div>
               <span className="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-mono uppercase tracking-widest border border-emerald-500/20">Recomendado</span>
             </div>

@@ -10,9 +10,9 @@ Bem-vindo à documentação oficial consolidada dos produtos centrais do **Stell
 
 ---
 
-## 1. Kivo Pay (O Motor de Liquidação)
+## 1. Kivo (Gateway e settlement engine)
 
-O **Kivo Pay** é o coração financeiro da infraestrutura. Ele atua como um gateway e roteador de liquidez atômica, abstraindo a complexidade da rede Stellar e dos contratos Soroban.
+O **Kivo** é o gateway físico e digital da infraestrutura. Ele protege recursos, valida pagamentos via x402/Stellar/Etherfuse e usa o Kivo settlement engine quando o contexto exige liquidação, Pix ou conversão em tempo real.
 
 ### 🎯 Problema que Resolve
 Pagamentos cross-border e B2B tradicionais são lentos (D+2) e caros (taxas SWIFT + spreads altos). Empresas precisam de liquidez instantânea e custos microscópicos.
@@ -21,7 +21,7 @@ Pagamentos cross-border e B2B tradicionais são lentos (D+2) e caros (taxas SWIF
 - **Liquidação em 3 segundos** via USDC/BRZ na rede Stellar.
 - **Integração Híbrida:** Suporte a PIX, cartões e open finance na entrada (on-ramp) e saída (off-ramp) via âncoras locais.
 - **Path Payment Strict Receive:** O usuário paga em BRL, e o recebedor obtém USDC na outra ponta de forma atômica e sem flutuação cambial durante o roteamento.
-- **Kivo Payouts (Lote):** Envio massivo de saldos para centenas de endpoints de uma só vez, com conciliação automática.
+- **Kivo Gateway (Lote):** Envio massivo de saldos para centenas de endpoints de uma só vez, com conciliação automática.
 
 ### 🏗️ Arquitetura
 1. **API Gateway:** Endpoints RESTful para emissão de invoices e links de pagamento.
@@ -71,7 +71,7 @@ Endereços de blockchain são complexos (`GABC123...`). Onboarding no mundo crip
 ## Como eles se conectam?
 
 O **Stellar Global Rails** prova que essas verticais não são produtos isolados:
-Um **Contrato** gerado no *ContractEase* utiliza a identidade verificada pelo *SocialPay* e liquida os fundos travados em escrow usando a engine de roteamento e off-ramp do *Kivo Pay*.
+Um **Contrato** gerado no *ContractEase* utiliza a identidade verificada pelo *SocialPay* e liquida os fundos travados em escrow usando o Kivo settlement engine.
 
 > **Para Desenvolvedores:**  
 > Todas essas funcionalidades são expostas em nossa API unificada e Webhooks. Comece a integrar acessando o Dashboard de Desenvolvedor.

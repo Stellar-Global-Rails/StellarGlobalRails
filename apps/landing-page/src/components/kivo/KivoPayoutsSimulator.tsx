@@ -12,7 +12,7 @@ const generateItems = () => Array.from({ length: 50 }).map((_, i) => {
   };
 });
 
-export default function KivoPayoutsSimulator() {
+export default function KivooutsSimulator() {
   const [step, setStep] = useState(0);
   const [items] = useState(generateItems());
   const [paidCount, setPaidCount] = useState(0);
@@ -51,7 +51,7 @@ export default function KivoPayoutsSimulator() {
   return (
     <section className="px-6 max-w-5xl mx-auto mb-32 gs-fade-up">
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-5xl font-bricolage text-white mb-6">Simulador Kivo Payouts</h2>
+        <h2 className="text-3xl md:text-5xl font-bricolage text-white mb-6">Simulador Kivo Gateway</h2>
         <p className="text-white/50 text-lg">Envie dezenas de pagamentos simultâneos sem pagar taxas Swift usando o motor de Payouts do Kivo.</p>
       </div>
 

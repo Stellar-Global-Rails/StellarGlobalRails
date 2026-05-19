@@ -84,7 +84,7 @@ export default function Ecosystem() {
                 onClick={() => window.location.href = '/modules/kivopay'}
               >
                 <div className="absolute inset-0 z-0">
-                  <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80" className="w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-105 transition-all duration-1000 ease-out grayscale group-hover:grayscale-0" alt="Kivo Terminal" />
+                  <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80" className="w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-105 transition-all duration-1000 ease-out grayscale group-hover:grayscale-0" alt="Kivo physical gateway" />
                   <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent"></div>
                 </div>
 

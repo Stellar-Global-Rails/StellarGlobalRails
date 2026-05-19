@@ -47,7 +47,7 @@ export default function KivoQuiloVoltSimulator() {
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-5xl font-bricolage text-white mb-6">Simulador QuiloVolt EV</h2>
         <p className="text-white/50 text-lg max-w-2xl mx-auto">
-          Postos de recarga elétrica inteligentes integrados ao Kivo Terminal, permitindo pagamentos streaming via hold de saldo no cartão.
+          Roadmap de recarga elétrica com gateways físicos Kivo, liberando energia somente após autorização paga.
         </p>
       </div>
 

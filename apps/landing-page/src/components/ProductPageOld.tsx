@@ -9,7 +9,7 @@ import KivoOffRamp from './kivo/KivoOffRamp';
 import KivoSandbox from './kivo/KivoSandbox';
 import KivoEcosystem from './kivo/KivoEcosystem';
 import KivoInvoiceSimulator from './kivo/KivoInvoiceSimulator';
-import KivoPayoutsSimulator from './kivo/KivoPayoutsSimulator';
+import KivooutsSimulator from './kivo/KivooutsSimulator';
 import KivoSafeCheckoutSimulator from './kivo/KivoSafeCheckoutSimulator';
 import KivoVakinhaSimulator from './kivo/KivoVakinhaSimulator';
 import KivoFamilyBridgeSimulator from './kivo/KivoFamilyBridgeSimulator';
@@ -158,7 +158,7 @@ export default function ProductPage({ slug = '' }: Props) {
     );
   }
 
-  const isKivoCore = productData.id === 'kivopay';
+  const isKivoCore = productData.id === 'Kivo';
   
   const heroTitle = isDev 
     ? (isKivoCore 
@@ -317,7 +317,7 @@ export default function ProductPage({ slug = '' }: Props) {
                 >
                   <pre><code>
 {`// Example integration ${productData.id}
-import { KivoClient } from '@kivopay/sdk';
+import { KivoClient } from '@Kivo/sdk';
 
 const kivo = new KivoClient(process.env.KIVO_API_KEY);
 
@@ -491,7 +491,7 @@ console.log(response.status); // "READY" - 3s latency`}
         </button>
       </section>
 
-      {productData.id === 'kivopay' && (
+      {productData.id === 'Kivo' && (
         <>
           <KivoShowcase />
           <KivoEcosystem />
@@ -500,12 +500,12 @@ console.log(response.status); // "READY" - 3s latency`}
           <KivoOffRamp />
           <KivoSandbox />
           <KivoInvoiceSimulator />
-          <KivoPayoutsSimulator />
+          <KivooutsSimulator />
           <KivoFamilyBridgeSimulator />
           <KivoQuiloVoltSimulator />
           <div className="px-6 max-w-3xl mx-auto mb-32 gs-fade-up">
              <div className="text-center mb-8">
-               <h2 className="text-2xl font-bricolage text-white">Kivo CLI Simulado</h2>
+               <h2 className="text-2xl font-bricolage text-white">SDK / Gateway setup</h2>
                <p className="text-white/50 text-sm">Controle a infraestrutura direto do terminal</p>
              </div>
              <KivoTerminalCLI />
