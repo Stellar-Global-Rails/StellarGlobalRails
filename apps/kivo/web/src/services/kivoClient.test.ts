@@ -378,6 +378,75 @@ describe('HttpKivoApiClient', () => {
 
     expect(errorMessage).toBe('valid Supabase JWT or Kivo API key is required');
   });
+
+  it('creates Studio solution intents through the real API route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let body = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        body = String(init?.body ?? '');
+        return jsonResponse({
+          id: 'intent_power_api',
+          prompt: 'Quero cobrar por uma API de dados',
+          surface: 'digital',
+          interactionModel: 'M2M',
+          recommendedGatewayMode: 'api_guard',
+          createdAt: '2026-05-19T12:00:00Z',
+        });
+      },
+    });
+
+    const intent = await client.createStudioIntent({
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+    });
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/studio/intents');
+    expect(method).toBe('POST');
+    expect(JSON.parse(body)).toEqual({
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+    });
+    expect(intent.recommendedGatewayMode).toBe('api_guard');
+  });
+
+  it('starts validation runs without returning fabricated success', async () => {
+    let requestedUrl = '';
+    let method = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        return jsonResponse({
+          id: 'val_1',
+          flowId: 'flow_1',
+          status: 'needs_connection',
+          steps: [
+            {
+              id: 'gateway',
+              label: 'Gateway',
+              status: 'needs_connection',
+              message: 'Conecte um Gateway antes de validar',
+            },
+          ],
+          createdAt: '2026-05-19T12:00:00Z',
+          updatedAt: '2026-05-19T12:00:00Z',
+        });
+      },
+    });
+
+    const validation = await client.startStudioValidation('flow_1');
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/studio/flows/flow_1/validation-runs');
+    expect(method).toBe('POST');
+    expect(validation.status).toBe('needs_connection');
+    expect(validation.status).not.toBe('passed');
+  });
 });
 
 const jsonResponse = (payload: unknown, status = 200) =>

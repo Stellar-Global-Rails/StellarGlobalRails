@@ -23,6 +23,7 @@ import type {
   Gateway,
   GatewayEvent,
   GatewayPairingResult,
+  KivoGatewayMode,
   McpAgentConfig,
   McpTool,
   McpToolCallResult,
@@ -30,6 +31,13 @@ import type {
   PowerSession,
   PowerTotem,
   RegisterDeviceInput,
+  SdkExportBundle,
+  StudioFlow,
+  StudioIntent,
+  StudioIntentInput,
+  StudioLaunchOption,
+  StudioTemplateSummary,
+  StudioValidationRun,
   SystemHealth,
   Webhook,
   WebhookDelivery,
@@ -95,6 +103,16 @@ export interface KivoApiClient {
   createEtherfuseOrder(input: EtherfuseOrderInput): Promise<EtherfuseOrderResponse>;
   getEtherfuseOrder(orderId: string): Promise<EtherfuseOrderResponse>;
   signalEtherfuseFiatReceived(orderId: string): Promise<EtherfuseOrderResponse>;
+  createStudioIntent(input: StudioIntentInput): Promise<StudioIntent>;
+  listStudioFlows(): Promise<StudioFlow[]>;
+  getStudioFlow(id: string): Promise<StudioFlow>;
+  createStudioFlow(intentId: string): Promise<StudioFlow>;
+  updateStudioGatewayMode(flowId: string, gatewayMode: KivoGatewayMode): Promise<StudioFlow>;
+  getSdkExportBundle(flowId: string): Promise<SdkExportBundle>;
+  startStudioValidation(flowId: string): Promise<StudioValidationRun>;
+  getStudioValidationRun(flowId: string, runId: string): Promise<StudioValidationRun>;
+  listStudioLaunchOptions(flowId: string): Promise<StudioLaunchOption[]>;
+  listStudioTemplates(): Promise<StudioTemplateSummary[]>;
 }
 
 type Fetcher = typeof fetch;
@@ -346,6 +364,51 @@ export class HttpKivoApiClient implements KivoApiClient {
 
   async signalEtherfuseFiatReceived(orderId: string): Promise<EtherfuseOrderResponse> {
     return this.request(`/v1/etherfuse/orders/${encodeURIComponent(orderId)}/fiat-received`, { method: 'POST' });
+  }
+
+  async createStudioIntent(input: StudioIntentInput): Promise<StudioIntent> {
+    return this.request('/v1/studio/intents', { method: 'POST', body: JSON.stringify(input) });
+  }
+
+  async listStudioFlows(): Promise<StudioFlow[]> {
+    return this.request('/v1/studio/flows');
+  }
+
+  async getStudioFlow(id: string): Promise<StudioFlow> {
+    return this.request(`/v1/studio/flows/${encodeURIComponent(id)}`);
+  }
+
+  async createStudioFlow(intentId: string): Promise<StudioFlow> {
+    return this.request('/v1/studio/flows', { method: 'POST', body: JSON.stringify({ intentId }) });
+  }
+
+  async updateStudioGatewayMode(flowId: string, gatewayMode: KivoGatewayMode): Promise<StudioFlow> {
+    return this.request(`/v1/studio/flows/${encodeURIComponent(flowId)}/gateway-mode`, {
+      method: 'PUT',
+      body: JSON.stringify({ gatewayMode }),
+    });
+  }
+
+  async getSdkExportBundle(flowId: string): Promise<SdkExportBundle> {
+    return this.request(`/v1/studio/flows/${encodeURIComponent(flowId)}/sdk-export`);
+  }
+
+  async startStudioValidation(flowId: string): Promise<StudioValidationRun> {
+    return this.request(`/v1/studio/flows/${encodeURIComponent(flowId)}/validation-runs`, { method: 'POST' });
+  }
+
+  async getStudioValidationRun(flowId: string, runId: string): Promise<StudioValidationRun> {
+    return this.request(
+      `/v1/studio/flows/${encodeURIComponent(flowId)}/validation-runs/${encodeURIComponent(runId)}`,
+    );
+  }
+
+  async listStudioLaunchOptions(flowId: string): Promise<StudioLaunchOption[]> {
+    return this.request(`/v1/studio/flows/${encodeURIComponent(flowId)}/launch-options`);
+  }
+
+  async listStudioTemplates(): Promise<StudioTemplateSummary[]> {
+    return this.request('/v1/studio/templates');
   }
 
   private async request<T>(path: string, init: RequestInit = {}): Promise<T> {
