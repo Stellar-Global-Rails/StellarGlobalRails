@@ -757,6 +757,45 @@ const isStudioValidationStatus = (
   typeof value === "string" &&
   studioValidationStatuses.includes(value as StudioValidationStatus);
 
+const invalidStudioEnumError = (
+  req: Request,
+  key: string,
+  allowed: string[],
+) =>
+  apiError(
+    req,
+    400,
+    "invalid_studio_intent",
+    `${key} must be one of: ${allowed.join(", ")}.`,
+  );
+
+const validateStudioEnumInputs = (
+  req: Request,
+  input: Record<string, unknown>,
+) => {
+  if (
+    input.surface !== undefined && !isStudioSurface(input.surface)
+  ) {
+    return invalidStudioEnumError(req, "surface", studioSurfaces);
+  }
+  if (
+    input.interactionModel !== undefined &&
+    !isStudioInteractionModel(input.interactionModel)
+  ) {
+    return invalidStudioEnumError(
+      req,
+      "interactionModel",
+      studioInteractionModels,
+    );
+  }
+  if (
+    input.gatewayMode !== undefined && !isStudioGatewayMode(input.gatewayMode)
+  ) {
+    return invalidStudioEnumError(req, "gatewayMode", studioGatewayModes);
+  }
+  return undefined;
+};
+
 const inferStudioSurface = (prompt: string): StudioSurface => {
   const normalized = prompt.toLowerCase();
   const physical = normalized.includes("energia") ||
@@ -798,12 +837,17 @@ const handleStudio = async (req: Request, path: string) => {
   }
 
   if (path === "/v1/studio/intents" && req.method === "POST") {
+    await requireUser(req);
     const input = await req.json().catch(() => ({})) as {
       prompt?: unknown;
       surface?: unknown;
       interactionModel?: unknown;
       gatewayMode?: unknown;
     };
+    const enumError = validateStudioEnumInputs(req, input);
+    if (enumError) {
+      return enumError;
+    }
     const prompt = typeof input.prompt === "string" ? input.prompt.trim() : "";
     if (!prompt) {
       return apiError(
@@ -835,6 +879,7 @@ const handleStudio = async (req: Request, path: string) => {
   }
 
   if (path === "/v1/studio/flows" && req.method === "POST") {
+    await requireUser(req);
     const input = await req.json().catch(() => ({})) as {
       intentId?: unknown;
       prompt?: unknown;
@@ -842,6 +887,10 @@ const handleStudio = async (req: Request, path: string) => {
       interactionModel?: unknown;
       gatewayMode?: unknown;
     };
+    const enumError = validateStudioEnumInputs(req, input);
+    if (enumError) {
+      return enumError;
+    }
     const prompt = typeof input.prompt === "string" && input.prompt.trim()
       ? input.prompt.trim()
       : "Novo Kivo flow";
@@ -870,6 +919,7 @@ const handleStudio = async (req: Request, path: string) => {
     /^\/v1\/studio\/flows\/([^/]+)\/validation-runs$/,
   );
   if (validationRun && req.method === "POST") {
+    await requireUser(req);
     const now = nowISO();
     return json(req, 201, {
       id: `validation_${crypto.randomUUID()}`,
@@ -888,13 +938,13 @@ const handleStudio = async (req: Request, path: string) => {
         {
           id: "x402",
           label: "x402",
-          status: "blocked",
+          status: "pending",
           message: "A validacao x402 depende do gateway conectado.",
         },
         {
           id: "etherfuse",
           label: "Etherfuse",
-          status: "blocked",
+          status: "not_configured",
           message: "A validacao Etherfuse roda depois do pagamento testnet.",
         },
       ],
@@ -905,6 +955,7 @@ const handleStudio = async (req: Request, path: string) => {
     /^\/v1\/studio\/flows\/([^/]+)\/launch-options$/,
   );
   if (launchOptions && req.method === "GET") {
+    await requireUser(req);
     const url = new URL(req.url);
     const rawStatus = url.searchParams.get("validationStatus") ??
       "needs_connection";
