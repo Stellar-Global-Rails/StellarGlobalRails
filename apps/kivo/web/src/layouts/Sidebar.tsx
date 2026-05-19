@@ -8,10 +8,13 @@ const navGroups = [
     title: 'Produto',
     items: [
       { to: '/dashboard', icon: 'solar:home-2-bold-duotone', label: 'Home' },
-      { to: '/studio', icon: 'solar:electric-refueling-bold-duotone', label: 'Studio' },
-      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Checkout' },
+      { to: '/studio', icon: 'solar:stars-line-duotone', label: 'Studio' },
+      { to: '/gateway', icon: 'solar:server-square-cloud-linear', label: 'Gateway' },
+      { to: '/sdk', icon: 'solar:code-square-linear', label: 'SDK' },
+      { to: '/validation', icon: 'solar:shield-check-linear', label: 'Validacao' },
+      { to: '/launch', icon: 'solar:rocket-linear', label: 'Launch' },
       { to: '/totem-simulator', icon: 'solar:bolt-circle-bold-duotone', label: 'Simulador' },
-      { to: '/payments', icon: 'solar:wallet-money-bold-duotone', label: 'Pagamentos' },
+      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Checkout' },
     ],
   },
   {
@@ -40,7 +43,7 @@ export default function Sidebar() {
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 font-bricolage text-sm font-bold text-black">KV</div>
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <p className="font-bricolage text-lg font-bold leading-none text-white">Kivo Pay</p>
+            <p className="font-bricolage text-lg font-bold leading-none text-white">Kivo</p>
             <p className="mt-1 text-[10px] uppercase tracking-wider text-emerald-400">Workspace</p>
           </motion.div>
         )}

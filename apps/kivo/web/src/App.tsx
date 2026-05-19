@@ -15,8 +15,10 @@ import FinancePage from '@/pages/FinancePage';
 import FlowDetailPage from '@/pages/FlowDetailPage';
 import FlowsPage from '@/pages/FlowsPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import GatewayPage from '@/pages/GatewayPage';
 import HealthPage from '@/pages/HealthPage';
 import IntegrationsPage from '@/pages/IntegrationsPage';
+import LaunchPage from '@/pages/LaunchPage';
 import LoginPage from '@/pages/LoginPage';
 import McpConsolePage from '@/pages/McpConsolePage';
 import NotFoundPage from '@/pages/NotFoundPage';
@@ -27,11 +29,13 @@ import PowerTotemDetailPage from '@/pages/PowerTotemDetailPage';
 import PowerTotemStudioPage from '@/pages/PowerTotemStudioPage';
 import RegisterPage from '@/pages/RegisterPage';
 import SettingsPage from '@/pages/SettingsPage';
+import SdkPage from '@/pages/SdkPage';
 import StatusPage from '@/pages/StatusPage';
 import TeamPage from '@/pages/TeamPage';
 import TemplatesPage from '@/pages/TemplatesPage';
 import TotemDisplayPage from '@/pages/TotemDisplayPage';
 import TotemSimulatorPage from '@/pages/TotemSimulatorPage';
+import ValidationPage from '@/pages/ValidationPage';
 import WebhooksPage from '@/pages/WebhooksPage';
 import WorkspaceHomePage from '@/pages/WorkspaceHomePage';
 import WorkflowsPage from '@/pages/WorkflowsPage';
@@ -60,6 +64,10 @@ export default function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<WorkspaceHomePage />} />
             <Route path="studio" element={<PowerTotemStudioPage />} />
+            <Route path="gateway" element={<GatewayPage />} />
+            <Route path="sdk" element={<SdkPage />} />
+            <Route path="validation" element={<ValidationPage />} />
+            <Route path="launch" element={<LaunchPage />} />
             <Route path="totems/:id" element={<PowerTotemDetailPage />} />
             <Route path="totem-simulator" element={<TotemSimulatorPage />} />
             <Route path="create-flow" element={<CreateFlowPage />} />
@@ -82,7 +90,7 @@ export default function App() {
             <Route path="api-keys" element={<ApiKeysPage />} />
             <Route path="mcp" element={<DevOnlyRoute><McpConsolePage /></DevOnlyRoute>} />
             <Route path="x402" element={<DevOnlyRoute><X402Page /></DevOnlyRoute>} />
-            <Route path="templates" element={<DevOnlyRoute><TemplatesPage /></DevOnlyRoute>} />
+            <Route path="templates" element={<TemplatesPage />} />
             <Route path="workflows" element={<DevOnlyRoute><WorkflowsPage /></DevOnlyRoute>} />
             <Route path="deploy" element={<DevOnlyRoute><DeployPage /></DevOnlyRoute>} />
             <Route path="settings" element={<SettingsPage />} />
