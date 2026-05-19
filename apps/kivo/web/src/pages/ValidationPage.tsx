@@ -1,24 +1,56 @@
+import { useState } from 'react';
 import { Icon } from '@iconify/react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { kivoClient } from '@/services/kivoClient';
+import type { StudioValidationRun, StudioValidationStep } from '@/types/kivo';
 
-const checklist = [
-  { label: 'Gateway', status: 'needs_connection', message: 'Conecte o runtime fisico ou digital antes de validar liberacao.' },
-  { label: 'x402', status: 'not_configured', message: 'Challenge e payment header ainda precisam de configuracao real.' },
-  { label: 'Etherfuse', status: 'pending', message: 'Onramp/offramp e confirmacao ficam pendentes ate credenciais e ambiente.' },
-  { label: 'Payment', status: 'pending', message: 'Pagamento nao e marcado como sucesso sem transacao e confirmacao.' },
-  { label: 'Release', status: 'pending', message: 'Liberacao do recurso espera Gateway online e autorizacao valida.' },
+const checklist: StudioValidationStep[] = [
+  { id: 'gateway', label: 'Gateway', status: 'needs_connection', message: 'Conecte o runtime fisico ou digital antes de validar liberacao.' },
+  { id: 'x402', label: 'x402', status: 'not_configured', message: 'Challenge e payment header ainda precisam de configuracao real.' },
+  { id: 'etherfuse', label: 'Etherfuse', status: 'pending', message: 'Onramp/offramp e confirmacao ficam pendentes ate credenciais e ambiente.' },
+  { id: 'payment', label: 'Payment', status: 'pending', message: 'Pagamento nao e marcado como sucesso sem transacao e confirmacao.' },
+  { id: 'release', label: 'Release', status: 'pending', message: 'Liberacao do recurso espera Gateway online e autorizacao valida.' },
 ];
 
 const toneByStatus: Record<string, string> = {
   needs_connection: 'warning',
   not_configured: 'blocked',
   pending: 'pending',
+  running: 'processing',
+  passed: 'ready',
+  failed: 'failed',
+  needs_user_action: 'warning',
 };
 
 export default function ValidationPage() {
+  const [searchParams] = useSearchParams();
+  const flowId = searchParams.get('flowId') ?? '';
+  const [run, setRun] = useState<StudioValidationRun | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const steps: StudioValidationStep[] = run?.steps ?? checklist;
+
+  const handleStartValidation = async () => {
+    if (!flowId) {
+      setError('Crie ou selecione um flow antes de validar.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const nextRun = await kivoClient.startStudioValidation(flowId);
+      setRun(nextRun);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Nao foi possivel iniciar a validacao.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -42,13 +74,31 @@ export default function ValidationPage() {
             <p className="mt-3 text-sm leading-6 text-neutral-300">
               O objetivo e mostrar evidencia, nao maquiagem: se x402, Etherfuse, pagamento ou Gateway estiver pendente, o Studio deixa isso visivel.
             </p>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={handleStartValidation}
+                disabled={loading}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Icon icon={loading ? 'solar:refresh-linear' : 'solar:shield-check-linear'} />
+                {loading ? 'Validando' : 'Iniciar validacao'}
+              </button>
+              {flowId && <Badge tone="neutral">flow {flowId}</Badge>}
+              {run && <Badge tone={toneByStatus[run.status] ?? 'neutral'}>{run.status}</Badge>}
+            </div>
+            {error && (
+              <p className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs leading-5 text-red-200">
+                {error}
+              </p>
+            )}
           </div>
           <div className="grid gap-3">
-            {checklist.map((item) => (
+            {steps.map((item) => (
               <div key={item.label} className="rounded-2xl border border-white/5 bg-black/25 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-sm font-bold text-white">{item.label}</p>
-                  <Badge tone={toneByStatus[item.status]}>{item.status}</Badge>
+                  <Badge tone={toneByStatus[item.status] ?? 'neutral'}>{item.status}</Badge>
                 </div>
                 <p className="mt-2 text-xs leading-5 text-neutral-400">{item.message}</p>
               </div>

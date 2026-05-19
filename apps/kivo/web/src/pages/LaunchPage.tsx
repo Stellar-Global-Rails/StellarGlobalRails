@@ -1,16 +1,24 @@
+import { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { kivoClient } from '@/services/kivoClient';
+import type { StudioLaunchOption } from '@/types/kivo';
 
-const options = [
+type LaunchOptionView = StudioLaunchOption & {
+  status: string;
+};
+
+const staticOptions: LaunchOptionView[] = [
   {
     id: 'private_mainnet',
     label: 'Private mainnet',
     enabled: false,
     status: 'awaiting validation',
     description: 'Pago e privado. Fica desabilitado ate Gateway, x402, Etherfuse, pagamento e release passarem pela validacao real.',
+    reason: 'Valide um flow antes de publicar privado.',
   },
   {
     id: 'stay_testnet',
@@ -29,6 +37,39 @@ const options = [
 ];
 
 export default function LaunchPage() {
+  const [searchParams] = useSearchParams();
+  const flowId = searchParams.get('flowId') ?? '';
+  const [options, setOptions] = useState<LaunchOptionView[]>(staticOptions);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const loadLaunchOptions = async () => {
+    if (!flowId) {
+      setOptions(staticOptions);
+      setError('');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const apiOptions = await kivoClient.listStudioLaunchOptions(flowId);
+      setOptions(apiOptions.map((option) => ({
+        ...option,
+        status: option.enabled ? 'enabled' : 'disabled',
+      })));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Nao foi possivel carregar opcoes de launch.');
+      setOptions(staticOptions);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadLaunchOptions();
+  }, [flowId]);
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -50,6 +91,23 @@ export default function LaunchPage() {
         <p className="mt-3 max-w-3xl text-sm leading-6 text-neutral-300">
           Kivo nao empurra um flow para mainnet privada enquanto os sinais reais nao existem. O usuario ainda pode ficar em testnet ou transformar o caso em template publico.
         </p>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={loadLaunchOptions}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-200 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Icon icon={loading ? 'solar:refresh-linear' : 'solar:refresh-circle-linear'} />
+            {loading ? 'Carregando' : 'Atualizar opcoes'}
+          </button>
+          {flowId ? <Badge tone="neutral">flow {flowId}</Badge> : <Badge tone="warning">Valide um flow antes de publicar privado.</Badge>}
+        </div>
+        {error && (
+          <p className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs leading-5 text-red-200">
+            {error}
+          </p>
+        )}
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -63,6 +121,7 @@ export default function LaunchPage() {
             </div>
             <h2 className="mt-4 font-bricolage text-xl font-bold text-white">{option.label}</h2>
             <p className="mt-3 text-sm leading-6 text-neutral-400">{option.description}</p>
+            {option.reason && <p className="mt-3 text-xs leading-5 text-amber-200">{option.reason}</p>}
           </Card>
         ))}
       </div>

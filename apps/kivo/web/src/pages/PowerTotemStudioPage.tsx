@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { gatewayModes, studioAgents, studioSteps, studioTemplates } from '@/data/studioExperience';
+import { kivoClient } from '@/services/kivoClient';
+import type { StudioIntent } from '@/types/kivo';
 
 const gatewayGroups = [
   { id: 'physical', label: 'Fisico', description: 'Runtime perto do recurso real: Raspberry Pi, edge device ou totem.' },
@@ -20,7 +23,27 @@ const stepIcons: Record<string, string> = {
 };
 
 export default function PowerTotemStudioPage() {
+  const [prompt, setPrompt] = useState('');
+  const [intentResult, setIntentResult] = useState<StudioIntent | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState('');
   const powerTotem = studioTemplates.find((template) => template.id === 'power-totem');
+
+  const handleCreateIntent = async () => {
+    setIsCreating(true);
+    setError('');
+    try {
+      const intent = await kivoClient.createStudioIntent({
+        prompt,
+        surface: prompt.toLowerCase().includes('totem') ? 'physical' : 'digital',
+      });
+      setIntentResult(intent);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Nao foi possivel criar o intent.');
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -60,6 +83,44 @@ export default function PowerTotemStudioPage() {
                 <Icon icon="solar:gamepad-linear" />
                 Simular Power Totem
               </Link>
+            </div>
+            <div className="mt-6 rounded-2xl border border-white/5 bg-black/25 p-4">
+              <label htmlFor="studio-intent-prompt" className="text-sm font-bold text-white">
+                Descreva o recurso pago
+              </label>
+              <textarea
+                id="studio-intent-prompt"
+                value={prompt}
+                onChange={(event) => setPrompt(event.target.value)}
+                rows={4}
+                className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm leading-6 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-emerald-500/50"
+                placeholder="Ex.: cobrar acesso a uma API de dados ou liberar um totem fisico por pagamento"
+              />
+              <button
+                type="button"
+                onClick={handleCreateIntent}
+                disabled={isCreating || !prompt.trim()}
+                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Icon icon={isCreating ? 'solar:refresh-linear' : 'solar:stars-line-duotone'} />
+                {isCreating ? 'Criando intent' : 'Criar intent'}
+              </button>
+              {error && (
+                <p className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs leading-5 text-red-200">
+                  {error}
+                </p>
+              )}
+              {intentResult && (
+                <div className="mt-4 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.06] p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-400">Intent criado</p>
+                  <p className="mt-2 text-sm font-bold text-white">{intentResult.prompt}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Badge tone="neutral">{intentResult.surface}</Badge>
+                    <Badge tone="processing">{intentResult.interactionModel}</Badge>
+                    <Badge tone="ready">Gateway {intentResult.recommendedGatewayMode}</Badge>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

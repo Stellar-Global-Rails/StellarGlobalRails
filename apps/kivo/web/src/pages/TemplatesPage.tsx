@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { studioTemplates } from '@/data/studioExperience';
+import { kivoClient } from '@/services/kivoClient';
+import type { KivoTemplateStatus, StudioTemplateSummary } from '@/types/kivo';
 
 const toneByStatus: Record<string, string> = {
   functional: 'ready',
@@ -19,9 +22,49 @@ const iconBySurface: Record<string, string> = {
   hybrid: 'solar:link-round-angle-linear',
 };
 
+const visibleStatus = (template: StudioTemplateSummary): KivoTemplateStatus => {
+  if (template.id !== 'power-totem' && template.status === 'functional') {
+    return 'planned';
+  }
+  return template.status;
+};
+
 export default function TemplatesPage() {
-  const functionalTemplates = studioTemplates.filter((template) => template.isFunctionalHackathonTemplate);
-  const futureTemplates = studioTemplates.filter((template) => !template.isFunctionalHackathonTemplate);
+  const [templates, setTemplates] = useState<StudioTemplateSummary[]>(studioTemplates);
+  const [statusLine, setStatusLine] = useState('');
+  const [loading, setLoading] = useState(true);
+  const functionalTemplates = templates.filter((template) => template.id === 'power-totem' && template.isFunctionalHackathonTemplate);
+  const futureTemplates = templates.filter((template) => template.id !== 'power-totem' || !template.isFunctionalHackathonTemplate);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadTemplates = async () => {
+      setLoading(true);
+      try {
+        const apiTemplates = await kivoClient.listStudioTemplates();
+        if (isCurrent) {
+          setTemplates(apiTemplates);
+          setStatusLine('Catalogo carregado da API.');
+        }
+      } catch {
+        if (isCurrent) {
+          setTemplates(studioTemplates);
+          setStatusLine('API indisponivel; exibindo catalogo local de status, sem simular readiness.');
+        }
+      } finally {
+        if (isCurrent) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadTemplates();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -44,6 +87,11 @@ export default function TemplatesPage() {
             <Badge tone="ready">funcional</Badge>
             <h2 className="mt-4 font-bricolage text-2xl font-bold text-white">Template pronto para testar</h2>
             <p className="mt-2 text-sm leading-6 text-neutral-300">Power Totem e o caminho operacional atual para validar recurso fisico, Gateway e simulador.</p>
+            {statusLine && (
+              <p className="mt-3 text-xs leading-5 text-neutral-400">
+                {loading ? 'Carregando catalogo da API.' : statusLine}
+              </p>
+            )}
           </div>
           <Link to="/totem-simulator" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
             <Icon icon="solar:gamepad-linear" />
@@ -63,7 +111,7 @@ export default function TemplatesPage() {
                     <p className="mt-2 text-sm leading-6 text-neutral-300">{template.description}</p>
                   </div>
                 </div>
-                <Badge tone={toneByStatus[template.status]}>{template.status}</Badge>
+                <Badge tone={toneByStatus[visibleStatus(template)]}>{visibleStatus(template)}</Badge>
               </div>
             </div>
           ))}
@@ -80,7 +128,7 @@ export default function TemplatesPage() {
             <div key={template.id} className="rounded-2xl border border-white/5 bg-black/25 p-4">
               <div className="flex items-start justify-between gap-3">
                 <Icon icon={iconBySurface[template.surface]} className="text-2xl text-violet-300" />
-                <Badge tone={toneByStatus[template.status]}>{template.status}</Badge>
+                <Badge tone={toneByStatus[visibleStatus(template)]}>{visibleStatus(template)}</Badge>
               </div>
               <h3 className="mt-4 text-sm font-bold text-white">{template.name}</h3>
               <p className="mt-2 text-xs leading-5 text-neutral-400">{template.description}</p>
