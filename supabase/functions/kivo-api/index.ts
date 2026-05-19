@@ -464,6 +464,13 @@ const requireGateway = async (req: Request) => {
   if (!rows[0]) {
     throwApiError(401, "gateway_unauthorized", "Gateway token is invalid.");
   }
+  if (rows[0].status === "suspended") {
+    throwApiError(
+      403,
+      "gateway_suspended",
+      "Gateway token is suspended.",
+    );
+  }
   return rows[0];
 };
 
@@ -1214,6 +1221,35 @@ const defaultPowerSessionAsset = () =>
   env("KIVO_DEFAULT_USDC_ASSET") ||
   (env("USDC_ISSUER") ? `USDC:${env("USDC_ISSUER")}` : "XLM");
 
+const upsertPowerTotemPricingRule = async (
+  ownerId: string,
+  resource: string,
+  price: string,
+  name: string,
+) => {
+  const existing = await selectRows<DbPricingRule>("kivo_x402_pricing_rules", {
+    select: "*",
+    owner_id: `eq.${ownerId}`,
+    resource: `eq.${resource}`,
+    limit: 1,
+  });
+  const payload = {
+    owner_id: ownerId,
+    resource,
+    amount: price,
+    asset: defaultPowerSessionAsset(),
+    max_timeout: 300,
+    enabled: true,
+    description: `Power Totem: ${name}`,
+  };
+  return existing[0]
+    ? (await patchRows<DbPricingRule>("kivo_x402_pricing_rules", {
+      id: `eq.${existing[0].id}`,
+      owner_id: `eq.${ownerId}`,
+    }, payload))[0]
+    : await insertRow<DbPricingRule>("kivo_x402_pricing_rules", payload);
+};
+
 const stellarPassphrase = () =>
   env("STELLAR_NETWORK", "testnet") === "mainnet"
     ? Networks.PUBLIC
@@ -1631,12 +1667,14 @@ const handlePowerTotems = async (req: Request, path: string) => {
         error instanceof Error ? error.message : "Invalid session duration.",
       );
     }
-    const qrSlug = sanitizeQrSlug(
+    const totemId = crypto.randomUUID();
+    const baseQrSlug = sanitizeQrSlug(
       typeof input.qrSlug === "string" ? input.qrSlug : name,
     );
+    const qrSlug = `${baseQrSlug}-${totemId.slice(0, 8)}`;
     let resource: string;
     try {
-      resource = buildPowerTotemResource(qrSlug);
+      resource = buildPowerTotemResource(totemId);
     } catch (error) {
       return apiError(
         req,
@@ -1648,6 +1686,7 @@ const handlePowerTotems = async (req: Request, path: string) => {
       );
     }
     const row = await insertRow<DbPowerTotem>("kivo_power_totems", {
+      id: totemId,
       owner_id: user.id,
       name,
       resource,
@@ -1658,15 +1697,7 @@ const handlePowerTotems = async (req: Request, path: string) => {
       qr_slug: qrSlug,
       metadata: recordOrEmpty(input.metadata),
     });
-    await insertRow<DbPricingRule>("kivo_x402_pricing_rules", {
-      owner_id: user.id,
-      resource,
-      amount: price,
-      asset: defaultPowerSessionAsset(),
-      max_timeout: 300,
-      enabled: true,
-      description: `Power Totem: ${name}`,
-    });
+    await upsertPowerTotemPricingRule(user.id, resource, price, name);
     return json(req, 201, toPowerTotem(row));
   }
 
@@ -1759,11 +1790,20 @@ const handleGateways = async (req: Request, path: string) => {
     const rows = await patchRows<DbGateway>("kivo_gateways", {
       id: `eq.${gateway.id}`,
       owner_id: `eq.${gateway.owner_id}`,
+      status: "in.(pairing,offline,online)",
     }, {
       status: "online",
       last_seen_at: nowISO(),
     });
-    return json(req, 200, toGateway(rows[0] ?? gateway));
+    if (!rows[0]) {
+      return apiError(
+        req,
+        409,
+        "gateway_heartbeat_conflict",
+        "Gateway cannot be moved online from its current status.",
+      );
+    }
+    return json(req, 200, toGateway(rows[0]));
   }
 
   if (detail[2] === "authorization" && req.method === "GET") {
@@ -1798,15 +1838,44 @@ const handleGateways = async (req: Request, path: string) => {
         "Gateway event type is required.",
       );
     }
+    const sessionId = typeof input.sessionId === "string" &&
+        input.sessionId.trim()
+      ? input.sessionId.trim()
+      : "";
+    if (sessionId) {
+      if (!gateway.totem_id) {
+        return apiError(
+          req,
+          400,
+          "gateway_session_invalid",
+          "Gateway must be paired to a Power Totem before sending session events.",
+        );
+      }
+      const sessions = await selectRows<DbPowerSession>(
+        "kivo_power_sessions",
+        {
+          select: "id",
+          id: `eq.${sessionId}`,
+          owner_id: `eq.${gateway.owner_id}`,
+          gateway_id: `eq.${gateway.id}`,
+          totem_id: `eq.${gateway.totem_id}`,
+          limit: 1,
+        },
+      );
+      if (!sessions[0]) {
+        return apiError(
+          req,
+          404,
+          "gateway_session_not_found",
+          "Power Session does not belong to this gateway.",
+        );
+      }
+    }
     const event = await insertRow<DbGatewayEvent>("kivo_gateway_events", {
       owner_id: gateway.owner_id,
       gateway_id: gateway.id,
-      totem_id: typeof input.totemId === "string" && input.totemId.trim()
-        ? input.totemId.trim()
-        : gateway.totem_id ?? null,
-      session_id: typeof input.sessionId === "string" && input.sessionId.trim()
-        ? input.sessionId.trim()
-        : null,
+      totem_id: gateway.totem_id ?? null,
+      session_id: sessionId || null,
       event_type: eventType,
       payload: recordOrEmpty(input.payload),
     });
@@ -1918,6 +1987,7 @@ const handlePowerSessions = async (req: Request, path: string) => {
     const updated = await patchRows<DbPowerSession>("kivo_power_sessions", {
       id: `eq.${session.id}`,
       owner_id: `eq.${user.id}`,
+      status: "eq.paid",
     }, {
       status: nextSessionStatus(session.status, "authorize"),
       authorization_token_hash: await sha256Hex(rawAuthorizationToken),
@@ -1932,9 +2002,16 @@ const handlePowerSessions = async (req: Request, path: string) => {
         ),
       ],
     });
+    if (!updated[0]) {
+      return apiError(
+        req,
+        409,
+        "power_session_authorize_conflict",
+        "Power Session is no longer paid.",
+      );
+    }
     return json(req, 200, {
       session: toPowerSession(updated[0]),
-      authorizationToken: rawAuthorizationToken,
     });
   }
 
@@ -1954,17 +2031,39 @@ const handlePowerSessions = async (req: Request, path: string) => {
         "Power Session not found.",
       );
     }
+    let nextStatus: PowerSessionStatus;
+    try {
+      nextStatus = nextSessionStatus(session.status, "complete");
+    } catch (error) {
+      return apiError(
+        req,
+        409,
+        "power_session_not_completable",
+        error instanceof Error
+          ? error.message
+          : "Power Session cannot be completed from its current status.",
+      );
+    }
     const updated = await patchRows<DbPowerSession>("kivo_power_sessions", {
       id: `eq.${session.id}`,
       owner_id: `eq.${user.id}`,
+      status: `eq.${session.status}`,
     }, {
-      status: "completed",
+      status: nextStatus,
       completed_at: nowISO(),
       events: [
         ...session.events,
         paymentEvent("Session completed", "Power session completed.", "done"),
       ],
     });
+    if (!updated[0]) {
+      return apiError(
+        req,
+        409,
+        "power_session_complete_conflict",
+        "Power Session status changed before completion.",
+      );
+    }
     return json(req, 200, toPowerSession(updated[0]));
   }
 
@@ -1995,6 +2094,28 @@ const getPricingRuleForResource = async (
     limit: 1,
   });
   return rows[0] ?? null;
+};
+
+const getChallengeUserForResource = async (
+  req: Request,
+  resource: string,
+): Promise<KivoUser | null> => {
+  if (!resource.startsWith("/power-totem/")) {
+    return await getOptionalUser(req);
+  }
+  const rows = await selectRows<DbPowerTotem>("kivo_power_totems", {
+    select: "*",
+    resource: `eq.${resource}`,
+    limit: 1,
+  });
+  if (!rows[0]) {
+    throwApiError(
+      404,
+      "power_totem_resource_not_found",
+      "Power Totem resource was not found.",
+    );
+  }
+  return { id: rows[0].owner_id };
 };
 
 const buildChallenge = async (
@@ -2052,7 +2173,11 @@ const handleX402 = async (req: Request, path: string) => {
     return json(
       req,
       200,
-      await buildChallenge(req, resource, await getOptionalUser(req)),
+      await buildChallenge(
+        req,
+        resource,
+        await getChallengeUserForResource(req, resource),
+      ),
     );
   }
 
@@ -2211,7 +2336,7 @@ const handleProtectedResource = async (req: Request, path: string) => {
     const challenge = await buildChallenge(
       req,
       path,
-      await getOptionalUser(req),
+      await getChallengeUserForResource(req, path),
     );
     return new Response(JSON.stringify(challenge), {
       status: 402,
