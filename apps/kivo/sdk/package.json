@@ -7,6 +7,8 @@
   "types": "./dist/src/index.d.ts",
   "files": [
     "dist",
+    "!dist/**/*.test.*",
+    "!dist/**/*.spec.*",
     "examples",
     "README.md"
   ],
@@ -17,7 +19,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
     "test": "vitest run"
   },
   "devDependencies": {
