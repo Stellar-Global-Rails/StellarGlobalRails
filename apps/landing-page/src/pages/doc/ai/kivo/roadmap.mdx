@@ -8,6 +8,8 @@ description: "Current build status, phased implementation plan, open technical d
 
 This document tracks where Kivo is today, where it is going, the open architectural questions that are not yet resolved, and a changelog of significant decisions.
 
+Kivo Gateway is the runtime. Kivo Studio is the AI-agent creation environment. Kivo SDK is the downloadable integration layer. Power Totem is the functional hackathon template. Other templates are roadmap or marketplace candidates.
+
 ---
 
 ## Hackathon
@@ -15,16 +17,18 @@ This document tracks where Kivo is today, where it is going, the open architectu
 - Power Totem as the functional template.
 - Kivo Gateway physical flow.
 - x402, Stellar, and Etherfuse validation visible.
+- Studio flow creation, validation runs, launch options, and SDK export path.
 - Health/status and receipt surfaces.
 
 ---
 
 ## After Hackathon
 
-- Kivo Studio as a Tauri app with AI agents.
-- Complete TypeScript SDK.
+- Kivo Studio as the AI-agent workspace for flows, config, SDK snippets, tests, and launch checklist.
+- Complete downloadable TypeScript SDK.
 - Digital gateway adapters.
-- Private mainnet billing.
+- Private mainnet publication as a paid path.
+- Public templates as fallback for users who do not pay for private mainnet usage.
 - Additional templates: API Toll, Agent Tool Paywall, Compute Gate, Automation Gate, IoT Device Access, EV Charging, and P2P Energy.
 
 ---
@@ -35,40 +39,38 @@ This document tracks where Kivo is today, where it is going, the open architectu
 |---|---|---|
 | Landing page | Complete | Deployed on Cloudflare Pages |
 | Documentation | Complete | This document set |
-| Go API scaffold | In progress | Fiber app skeleton, routes wired |
-| Supabase schema | In progress | Migrations written, not yet applied to prod |
-| Device registration API | In progress | Handler written, tests pending |
-| Etherfuse anchor | Planned | Sandbox/testnet contract documented; Go implementation pending |
-| x402 middleware | Planned | Core logic designed, not yet implemented |
-| MCP server | Planned | Tool specs finalized, Go implementation pending |
-| React dashboard | Planned | Wireframes complete |
-| EV charging template | Future | Phase 3 |
+| Supabase Edge API | Active | `kivo-api` owns health, deploy checks, Studio, Power Totem, x402, Etherfuse, gateway, dashboard, webhooks, API keys, MCP, and workflows |
+| Kivo Studio routes | Active | `POST /v1/studio/intents`, `POST /v1/studio/flows`, validation runs, launch options, and templates |
+| Supabase schema | Active | `kivo_*` tables, RLS, grants, Power Totem tables, gateway events, and x402/session bridge alignment |
+| Power Totem template | Active | Only functional hackathon template |
+| Etherfuse anchor | Active | Sandbox/testnet state visible through Edge routes |
+| x402 payment path | Active | Challenge and signed Stellar XDR validation routes available |
+| Kivo SDK | In progress | Downloadable TypeScript integration layer with client, adapters, examples, and tests |
+| Other templates | Future | Roadmap or marketplace candidates |
 | Soroban integration | Future | Phase 4 |
 
 ---
 
 ## Phase 1 — Foundation (Now)
 
-**Goal:** Working Go API with device registration, basic payments, and Supabase schema running on Fly.io testnet.
+**Goal:** Supabase Edge Function runtime with Studio, Power Totem, x402, Etherfuse, gateway events, dashboard health, and SDK integration surfaces running on testnet.
 
 **Deliverables:**
 
-- Go + Fiber project scaffold with `sqlc`, `pgx v5`, `go-redis`
-- Supabase schema migrations applied (devices, payments, webhooks, api_keys)
-- `POST /v1/devices` — register device, generate Stellar keypair, issue API key
-- `GET /v1/devices/:id` — fetch device + Stellar balance via Horizon
-- `POST /v1/payments` — create payment (no condition, immediate Stellar submission)
-- `GET /v1/payments/:id` — payment status
-- `GET /v1/health` — health check with DB + Redis + Horizon ping
-- Etherfuse sandbox/testnet anchor endpoints: status, onboarding URL, assets, quote, order, fiat simulation, signed webhook
-- Device API key middleware (SHA-256 hash lookup)
+- Supabase Edge Function `kivo-api`
+- Supabase schema migrations applied for `kivo_*` tables, RLS, grants, Power Totems, gateway events, payments, webhooks, API keys, and x402/session bridge state
+- `POST /v1/studio/intents` and `POST /v1/studio/flows` for Studio-led creation
+- `POST /v1/studio/flows/:flowId/validation-runs` for testnet validation
+- `GET /v1/studio/flows/:flowId/launch-options` and `GET /v1/studio/templates` for publication and fallback templates
+- `GET|POST /v1/power-totems`, `POST /v1/power-totems/:id/pairing-token`, and `GET|POST /v1/power-sessions`
+- `POST /v1/power-sessions/:id/start-checkout`, `POST /v1/x402/pay`, and `GET /power-totem/{id}/session`
+- Etherfuse sandbox/testnet anchor endpoints: status, onboarding URL, assets, quote, order, fiat received simulation, and signed webhook
 - Supabase Auth JWT middleware
-- Payment worker goroutine (Redis → Stellar submission)
+- `GET /v1/health`, `GET /v1/deploy/checks`, and `GET /v1/deploy/services`
 - Testnet Friendbot funding helper for dev
-- Fly.io deployment with secrets
-- GitHub Actions CI: `go test ./...`, `sqlc generate`, Docker build
+- Vercel frontend connected to Supabase Edge API and secrets
 
-**Timeline:** 3–4 weeks
+**Timeline:** Active hackathon track
 
 ---
 
@@ -83,7 +85,7 @@ This document tracks where Kivo is today, where it is going, the open architectu
 - MCP server: `kivo_create_payment`, `kivo_check_status`, `kivo_simulate_payment`
 - Claude Desktop integration guide + test script
 - Conditional payments: `energy_kwh` condition type with threshold check
-- `POST /v1/payments/:id/condition` — condition proof submission
+- `POST /v1/payments/:id/condition-proof` — condition proof submission
 - Webhook worker goroutine: Redis → HMAC-signed HTTP POST
 - `POST /v1/webhooks` — webhook registration with HMAC secret
 - Rate limiting middleware (Redis sliding window)

@@ -1,6 +1,14 @@
-# Kivo MVP
+# Kivo
 
-Kivo is the M2M payment product for solo operators who want to monetize a physical Power Totem, paid API, or IoT data feed with Stellar/x402 and Etherfuse rails.
+Kivo is a Gateway-core + Studio-led platform for monetizing and controlling physical or digital resources with x402, Stellar, Etherfuse, a programmable Gateway runtime, and a TypeScript SDK.
+
+The product has three primary surfaces:
+
+- Kivo Gateway: runtime that protects and releases the resource.
+- Kivo Studio: AI-agent guided workspace for creating, validating, and publishing flows.
+- Kivo SDK: downloadable TypeScript package with client, adapters, examples, and tests.
+
+Power Totem is the only functional hackathon template. Other templates are roadmap or marketplace candidates until implemented.
 
 ```txt
 operator creates Power Totem -> gateway pairs once -> x402 challenge -> signed Stellar tx -> gateway authorization -> physical session event -> dashboard status

@@ -13,6 +13,17 @@ Last checked: 2026-05-18
 - Safety posture: Raspberry demo must use only low-voltage output. Browser simulator remains the fallback if hardware is not ready.
 - Legacy note: Fly.io and the old Go API are retired from the MVP runtime.
 
+## Product Direction
+
+Kivo is no longer presented as a developer sandbox. The active product direction is Gateway-core + Studio-led:
+
+- Gateway executes access control physically or digitally.
+- Studio uses AI agents to turn user intent into flows, config, SDK snippets, tests, and launch checklist.
+- SDK gives technical users a direct integration path.
+- Testnet validation must show real x402 + Etherfuse states.
+- Private mainnet publication is a paid path.
+- Public templates are the fallback for users who do not pay for private mainnet usage.
+
 ## Current Blockers
 
 1. Wallet signing remains an external user/device step.

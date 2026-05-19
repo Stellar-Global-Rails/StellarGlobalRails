@@ -4,6 +4,10 @@
 
 Kivo lets humans, machines, and agents pay for physical or digital resources. Power Totem proves that loop in the real world: preview the kiosk QR/resource screen, run an authenticated x402 checkout, validate on Stellar/Etherfuse, and unlock a Raspberry-controlled output.
 
+## Why Power Totem
+
+Power Totem is the proof that the Kivo Gateway can release a real-world resource after a verifiable payment flow. It is not the whole product. The same Gateway model applies to APIs, workers, sidecars, serverless functions, plugins, data feeds, and AI-agent tools.
+
 ## Online Meet path
 
 1. Open Kivo Studio.

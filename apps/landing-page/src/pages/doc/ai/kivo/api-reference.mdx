@@ -1,14 +1,16 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
 title: "Kivo — API Reference"
-description: "Complete REST API reference for the Kivo Go/Fiber gateway, plus MCP tool specifications for AI agent integration."
+description: "REST API reference for the Kivo Supabase Edge gateway, Studio routes, and MCP tool specifications for AI agent integration."
 ---
 
 # API Reference
 
-Kivo exposes a REST API built with Go + Fiber and a Model Context Protocol (MCP) server for AI agent integration. All REST endpoints require either a device API key (`X-API-Key`) or a Supabase Auth JWT (`Authorization: Bearer <token>`).
+Kivo exposes a REST API through the Supabase Edge Function `kivo-api` and a Model Context Protocol (MCP) surface for AI agent integration. Authenticated dashboard, Studio, and SDK calls use a Supabase Auth JWT (`Authorization: Bearer <token>`). Gateway calls use `x-gateway-token`, and x402 resource unlocks use `X-PAYMENT`.
 
-**Base URL:** `https://api.kivo.pay/v1` (production) | `http://localhost:8080/v1` (local)
+Kivo Gateway is the runtime. Kivo Studio is the AI-agent creation environment. Kivo SDK is the downloadable integration layer. Power Totem is the functional hackathon template. Other templates are roadmap or marketplace candidates.
+
+**Base URL:** `https://<project-ref>.supabase.co/functions/v1/kivo-api` (production) | `http://127.0.0.1:54321/functions/v1/kivo-api` (local Supabase)
 
 ---
 
@@ -29,13 +31,91 @@ These objects sit on top of the existing device, payment, webhook, Etherfuse, an
 
 | Endpoint Type | Header | Value |
 |---|---|---|
-| Device endpoints | `X-API-Key` | Raw device API key (shown once at registration) |
-| Dashboard endpoints | `Authorization` | `Bearer <supabase_jwt>` |
+| Dashboard, Studio, SDK endpoints | `Authorization` | `Bearer <supabase_jwt>` |
+| Gateway endpoints | `x-gateway-token` | One-time paired gateway token |
 | x402 endpoints | `X-PAYMENT` | Encoded Stellar payment proof |
 
 ---
 
 ## Endpoints
+
+### Studio routes
+
+Studio routes are the AI-agent creation path. They turn user intent into a flow, validation run, launch checklist, and SDK export.
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `POST /v1/studio/intents` | Dashboard JWT | Parse user intent into Studio surface, interaction model, and recommended Gateway mode |
+| `POST /v1/studio/flows` | Dashboard JWT | Create a Studio flow from an intent or prompt |
+| `POST /v1/studio/flows/:flowId/validation-runs` | Dashboard JWT | Start testnet validation for a flow |
+| `GET /v1/studio/flows/:flowId/launch-options` | Dashboard JWT | Return launch options for validated or pending flows |
+| `GET /v1/studio/templates` | Public | List Studio templates; only Power Totem is functional for the hackathon |
+
+Additional SDK-facing Studio routes currently exposed by the client are `GET /v1/studio/flows/:flowId/validation-runs/:runId`, `PUT /v1/studio/flows/:flowId/gateway-mode`, and `GET /v1/studio/flows/:flowId/sdk-export`.
+
+### Power Totem and Gateway routes
+
+Power Totem is the functional hackathon template. The Gateway runtime releases the resource only after Kivo validates the x402 payment state, Stellar settlement proof, Etherfuse context, and policy conditions.
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `GET /v1/power-totems` | Dashboard JWT | List Power Totems |
+| `POST /v1/power-totems` | Dashboard JWT | Create a Power Totem |
+| `GET /v1/power-totems/:id` | Dashboard JWT | Fetch one Power Totem |
+| `POST /v1/power-totems/:id/pairing-token` | Dashboard JWT | Create the one-time gateway pairing token |
+| `GET /v1/power-sessions` | Dashboard JWT | List Power Sessions |
+| `POST /v1/power-sessions` | Dashboard JWT | Create a Power Session |
+| `POST /v1/power-sessions/:id/start-checkout` | Dashboard JWT | Create the x402 challenge for `/power-totem/{id}/session` |
+| `POST /v1/power-sessions/:id/authorize` | Dashboard JWT | Authorize a Power Session after validation |
+| `POST /v1/power-sessions/:id/complete` | Dashboard JWT | Complete a Power Session |
+| `POST /v1/gateways/:id/heartbeat` | `x-gateway-token` | Report gateway health |
+| `GET /v1/gateways/:id/authorization` | `x-gateway-token` | Fetch short-lived authorization |
+| `POST /v1/gateways/:id/events` | `x-gateway-token` | Report release, completion, failure, or revocation events |
+| `GET /power-totem/{id}/session` | `X-PAYMENT` | x402-protected Power Totem resource |
+
+### System and x402 routes
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `GET /v1/health` | Public | API, Stellar, Etherfuse, and runtime health |
+| `GET /v1/deploy/checks` | Public | Delivery readiness checks |
+| `GET /v1/deploy/services` | Public | Deployment service status |
+| `GET /v1/dashboard` | Dashboard JWT | Dashboard summary |
+| `GET /v1/x402/challenge?resource=/api/x402/data` | Public | Create an x402 challenge for a resource |
+| `POST /v1/x402/pay` | Public | Validate nonce memo, destination, amount, asset, and signed Stellar XDR |
+| `GET /v1/x402/pricing-rules` | Dashboard JWT | List x402 pricing rules |
+| `PUT /v1/x402/pricing-rules` | Dashboard JWT | Upsert x402 pricing rules |
+| `GET /api/x402/data` | `X-PAYMENT` | Example x402-protected data resource |
+
+### Device, payment, webhook, API key, and MCP routes
+
+The current REST contract keeps lower-level primitives for SDK users and operational tooling.
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `GET /v1/devices` | Dashboard JWT | List devices |
+| `POST /v1/devices` | Dashboard JWT | Register a device |
+| `GET /v1/devices/:id` | Dashboard JWT | Get device information |
+| `PATCH /v1/devices/:id` | Dashboard JWT | Update device status |
+| `GET /v1/payments` | Dashboard JWT | List payments |
+| `POST /v1/payments` | Dashboard JWT | Create a payment |
+| `GET /v1/payments/:id` | Dashboard JWT | Get payment status |
+| `POST /v1/payments/:id/execute` | Dashboard JWT | Submit signed payment execution |
+| `POST /v1/payments/:id/condition-proof` | Dashboard JWT | Submit condition proof |
+| `GET /v1/webhooks` | Dashboard JWT | List webhooks |
+| `POST /v1/webhooks` | Dashboard JWT | Register a webhook |
+| `PATCH /v1/webhooks/:id` | Dashboard JWT | Toggle a webhook |
+| `POST /v1/webhooks/:id/test` | Dashboard JWT | Send a webhook test |
+| `DELETE /v1/webhooks/:id` | Dashboard JWT | Delete a webhook |
+| `GET /v1/webhooks/:id/deliveries` | Dashboard JWT | List deliveries for one webhook |
+| `GET /v1/webhook-deliveries` | Dashboard JWT | List webhook deliveries |
+| `GET /v1/api-keys` | Dashboard JWT | List API keys |
+| `POST /v1/api-keys` | Dashboard JWT | Create an API key |
+| `POST /v1/api-keys/:id/revoke` | Dashboard JWT | Revoke an API key |
+| `GET /v1/mcp/tools` | Dashboard JWT | List MCP tools |
+| `GET /v1/mcp/config` | Dashboard JWT | Return MCP agent config |
+| `POST /mcp` | Dashboard JWT | JSON-RPC MCP tool call |
+| `GET /v1/workflows` | Dashboard JWT | List workflows |
 
 ### `POST /v1/devices`
 
@@ -272,7 +352,7 @@ Manually trigger execution of a pending payment (for `condition_type: none` paym
 
 ---
 
-### `POST /v1/payments/:id/condition`
+### `POST /v1/payments/:id/condition-proof`
 
 Submit proof that a payment condition has been met. Triggers execution if the condition passes validation.
 
@@ -300,7 +380,7 @@ Submit proof that a payment condition has been met. Triggers execution if the co
 
 ---
 
-### `GET /v1/payments/:id/status`
+### `GET /v1/payments/:id`
 
 Detailed status including Stellar ledger information.
 
@@ -403,7 +483,7 @@ Kivo exposes Etherfuse through its own backend so browser clients never receive 
 | `POST /v1/etherfuse/quotes` | Dashboard JWT | Create onramp/offramp/swap quote |
 | `POST /v1/etherfuse/orders` | Dashboard JWT | Create ramp order from a quote |
 | `GET /v1/etherfuse/orders/:id` | Dashboard JWT | Poll order state as fallback to webhooks |
-| `POST /v1/etherfuse/orders/:id/simulate-fiat-received` | Dashboard JWT, sandbox only | Advance sandbox onramp demo |
+| `POST /v1/etherfuse/orders/:id/fiat-received` | Dashboard JWT, sandbox only | Advance sandbox onramp demo |
 | `POST /v1/etherfuse/webhook` | `X-Signature` | Receive signed Etherfuse events |
 
 The upstream Etherfuse API expects `Authorization: <api-key>` directly, with no `Bearer` prefix. Kivo stores that key server-side and maps Etherfuse order states into Kivo provider states for the dashboard.
