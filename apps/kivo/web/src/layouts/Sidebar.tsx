@@ -17,7 +17,6 @@ const navGroups = [
   {
     title: 'Operacao',
     items: [
-      { to: '/integrations', icon: 'solar:code-square-bold-duotone', label: 'Gateway SDK' },
       { to: '/finance', icon: 'solar:chart-square-bold-duotone', label: 'Financeiro' },
       { to: '/health', icon: 'solar:heart-pulse-bold-duotone', label: 'Saude' },
       { to: '/status', icon: 'solar:pulse-2-bold-duotone', label: 'Status' },
