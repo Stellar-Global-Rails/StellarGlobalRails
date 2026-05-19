@@ -1,6 +1,6 @@
 import { Icon } from '@iconify/react';
 import { Link, useParams } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { useAsyncData } from '@/hooks/useAsyncData';
@@ -12,7 +12,6 @@ export default function TotemDisplayPage() {
   const [paidPreview, setPaidPreview] = useState(false);
 
   const resource = totemResult.data?.resource ?? `/power-totem/${id || 'demo'}/session`;
-  const checkoutUrl = useMemo(() => `${window.location.origin}/checkout?resource=${encodeURIComponent(resource)}`, [resource]);
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
@@ -35,8 +34,11 @@ export default function TotemDisplayPage() {
           <div className="grid flex-1 place-items-center py-8">
             <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-neutral-950 p-5">
               <PseudoQr active={paidPreview} />
-              <p className="mt-5 text-center text-sm font-bold uppercase tracking-[0.2em] text-neutral-400">Escaneie para pagar</p>
+              <p className="mt-5 text-center text-sm font-bold uppercase tracking-[0.2em] text-neutral-400">Preview do recurso</p>
               <p className="mt-2 break-all text-center font-mono text-xs text-emerald-200">{resource}</p>
+              <p className="mt-3 text-center text-xs leading-5 text-neutral-500">
+                QR publico de pagamento entra no checkout bridge do Task 8.
+              </p>
             </div>
           </div>
 
@@ -54,16 +56,22 @@ export default function TotemDisplayPage() {
               <Icon icon={paidPreview ? 'solar:check-circle-bold-duotone' : 'solar:lock-keyhole-bold-duotone'} className={`text-6xl ${paidPreview ? 'text-emerald-300' : 'text-amber-300'}`} />
               <h2 className="mt-5 font-bricolage text-4xl font-bold text-white">{paidPreview ? 'Energia liberada' : 'Aguardando pagamento'}</h2>
               <p className="mt-3 text-sm leading-6 text-neutral-300">
-                {paidPreview ? 'O gateway pode acionar a saida quando a autorizacao aparecer.' : 'Depois do x402 confirmado, o gateway recebe a autorizacao e muda este estado.'}
+                {paidPreview ? 'Modo demo para validar a experiencia de liberacao no totem.' : 'Tela de operador para ensaiar o estado bloqueado enquanto a ponte publica de checkout nao esta conectada.'}
               </p>
             </div>
 
             <div className="mt-5 rounded-2xl border border-white/5 bg-black/25 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">URL para checkout</p>
-                <CopyButton value={checkoutUrl} />
+                <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">Resource protegido</p>
+                <CopyButton value={resource} />
               </div>
-              <code className="mt-3 block break-all text-xs text-emerald-200">{checkoutUrl}</code>
+              <code className="mt-3 block break-all text-xs text-emerald-200">{resource}</code>
+              <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                <p className="text-sm font-bold text-amber-100">Checkout bridge pendente</p>
+                <p className="mt-1 text-xs leading-5 text-amber-100/75">
+                  Este display nao gera link publico de pagamento ainda. No Task 8, o QR apontara para o checkout conectado a esta sessao.
+                </p>
+              </div>
             </div>
           </div>
 

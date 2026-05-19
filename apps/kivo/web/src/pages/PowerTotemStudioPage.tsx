@@ -25,7 +25,6 @@ export default function PowerTotemStudioPage() {
   const [price, setPrice] = useState(powerTotemTemplate.defaultPrice);
   const [unit, setUnit] = useState<PowerTotem['unit']>(powerTotemTemplate.defaultUnit);
   const [duration, setDuration] = useState(powerTotemTemplate.defaultDurationSeconds);
-  const [gatewayName, setGatewayName] = useState('Gateway da bancada');
   const [createdTotem, setCreatedTotem] = useState<PowerTotem | null>(null);
   const [pairing, setPairing] = useState<GatewayPairingResult | null>(null);
   const [saving, setSaving] = useState(false);
@@ -47,7 +46,6 @@ export default function PowerTotemStudioPage() {
         sessionDurationSeconds: duration,
         metadata: {
           studio: 'power-totem',
-          gatewayName,
         },
       });
       const nextPairing = await kivoClient.createPowerTotemPairingToken(totem.id);
@@ -139,9 +137,9 @@ export default function PowerTotemStudioPage() {
                 <input type="number" min={5} max={3600} value={duration} onChange={(event) => setDuration(Number(event.target.value))} className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none focus:border-emerald-500" required />
               </Field>
             </div>
-            <Field label="Nome do gateway">
-              <input value={gatewayName} onChange={(event) => setGatewayName(event.target.value)} className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none focus:border-emerald-500" required />
-            </Field>
+            <div className="rounded-xl border border-white/5 bg-black/25 px-4 py-3 text-sm leading-6 text-neutral-400">
+              O gateway sera criado pela API no pareamento. O nome retornado aparece junto com o token de uso unico.
+            </div>
             {error && <p className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">{error}</p>}
             <button type="submit" disabled={saving} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60">
               <Icon icon={saving ? 'solar:refresh-bold-duotone' : 'solar:add-circle-bold-duotone'} />
