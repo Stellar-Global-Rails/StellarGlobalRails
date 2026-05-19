@@ -402,147 +402,58 @@ The upstream Etherfuse API expects `Authorization: <api-key>` directly, with no 
 
 ## MCP Tools Specification
 
-The Kivo MCP server exposes the following tools to AI agents. See [MCP Tools](/doc/ai/kivo/mcp-tools) for the full integration guide.
+The current Edge MCP surface lists two tools from `GET /v1/mcp/tools` and includes those same names in `GET /v1/mcp/config`. See [MCP Tools](/doc/ai/kivo/mcp-tools) for broader integration notes.
 
 ### `kivo_create_payment`
 
-Create an M2M payment between two devices.
+Create a Kivo payment intent for a device or x402 flow. This tool is not safe for automatic use without human approval.
 
 ```json
 {
+  "id": "tool_create",
   "name": "kivo_create_payment",
-  "description": "Create a payment between two Kivo-registered devices on Stellar",
-  "inputSchema": {
-    "type": "object",
-    "required": ["from_device_id", "to_device_id", "amount", "currency"],
-    "properties": {
-      "from_device_id": { "type": "string", "description": "UUID of the paying device" },
-      "to_device_id":   { "type": "string", "description": "UUID of the receiving device" },
-      "amount":         { "type": "string", "description": "Payment amount as decimal string, e.g. '10.5'" },
-      "currency":       { "type": "string", "enum": ["USDC", "XLM"] },
-      "condition":      { "type": "string", "description": "Optional condition type: energy_kwh, time_elapsed, service_complete" },
-      "condition_value":{ "type": "string", "description": "Condition threshold value" },
-      "timeout_seconds":{ "type": "integer", "description": "Seconds before payment expires (default: 3600)" },
-      "memo":           { "type": "string", "description": "Optional memo (max 28 chars)" }
-    }
-  }
+  "title": "Create payment",
+  "description": "Create a Kivo payment intent for a device or x402 flow.",
+  "safeForAutoUse": false,
+  "inputSchema": { "type": "object" },
+  "exampleInput": { "amount": "0.0500000" }
 }
 ```
-
-**Example output:**
-```json
-{
-  "payment_id": "pay_9f3e2c1b-...",
-  "status": "pending",
-  "created_at": "2025-06-01T12:00:00Z"
-}
-```
-
----
-
-### `kivo_execute_contract`
-
-Execute a previously created conditional payment by submitting the condition proof.
-
-```json
-{
-  "name": "kivo_execute_contract",
-  "inputSchema": {
-    "type": "object",
-    "required": ["payment_id"],
-    "properties": {
-      "payment_id":     { "type": "string" },
-      "actual_value":   { "type": "string", "description": "Actual measured value for condition" },
-      "proof_data":     { "type": "object", "description": "Signed proof from oracle or device" }
-    }
-  }
-}
-```
-
----
 
 ### `kivo_check_status`
 
-Check the status of a payment including Stellar confirmation details.
+Check payment or device status. This tool is marked safe for automatic use.
 
 ```json
 {
+  "id": "tool_status",
   "name": "kivo_check_status",
-  "inputSchema": {
-    "type": "object",
-    "required": ["payment_id"],
-    "properties": {
-      "payment_id": { "type": "string" }
-    }
-  }
+  "title": "Check status",
+  "description": "Check payment or device status.",
+  "safeForAutoUse": true,
+  "inputSchema": { "type": "object" },
+  "exampleInput": { "paymentId": "pay_<id>" }
 }
 ```
 
-**Example output:**
-```json
-{
-  "status": "confirmed",
-  "stellar_hash": "8a3f1e2b9c4d...",
-  "explorer_url": "https://stellar.expert/explorer/testnet/tx/8a3f1e2b9c4d...",
-  "confirmed_at": "2025-06-01T12:00:05Z"
-}
-```
-
----
-
-### `kivo_subscribe_webhook`
-
-Register a webhook URL for payment event notifications.
+The current JSON-RPC response for `POST /mcp` is a lightweight Edge response:
 
 ```json
 {
-  "name": "kivo_subscribe_webhook",
-  "inputSchema": {
-    "type": "object",
-    "required": ["url", "events"],
-    "properties": {
-      "url":    { "type": "string", "format": "uri" },
-      "events": {
-        "type": "array",
-        "items": { "type": "string", "enum": ["payment.confirmed", "payment.failed", "payment.expired"] }
-      }
-    }
+  "jsonrpc": "2.0",
+  "id": "request-id",
+  "result": {
+    "content": [{ "type": "text", "text": "{\"status\":\"ok\"}" }],
+    "isError": false
   }
 }
 ```
 
 ---
 
-### `kivo_simulate_payment`
+### Planned MCP tools
 
-Simulate a payment on testnet. Returns a mock result without submitting to the real network. Useful for AI agent testing.
-
-```json
-{
-  "name": "kivo_simulate_payment",
-  "inputSchema": {
-    "type": "object",
-    "required": ["from_device_id", "to_device_id", "amount"],
-    "properties": {
-      "from_device_id": { "type": "string" },
-      "to_device_id":   { "type": "string" },
-      "amount":         { "type": "string" },
-      "currency":       { "type": "string", "enum": ["USDC", "XLM"], "default": "USDC" }
-    }
-  }
-}
-```
-
-**Example output:**
-```json
-{
-  "simulated": true,
-  "mock_payment_id": "sim_abc123",
-  "mock_stellar_hash": "SIMULATED_HASH_...",
-  "estimated_fee_xlm": "0.00001",
-  "estimated_settlement_seconds": 4
-}
-```
+`kivo_execute_contract`, `kivo_subscribe_webhook`, and `kivo_simulate_payment` are planned MCP tools. They are not listed by the current Edge `/v1/mcp/tools` route.
 
 ---
 
@@ -585,21 +496,20 @@ All error responses follow a consistent shape:
 
 ```json
 {
-  "error": "human-readable message",
-  "code": "MACHINE_READABLE_CODE",
-  "details": {}
+  "error": "machine_readable_code",
+  "message": "Human-readable message.",
+  "status": 400
 }
 ```
 
-| HTTP Status | Code | Meaning |
+| HTTP Status | Example `error` | Meaning |
 |---|---|---|
-| 400 | `INVALID_REQUEST` | Malformed body or invalid parameters |
-| 401 | `UNAUTHORIZED` | Missing or invalid dashboard JWT, gateway token, or payment proof |
-| 402 | `PAYMENT_REQUIRED` | x402 endpoint — payment header required |
-| 403 | `FORBIDDEN` | Valid auth but insufficient scope |
-| 404 | `NOT_FOUND` | Resource not found |
-| 409 | `CONFLICT` | Duplicate payment, device already exists |
-| 422 | `UNPROCESSABLE` | Valid format but invalid business logic |
-| 429 | `RATE_LIMITED` | Too many requests for this API key |
-| 500 | `INTERNAL_ERROR` | Server error |
-| 503 | `STELLAR_UNAVAILABLE` | Horizon node unreachable |
+| 400 | `invalid_device`, `missing_xdr` | Malformed body or invalid parameters |
+| 401 | `gateway_token_required`, `gateway_unauthorized` | Missing or invalid dashboard JWT, gateway token, or payment proof |
+| 402 | `payment_required` | x402 endpoint payment header required |
+| 403 | `gateway_suspended` | Valid auth but insufficient scope or suspended access |
+| 404 | `not_found`, `payment_not_found` | Resource or route not found |
+| 409 | `payment_already_confirmed` | Resource state conflict |
+| 410 | `nonce_expired` | x402 nonce expired or no longer usable |
+| 500 | `internal_error` | Server error |
+| 503 | `etherfuse_not_configured`, `x402_platform_key_missing` | Required provider or runtime secret is not configured |
