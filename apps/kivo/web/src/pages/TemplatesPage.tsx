@@ -87,7 +87,7 @@ export default function TemplatesPage() {
             <Badge tone="ready">funcional</Badge>
             <h2 className="mt-4 font-bricolage text-2xl font-bold text-white">Template pronto para testar</h2>
             <p className="mt-2 text-sm leading-6 text-neutral-300">Power Totem e o caminho operacional atual para validar recurso fisico, Gateway e simulador.</p>
-            {statusLine && (
+            {(loading || statusLine) && (
               <p className="mt-3 text-xs leading-5 text-neutral-400">
                 {loading ? 'Carregando catalogo da API.' : statusLine}
               </p>

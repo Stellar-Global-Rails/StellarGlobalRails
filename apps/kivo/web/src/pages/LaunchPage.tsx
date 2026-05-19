@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
@@ -42,11 +42,16 @@ export default function LaunchPage() {
   const [options, setOptions] = useState<LaunchOptionView[]>(staticOptions);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const launchOptionsRequestId = useRef(0);
 
-  const loadLaunchOptions = async () => {
+  const loadLaunchOptions = useCallback(async () => {
+    const requestId = launchOptionsRequestId.current + 1;
+    launchOptionsRequestId.current = requestId;
+
     if (!flowId) {
       setOptions(staticOptions);
       setError('');
+      setLoading(false);
       return;
     }
 
@@ -54,21 +59,29 @@ export default function LaunchPage() {
     setError('');
     try {
       const apiOptions = await kivoClient.listStudioLaunchOptions(flowId);
+      if (launchOptionsRequestId.current !== requestId) {
+        return;
+      }
       setOptions(apiOptions.map((option) => ({
         ...option,
         status: option.enabled ? 'enabled' : 'disabled',
       })));
     } catch (caught) {
+      if (launchOptionsRequestId.current !== requestId) {
+        return;
+      }
       setError(caught instanceof Error ? caught.message : 'Nao foi possivel carregar opcoes de launch.');
       setOptions(staticOptions);
     } finally {
-      setLoading(false);
+      if (launchOptionsRequestId.current === requestId) {
+        setLoading(false);
+      }
     }
-  };
+  }, [flowId]);
 
   useEffect(() => {
     void loadLaunchOptions();
-  }, [flowId]);
+  }, [loadLaunchOptions]);
 
   return (
     <div className="space-y-8">

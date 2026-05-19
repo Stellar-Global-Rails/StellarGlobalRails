@@ -32,6 +32,7 @@ export default function PowerTotemStudioPage() {
   const handleCreateIntent = async () => {
     setIsCreating(true);
     setError('');
+    setIntentResult(null);
     try {
       const intent = await kivoClient.createStudioIntent({
         prompt,
@@ -39,6 +40,7 @@ export default function PowerTotemStudioPage() {
       });
       setIntentResult(intent);
     } catch (caught) {
+      setIntentResult(null);
       setError(caught instanceof Error ? caught.message : 'Nao foi possivel criar o intent.');
     } finally {
       setIsCreating(false);

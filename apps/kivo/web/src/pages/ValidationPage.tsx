@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
@@ -31,23 +31,44 @@ export default function ValidationPage() {
   const [run, setRun] = useState<StudioValidationRun | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const validationRequestId = useRef(0);
   const steps: StudioValidationStep[] = run?.steps ?? checklist;
+
+  useEffect(() => {
+    validationRequestId.current += 1;
+    setRun(null);
+    setError('');
+    setLoading(false);
+  }, [flowId]);
 
   const handleStartValidation = async () => {
     if (!flowId) {
+      setRun(null);
       setError('Crie ou selecione um flow antes de validar.');
       return;
     }
 
+    const requestId = validationRequestId.current + 1;
+    validationRequestId.current = requestId;
     setLoading(true);
     setError('');
+    setRun(null);
     try {
       const nextRun = await kivoClient.startStudioValidation(flowId);
+      if (validationRequestId.current !== requestId) {
+        return;
+      }
       setRun(nextRun);
     } catch (caught) {
+      if (validationRequestId.current !== requestId) {
+        return;
+      }
+      setRun(null);
       setError(caught instanceof Error ? caught.message : 'Nao foi possivel iniciar a validacao.');
     } finally {
-      setLoading(false);
+      if (validationRequestId.current === requestId) {
+        setLoading(false);
+      }
     }
   };
 
