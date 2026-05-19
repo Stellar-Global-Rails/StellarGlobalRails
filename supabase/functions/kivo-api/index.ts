@@ -957,11 +957,16 @@ const handleStudio = async (req: Request, path: string) => {
   if (launchOptions && req.method === "GET") {
     await requireUser(req);
     const url = new URL(req.url);
-    const rawStatus = url.searchParams.get("validationStatus") ??
-      "needs_connection";
-    const validationStatus = isStudioValidationStatus(rawStatus)
-      ? rawStatus
-      : "needs_connection";
+    const rawStatus = url.searchParams.get("validationStatus");
+    if (rawStatus !== null && !isStudioValidationStatus(rawStatus)) {
+      return apiError(
+        req,
+        400,
+        "invalid_studio_validation_status",
+        "validationStatus must be a valid Studio validation status.",
+      );
+    }
+    const validationStatus = rawStatus ?? "needs_connection";
     return json(req, 200, getLaunchOptionsForValidation(validationStatus));
   }
 
