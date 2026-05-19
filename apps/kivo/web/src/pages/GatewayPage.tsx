@@ -32,7 +32,7 @@ export default function GatewayPage() {
         eyebrow="Kivo Gateway"
         title="Runtime que libera o recurso real"
         icon="solar:server-square-cloud-linear"
-        description="O Gateway fica entre a validacao de pagamento e aquilo que precisa ser liberado: energia, API, dado, job, ferramenta de agente ou qualquer recurso com regra de acesso."
+        description="O Gateway fica entre a validacao de pagamento e aquilo que precisa ser liberado: energia, API, dado, job, ferramenta de agente ou qualquer recurso com regra de acesso. Ele pode ser fisico ou gateway digital."
         action={
           <div className="flex flex-wrap gap-2">
             <Link to="/totem-simulator" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">

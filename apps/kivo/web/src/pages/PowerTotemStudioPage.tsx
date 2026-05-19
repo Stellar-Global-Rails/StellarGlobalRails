@@ -53,7 +53,7 @@ export default function PowerTotemStudioPage() {
         eyebrow="Kivo Studio"
         title="Criacao guiada por agentes"
         icon="solar:stars-line-duotone"
-        description="Descreva o recurso, escolha o Gateway, gere o flow, receba o SDK, valide x402 + Etherfuse e prepare o launch sem limitar a experiencia ao Power Totem."
+        description="Descreva o recurso, trabalhe com AI agents, escolha o Gateway, gere o flow, receba o SDK, valide x402 + Etherfuse e prepare o launch sem limitar a experiencia ao Power Totem."
         action={
           <div className="flex flex-wrap gap-2">
             <Link to="/create-flow" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
@@ -71,7 +71,11 @@ export default function PowerTotemStudioPage() {
       <Card className="overflow-hidden border-emerald-500/15 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.18),transparent_34%),rgba(15,23,42,0.76)]">
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
           <div>
-            <Badge tone="ready">produto em construcao</Badge>
+            <div className="flex flex-wrap gap-2">
+              <Badge tone="ready">produto em construcao</Badge>
+              <Badge tone="processing">AI agents</Badge>
+              <Badge tone="neutral">Power Totem funcional</Badge>
+            </div>
             <h2 className="mt-4 font-bricolage text-2xl font-bold text-white">Um Studio para qualquer recurso pago</h2>
             <p className="mt-3 text-sm leading-6 text-neutral-300">
               O Studio transforma uma intencao em runtime de acesso: fisico quando existe uma maquina, digital quando existe uma API, hibrido quando os dois precisam conversar.

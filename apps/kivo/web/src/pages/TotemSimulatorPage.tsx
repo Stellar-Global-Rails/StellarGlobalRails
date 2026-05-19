@@ -104,14 +104,14 @@ export default function TotemSimulatorPage() {
         eyebrow="Gateway"
         title="Simulador de Power Totem"
         icon="solar:gamepad-bold-duotone"
-        description="Fallback local para demonstrar heartbeat, consulta de autorizacao e eventos do gateway sem depender de hardware fisico."
+        description="Fallback local para demonstrar heartbeat, consulta de autorizacao e eventos do gateway depois de um pagamento x402 com trilha Etherfuse, sem depender de hardware fisico."
         action={<Badge tone={state === 'unlocked' ? 'ready' : state === 'polling' ? 'processing' : 'warning'}>{stateLabel(state)}</Badge>}
       />
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <Card>
           <h2 className="font-bricolage text-xl font-bold text-white">Credenciais do gateway</h2>
-          <p className="mt-2 text-sm leading-6 text-neutral-400">Use o token emitido no Studio. Se deixar vazio, o simulador roda em modo local para apresentacao.</p>
+          <p className="mt-2 text-sm leading-6 text-neutral-400">Use o token emitido no Studio. Se deixar vazio, o simulador roda em modo local para apresentacao, mantendo claro onde entram x402 e Etherfuse no fluxo real.</p>
           <div className="mt-5 space-y-4">
             <label className="block">
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">Gateway ID</span>
