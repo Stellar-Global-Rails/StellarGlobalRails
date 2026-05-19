@@ -68,6 +68,7 @@ export interface GatewayAuthorizationResponse {
 }
 
 export interface GatewayClient {
+  assertCanCompleteSessions?(): void;
   heartbeat(): Promise<Gateway | void>;
   getAuthorization(): Promise<GatewayAuthorizationResponse>;
   createGatewayEvent(input: GatewayEventInput): Promise<GatewayEvent | void>;
@@ -85,8 +86,10 @@ export interface RunOnceOptions {
   adapter: PowerOutputAdapter;
   sleep?: (milliseconds: number) => Promise<void>;
   shouldWaitForDuration?: boolean;
+  processedSessionIds?: Set<string>;
 }
 
 export type RunOnceResult =
   | { status: "idle" }
-  | { status: "completed"; sessionId: string };
+  | { status: "completed"; sessionId: string }
+  | { status: "skipped"; sessionId: string };

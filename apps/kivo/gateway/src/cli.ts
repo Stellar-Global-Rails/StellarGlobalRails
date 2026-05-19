@@ -15,7 +15,7 @@ async function main(): Promise<void> {
     baseUrl: requiredEnv("KIVO_API_URL"),
     gatewayId: requiredEnv("KIVO_GATEWAY_ID"),
     gatewayToken: requiredEnv("KIVO_GATEWAY_TOKEN"),
-    apiToken: process.env.KIVO_API_TOKEN,
+    apiToken: requiredEnv("KIVO_API_TOKEN"),
   });
   const adapter = createAdapter();
   const waitForDuration = readBooleanEnv("KIVO_GATEWAY_WAIT", true);
@@ -57,8 +57,8 @@ function createAdapter(): PowerOutputAdapter {
   }
   if (adapter === "raspberry") {
     return new RaspberryShellAdapter({
-      enableCommand: process.env.KIVO_GATEWAY_ENABLE_COMMAND,
-      disableCommand: process.env.KIVO_GATEWAY_DISABLE_COMMAND,
+      enableCommand: requiredEnv("KIVO_GATEWAY_ENABLE_COMMAND"),
+      disableCommand: requiredEnv("KIVO_GATEWAY_DISABLE_COMMAND"),
     });
   }
   throw new Error(`Unsupported KIVO_GATEWAY_ADAPTER: ${adapter}`);

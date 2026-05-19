@@ -14,14 +14,20 @@ export async function runOnce(options: RunOnceOptions): Promise<RunOnceResult> {
     adapter,
     sleep = defaultSleep,
     shouldWaitForDuration = process.env.NODE_ENV !== "test",
+    processedSessionIds,
   } = options;
 
+  client.assertCanCompleteSessions?.();
   await client.heartbeat();
 
   const { authorization } = await client.getAuthorization();
   if (!authorization) {
     return { status: "idle" };
   }
+  if (processedSessionIds?.has(authorization.id)) {
+    return { status: "skipped", sessionId: authorization.id };
+  }
+  processedSessionIds?.add(authorization.id);
 
   await runAuthorizedSession({
     authorization,
@@ -40,10 +46,12 @@ export async function startPolling(options: RunOnceOptions & {
   onError?: (error: unknown) => void;
 }): Promise<void> {
   const { intervalMilliseconds, signal, onError, ...runOptions } = options;
+  const processedSessionIds = runOptions.processedSessionIds ??
+    new Set<string>();
 
   while (!signal?.aborted) {
     try {
-      await runOnce(runOptions);
+      await runOnce({ ...runOptions, processedSessionIds });
     } catch (error) {
       if (onError) {
         onError(error);
@@ -89,6 +97,7 @@ async function runAuthorizedSession(
     }
   }
 
+  await client.completeSession(authorization.id);
   await client.createGatewayEvent({
     eventType: "session.completed",
     sessionId: authorization.id,
@@ -97,5 +106,4 @@ async function runAuthorizedSession(
       durationSeconds: authorization.durationSeconds,
     },
   });
-  await client.completeSession(authorization.id);
 }

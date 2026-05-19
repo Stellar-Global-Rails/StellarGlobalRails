@@ -15,20 +15,20 @@ Required environment variables:
 $env:KIVO_API_URL="https://your-kivo-api.example"
 $env:KIVO_GATEWAY_ID="gateway_..."
 $env:KIVO_GATEWAY_TOKEN="kgw_..."
+$env:KIVO_API_TOKEN="workspace_or_user_token_for_completion_route"
 $env:KIVO_GATEWAY_ADAPTER="simulator"
 ```
 
 Optional environment variables:
 
 ```powershell
-$env:KIVO_API_TOKEN="workspace_or_user_token_for_completion_route"
 $env:KIVO_GATEWAY_POLL_INTERVAL_MS="5000"
 $env:KIVO_GATEWAY_WAIT="true"
 $env:KIVO_GATEWAY_ENABLE_COMMAND="path-to-enable-command"
 $env:KIVO_GATEWAY_DISABLE_COMMAND="path-to-disable-command"
 ```
 
-`KIVO_GATEWAY_TOKEN` is sent as `x-gateway-token` for heartbeat, authorization, and gateway event requests. `completeSession` calls `POST /v1/power-sessions/:id/complete`; set `KIVO_API_TOKEN` if your API deployment requires a user/workspace token for that route.
+`KIVO_GATEWAY_TOKEN` is sent as `x-gateway-token` for heartbeat, authorization, and gateway event requests. `KIVO_API_TOKEN` is required for the current MVP because `completeSession` calls the authenticated `POST /v1/power-sessions/:id/complete` route. This requirement can be removed when gateway-token completion is promoted in the API, or when the x402 bridge owns the status transition end to end.
 
 ## Simulator
 
@@ -63,6 +63,8 @@ $env:KIVO_GATEWAY_ENABLE_COMMAND="node ./scripts/relay-on.js"
 $env:KIVO_GATEWAY_DISABLE_COMMAND="node ./scripts/relay-off.js"
 npm run dev -- start
 ```
+
+When `KIVO_GATEWAY_ADAPTER=raspberry`, both command variables are required at startup so the process fails before polling or actuation if the shell adapter is not fully configured.
 
 The adapter passes these variables to each command:
 

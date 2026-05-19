@@ -32,6 +32,14 @@ export class KivoGatewayClient implements GatewayClient {
     this.fetcher = options.fetcher ?? fetch;
   }
 
+  assertCanCompleteSessions(): void {
+    if (!this.apiToken?.trim()) {
+      throw new Error(
+        "KIVO_API_TOKEN is required before completing Power Sessions.",
+      );
+    }
+  }
+
   heartbeat(): Promise<Gateway> {
     return this.request<Gateway>(
       `/v1/gateways/${encodeURIComponent(this.gatewayId)}/heartbeat`,
@@ -56,8 +64,9 @@ export class KivoGatewayClient implements GatewayClient {
     );
   }
 
-  completeSession(sessionId: string): Promise<PowerSession> {
-    return this.request<PowerSession>(
+  async completeSession(sessionId: string): Promise<PowerSession> {
+    this.assertCanCompleteSessions();
+    return await this.request<PowerSession>(
       `/v1/power-sessions/${encodeURIComponent(sessionId)}/complete`,
       { method: "POST" },
       { gatewayToken: true, apiToken: true },
@@ -73,8 +82,13 @@ export class KivoGatewayClient implements GatewayClient {
     if (auth.gatewayToken) {
       headers.set("x-gateway-token", this.gatewayToken);
     }
-    if (auth.apiToken && this.apiToken) {
-      headers.set("authorization", `Bearer ${this.apiToken}`);
+    const apiToken = this.apiToken?.trim();
+    if (auth.apiToken && apiToken) {
+      headers.set("authorization", `Bearer ${apiToken}`);
+    } else if (auth.apiToken) {
+      throw new Error(
+        "KIVO_API_TOKEN is required before completing Power Sessions.",
+      );
     }
     if (init.body && !headers.has("content-type")) {
       headers.set("content-type", "application/json");
@@ -104,9 +118,24 @@ async function responseErrorMessage(response: Response): Promise<string> {
   }
 
   try {
-    const body = JSON.parse(text) as { error?: { message?: string } };
-    return body.error?.message ??
-      `Kivo API request failed with status ${response.status}.`;
+    const body = JSON.parse(text) as {
+      error?: { message?: string } | string;
+      message?: string;
+    };
+    if (typeof body.message === "string" && body.message.trim()) {
+      return body.message;
+    }
+    if (
+      body.error &&
+      typeof body.error === "object" &&
+      typeof body.error.message === "string" &&
+      body.error.message.trim()
+    ) {
+      return body.error.message;
+    }
+    return typeof body.error === "string" && body.error.trim()
+      ? body.error
+      : `Kivo API request failed with status ${response.status}.`;
   } catch {
     return text;
   }
