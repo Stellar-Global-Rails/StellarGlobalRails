@@ -1,0 +1,19 @@
+{
+  "name": "@kivo/power-totem-gateway",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "tsx": "^4.20.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "typescript": "~5.7.2",
+    "vitest": "^3.0.5"
+  }
+}
