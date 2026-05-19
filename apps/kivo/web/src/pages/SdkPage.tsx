@@ -16,7 +16,7 @@ const sdkParts = [
 const snippets = [
   { label: 'Install local export', code: 'npm install ./kivo-sdk' },
   { label: 'Client', code: "const client = new KivoClient({ baseUrl: 'https://api.kivo.example', apiKey: process.env.KIVO_API_KEY });" },
-  { label: 'Protected resource', code: "const challenge = await client.getX402Challenge('/paid/resource');\nconst payment = createPaymentHeader({ nonce: challenge.nonce, txXDR });" },
+  { label: 'Protected resource', code: "const challenge = await client.getX402Challenge('/paid/resource');\nconst paid = await client.payX402Challenge(challenge.nonce, txXDR);\nconst resource = await client.unlockX402Resource(challenge.resource ?? '/paid/resource', paid.paymentHeader);" },
 ];
 
 export default function SdkPage() {

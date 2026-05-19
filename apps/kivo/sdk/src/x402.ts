@@ -1,8 +1,10 @@
 export interface CreatePaymentHeaderInput {
-  nonce: string;
-  txXDR: string;
+  paymentHeader: string;
 }
 
-export function createPaymentHeader({ nonce, txXDR }: CreatePaymentHeaderInput) {
-  return `scheme=stellar,nonce=${encodeURIComponent(nonce)},tx_xdr=${encodeURIComponent(txXDR)}`;
+export function createPaymentHeader({ paymentHeader }: CreatePaymentHeaderInput) {
+  if (!paymentHeader.trim()) {
+    throw new Error('paymentHeader is required after POST /v1/x402/pay confirms the signed XDR.');
+  }
+  return paymentHeader;
 }

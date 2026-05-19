@@ -414,6 +414,55 @@ describe('HttpKivoApiClient', () => {
     expect(intent.recommendedGatewayMode).toBe('api_guard');
   });
 
+  it('creates Studio flows with the full intent payload because intents are not persisted yet', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let body = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        body = String(init?.body ?? '');
+        return jsonResponse({
+          id: 'flow_power_api',
+          intentId: 'intent_power_api',
+          name: 'Quero cobrar por uma API de dados',
+          surface: 'digital',
+          interactionModel: 'M2M',
+          gatewayMode: 'api_guard',
+          resourceName: 'Protected API',
+          price: '0.1000000',
+          asset: 'USDC:testnet',
+          accessRule: 'Require a valid x402 payment before releasing the protected resource.',
+          status: 'needs_setup',
+          createdAt: '2026-05-19T12:00:00Z',
+          updatedAt: '2026-05-19T12:00:00Z',
+        });
+      },
+    });
+
+    const flow = await client.createStudioFlow({
+      id: 'intent_power_api',
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+      interactionModel: 'M2M',
+      recommendedGatewayMode: 'api_guard',
+      createdAt: '2026-05-19T12:00:00Z',
+    });
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/studio/flows');
+    expect(method).toBe('POST');
+    expect(JSON.parse(body)).toEqual({
+      intentId: 'intent_power_api',
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+      interactionModel: 'M2M',
+      gatewayMode: 'api_guard',
+    });
+    expect(flow.name).toBe('Quero cobrar por uma API de dados');
+  });
+
   it('starts validation runs without returning fabricated success', async () => {
     let requestedUrl = '';
     let method = '';

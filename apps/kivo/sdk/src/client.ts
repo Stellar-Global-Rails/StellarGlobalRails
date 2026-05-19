@@ -16,6 +16,20 @@ export interface KivoX402Challenge {
   [key: string]: unknown;
 }
 
+export interface KivoX402PaidResponse {
+  status: 200;
+  paymentHeader: string;
+  stellarHash?: string;
+  stellarLedger?: number;
+  data?: Record<string, unknown>;
+}
+
+export interface KivoX402UnlockedResponse {
+  unlocked?: boolean;
+  data?: unknown;
+  [key: string]: unknown;
+}
+
 export class KivoClient {
   private readonly baseUrl: string;
   private readonly apiKey?: string;
@@ -34,10 +48,19 @@ export class KivoClient {
     });
   }
 
-  payX402Challenge(nonce: string, txXDR: string): Promise<unknown> {
-    return this.request('/v1/x402/pay', {
+  payX402Challenge(nonce: string, txXDR: string): Promise<KivoX402PaidResponse> {
+    return this.request<KivoX402PaidResponse>('/v1/x402/pay', {
       method: 'POST',
       body: JSON.stringify({ nonce, txXDR }),
+    });
+  }
+
+  unlockX402Resource(resource: string, paymentHeader: string): Promise<KivoX402UnlockedResponse> {
+    return this.request<KivoX402UnlockedResponse>(resource, {
+      method: 'GET',
+      headers: {
+        'X-PAYMENT': paymentHeader,
+      },
     });
   }
 

@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { createPaymentHeader } from './x402';
 
 describe('createPaymentHeader', () => {
-  it('serializes the nonce and transaction XDR without private key material', () => {
-    const header = createPaymentHeader({ nonce: 'nonce_1', txXDR: 'AAAA_REAL_XDR' });
+  it('uses the server-issued X-PAYMENT proof instead of fabricating one from txXDR', () => {
+    const header = createPaymentHeader({ paymentHeader: 'edge_confirmed_x402_header' });
 
-    expect(header).toContain('nonce_1');
-    expect(header).toContain('AAAA_REAL_XDR');
+    expect(header).toBe('edge_confirmed_x402_header');
+    expect(header).not.toContain('AAAA_REAL_XDR');
     expect(header).not.toContain('SBOY');
     expect(header).not.toContain('SECRET');
   });

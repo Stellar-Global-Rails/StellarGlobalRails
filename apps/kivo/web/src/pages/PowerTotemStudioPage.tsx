@@ -3,10 +3,11 @@ import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { CopyButton } from '@/components/ui/CopyButton';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { gatewayModes, studioAgents, studioSteps, studioTemplates } from '@/data/studioExperience';
 import { kivoClient } from '@/services/kivoClient';
-import type { StudioIntent } from '@/types/kivo';
+import type { GatewayPairingResult, PowerTotem, StudioFlow, StudioIntent } from '@/types/kivo';
 
 const gatewayGroups = [
   { id: 'physical', label: 'Fisico', description: 'Runtime perto do recurso real: Raspberry Pi, edge device ou totem.' },
@@ -25,7 +26,15 @@ const stepIcons: Record<string, string> = {
 export default function PowerTotemStudioPage() {
   const [prompt, setPrompt] = useState('');
   const [intentResult, setIntentResult] = useState<StudioIntent | null>(null);
+  const [flowResult, setFlowResult] = useState<StudioFlow | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [totemName, setTotemName] = useState('Power Totem Demo');
+  const [totemPrice, setTotemPrice] = useState('0.2500000');
+  const [sessionDuration, setSessionDuration] = useState('30');
+  const [createdTotem, setCreatedTotem] = useState<PowerTotem | null>(null);
+  const [pairingResult, setPairingResult] = useState<GatewayPairingResult | null>(null);
+  const [isCreatingTotem, setIsCreatingTotem] = useState(false);
+  const [totemError, setTotemError] = useState('');
   const [error, setError] = useState('');
   const powerTotem = studioTemplates.find((template) => template.id === 'power-totem');
 
@@ -33,17 +42,47 @@ export default function PowerTotemStudioPage() {
     setIsCreating(true);
     setError('');
     setIntentResult(null);
+    setFlowResult(null);
     try {
       const intent = await kivoClient.createStudioIntent({
         prompt,
         surface: prompt.toLowerCase().includes('totem') ? 'physical' : 'digital',
       });
+      const flow = await kivoClient.createStudioFlow(intent);
       setIntentResult(intent);
+      setFlowResult(flow);
     } catch (caught) {
       setIntentResult(null);
+      setFlowResult(null);
       setError(caught instanceof Error ? caught.message : 'Nao foi possivel criar o intent.');
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleCreatePowerTotem = async () => {
+    setIsCreatingTotem(true);
+    setTotemError('');
+    setCreatedTotem(null);
+    setPairingResult(null);
+    try {
+      const totem = await kivoClient.createPowerTotem({
+        name: totemName.trim() || 'Power Totem Demo',
+        price: totemPrice.trim() || '0.2500000',
+        unit: 'session',
+        sessionDurationSeconds: Number(sessionDuration) || 30,
+        metadata: {
+          source: 'kivo-studio',
+          studioFlowId: flowResult?.id,
+        },
+      });
+      const pairing = await kivoClient.createPowerTotemPairingToken(totem.id);
+      setCreatedTotem(totem);
+      setPairingResult(pairing);
+    } catch (caught) {
+      setTotemError(caught instanceof Error ? caught.message : 'Nao foi possivel criar o Power Totem.');
+    } finally {
+      setIsCreatingTotem(false);
     }
   };
 
@@ -125,6 +164,13 @@ export default function PowerTotemStudioPage() {
                     <Badge tone="processing">{intentResult.interactionModel}</Badge>
                     <Badge tone="ready">Gateway {intentResult.recommendedGatewayMode}</Badge>
                   </div>
+                  {flowResult && (
+                    <div className="mt-3 rounded-xl border border-white/5 bg-black/25 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">Flow gerado</p>
+                      <p className="mt-1 text-sm font-bold text-white">{flowResult.name}</p>
+                      <p className="mt-1 text-xs text-neutral-500">{flowResult.gatewayMode} - {flowResult.resourceName}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -182,6 +228,56 @@ export default function PowerTotemStudioPage() {
                   <h3 className="font-bricolage text-lg font-bold text-white">{powerTotem.name}</h3>
                   <p className="mt-2 text-sm leading-6 text-neutral-300">{powerTotem.description}</p>
                 </div>
+              </div>
+              <div className="mt-5 grid gap-3 rounded-2xl border border-white/5 bg-black/25 p-4">
+                <div>
+                  <p className="text-sm font-bold text-white">Criar Power Totem real</p>
+                  <p className="mt-1 text-xs leading-5 text-neutral-400">
+                    Esta acao chama a API atual, cria o totem e emite o token unico do gateway para o simulador ou Raspberry.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-[1.3fr_0.7fr_0.6fr]">
+                  <label className="block">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">Nome</span>
+                    <input value={totemName} onChange={(event) => setTotemName(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
+                  </label>
+                  <label className="block">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">Preco</span>
+                    <input value={totemPrice} onChange={(event) => setTotemPrice(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 font-mono text-sm text-white outline-none focus:border-emerald-500" />
+                  </label>
+                  <label className="block">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">Segundos</span>
+                    <input value={sessionDuration} onChange={(event) => setSessionDuration(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 font-mono text-sm text-white outline-none focus:border-emerald-500" />
+                  </label>
+                </div>
+                <button type="button" onClick={handleCreatePowerTotem} disabled={isCreatingTotem} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50">
+                  <Icon icon={isCreatingTotem ? 'solar:refresh-linear' : 'solar:bolt-circle-linear'} />
+                  {isCreatingTotem ? 'Criando Power Totem' : 'Criar Power Totem e token'}
+                </button>
+                {totemError && <p className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs leading-5 text-red-200">{totemError}</p>}
+                {createdTotem && pairingResult && (
+                  <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.06] p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-white">{createdTotem.name}</p>
+                        <p className="mt-1 text-xs leading-5 text-neutral-400">{createdTotem.resource} - {createdTotem.price} {createdTotem.unit}</p>
+                      </div>
+                      <Badge tone="ready">gateway emitido</Badge>
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <CopyButton value={pairingResult.gateway.id} label="Copiar gatewayId" />
+                      <CopyButton value={pairingResult.gatewayToken} label="Copiar gateway token" />
+                    </div>
+                    <Link
+                      to="/totem-simulator"
+                      state={{ gatewayId: pairingResult.gateway.id, gatewayToken: pairingResult.gatewayToken }}
+                      className="mt-3 inline-flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-100 hover:bg-emerald-500/15"
+                    >
+                      <Icon icon="solar:gamepad-linear" />
+                      Abrir simulador com token
+                    </Link>
+                  </div>
+                )}
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
                 <Link to="/totem-simulator" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">

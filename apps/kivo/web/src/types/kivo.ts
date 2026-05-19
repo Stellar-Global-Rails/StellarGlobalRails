@@ -585,6 +585,14 @@ export interface StudioFlow {
   updatedAt: string;
 }
 
+export interface StudioFlowInput {
+  intentId: string;
+  prompt: string;
+  surface: KivoSolutionSurface;
+  interactionModel: KivoInteractionModel;
+  gatewayMode: KivoGatewayMode;
+}
+
 export interface StudioValidationStep {
   id: 'gateway' | 'x402' | 'etherfuse' | 'payment' | 'release' | string;
   label: string;
