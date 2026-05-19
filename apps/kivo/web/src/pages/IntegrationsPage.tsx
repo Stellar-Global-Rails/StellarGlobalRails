@@ -31,11 +31,12 @@ const sdkSteps = [
 
 const starterFiles = [
   'README.md',
-  'src/kivo.ts',
-  'examples/power-totem-gateway.ts',
-  'examples/raspberry-gpio.ts',
-  'examples/simulator-fallback.ts',
-  '.env.example',
+  'package.json',
+  'src/cli.ts',
+  'src/client.ts',
+  'src/runner.ts',
+  'src/adapters/simulator.ts',
+  'src/adapters/raspberry.ts',
 ];
 
 const flowCards = [
@@ -132,24 +133,21 @@ export default function IntegrationsPage() {
             ))}
           </div>
 
-          <pre className="mt-5 overflow-auto rounded-2xl border border-white/10 bg-black/40 p-4 text-xs leading-6 text-blue-100">{`import { KivoClient } from './src/kivo';
+          <pre className="mt-5 overflow-auto rounded-2xl border border-white/10 bg-black/40 p-4 text-xs leading-6 text-blue-100">{`import { KivoGatewayClient } from './src/client';
+import { runOnce } from './src/runner';
+import { SimulatorPowerAdapter } from './src/adapters/simulator';
 
-const kivo = new KivoClient({
-  apiUrl: process.env.KIVO_API_URL,
-  gatewayToken: process.env.KIVO_GATEWAY_TOKEN,
+const client = new KivoGatewayClient({
+  baseUrl: process.env.KIVO_API_URL!,
+  gatewayId: process.env.KIVO_GATEWAY_ID!,
+  gatewayToken: process.env.KIVO_GATEWAY_TOKEN!,
+  apiToken: process.env.KIVO_API_TOKEN,
 });
 
-await kivo.sendGatewayHeartbeat('gw_1');
-
-const authorization = await kivo.getGatewayAuthorization('gw_1');
-
-await kivo.createGatewayEvent('gw_1', {
-  sessionId: authorization?.id,
-  eventType: 'relay.closed',
-  payload: { pin: 17, durationSeconds: 30 },
-});
-
-return authorization;`}</pre>
+await runOnce({
+  client,
+  adapter: new SimulatorPowerAdapter(),
+});`}</pre>
         </Card>
 
         <div className="space-y-6">
