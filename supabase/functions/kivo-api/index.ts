@@ -5,6 +5,13 @@ import {
   Networks,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
+import {
+  buildPowerTotemResource,
+  ensureValidDuration,
+  nextSessionStatus,
+  type PowerSessionStatus,
+  sanitizeQrSlug,
+} from "./powerTotemDomain.ts";
 import { validatePaymentSettlementXdr } from "./settlementValidation.ts";
 
 const VERSION = "kivo-edge-transition-2026-05-17";
@@ -135,6 +142,73 @@ interface DbNonce {
   created_at: string;
 }
 
+interface DbPowerTotem {
+  id: string;
+  owner_id: string;
+  name: string;
+  resource: string;
+  price: string | number;
+  unit: string;
+  session_duration_seconds: number;
+  status: string;
+  qr_slug: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DbGateway {
+  id: string;
+  owner_id: string;
+  totem_id?: string | null;
+  name: string;
+  token_hash: string;
+  token_preview: string;
+  pairing_token_hash?: string | null;
+  pairing_token_preview?: string | null;
+  status: string;
+  adapter: string;
+  last_seen_at?: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DbPowerSession {
+  id: string;
+  owner_id: string;
+  totem_id: string;
+  gateway_id?: string | null;
+  payment_id?: string | null;
+  x402_nonce?: string | null;
+  resource: string;
+  amount: string | number;
+  asset: string;
+  duration_seconds: number;
+  status: PowerSessionStatus;
+  authorization_token_hash?: string | null;
+  authorization_token_preview?: string | null;
+  authorized_at?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  expires_at: string;
+  failure_reason?: string | null;
+  events: Array<Record<string, unknown>>;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DbGatewayEvent {
+  id: string;
+  owner_id: string;
+  gateway_id?: string | null;
+  totem_id?: string | null;
+  session_id?: string | null;
+  event_type: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
 class KivoHttpError extends Error {
   constructor(
     public status: number,
@@ -183,7 +257,7 @@ const corsHeaders = (req: Request) => {
   return {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Headers":
-      "authorization,apikey,content-type,x-api-key,x-payment,x-signature",
+      "authorization,apikey,content-type,x-api-key,x-gateway-token,x-payment,x-signature",
     "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin",
@@ -376,6 +450,23 @@ const requireUser = async (req: Request): Promise<KivoUser> => {
   return user;
 };
 
+const requireGateway = async (req: Request) => {
+  const rawToken = req.headers.get("x-gateway-token") ?? "";
+  if (!rawToken.trim()) {
+    throwApiError(401, "gateway_token_required", "Gateway token is required.");
+  }
+  const tokenHash = await sha256Hex(rawToken.trim());
+  const rows = await selectRows<DbGateway>("kivo_gateways", {
+    select: "*",
+    token_hash: `eq.${tokenHash}`,
+    limit: 1,
+  });
+  if (!rows[0]) {
+    throwApiError(401, "gateway_unauthorized", "Gateway token is invalid.");
+  }
+  return rows[0];
+};
+
 const nowISO = () => new Date().toISOString();
 
 const amountString = (value: string | number | null | undefined) => {
@@ -430,6 +521,11 @@ const paymentEvent = (
   status,
   createdAt: nowISO(),
 });
+
+const recordOrEmpty = (value: unknown): Record<string, unknown> =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
 
 const etherfuseMode = () => env("ETHERFUSE_MODE", "devnet");
 const etherfuseBaseUrl = () =>
@@ -919,6 +1015,66 @@ const toApiKey = (row: DbApiKey) => ({
   createdAt: row.created_at,
 });
 
+const toPowerTotem = (row: DbPowerTotem) => ({
+  id: row.id,
+  name: row.name,
+  resource: row.resource,
+  price: String(row.price),
+  unit: row.unit,
+  sessionDurationSeconds: row.session_duration_seconds,
+  status: row.status,
+  qrSlug: row.qr_slug,
+  metadata: row.metadata ?? {},
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+const toGateway = (row: DbGateway) => ({
+  id: row.id,
+  totemId: row.totem_id ?? "",
+  name: row.name,
+  tokenPreview: row.token_preview,
+  pairingTokenPreview: row.pairing_token_preview ?? "",
+  status: row.status,
+  adapter: row.adapter,
+  lastSeenAt: row.last_seen_at ?? undefined,
+  metadata: row.metadata ?? {},
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+const toPowerSession = (row: DbPowerSession) => ({
+  id: row.id,
+  totemId: row.totem_id,
+  gatewayId: row.gateway_id ?? "",
+  paymentId: row.payment_id ?? "",
+  x402Nonce: row.x402_nonce ?? "",
+  resource: row.resource,
+  amount: String(row.amount),
+  asset: row.asset,
+  durationSeconds: row.duration_seconds,
+  status: row.status,
+  authorizationTokenPreview: row.authorization_token_preview ?? "",
+  authorizedAt: row.authorized_at ?? undefined,
+  startedAt: row.started_at ?? undefined,
+  completedAt: row.completed_at ?? undefined,
+  expiresAt: row.expires_at,
+  failureReason: row.failure_reason ?? undefined,
+  events: row.events ?? [],
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+const toGatewayEvent = (row: DbGatewayEvent) => ({
+  id: row.id,
+  gatewayId: row.gateway_id ?? "",
+  totemId: row.totem_id ?? "",
+  sessionId: row.session_id ?? "",
+  eventType: row.event_type,
+  payload: row.payload ?? {},
+  createdAt: row.created_at,
+});
+
 const listDevicesForUser = async (ownerId: string) =>
   (await selectRows<DbDevice>("kivo_devices", {
     select: "*",
@@ -1053,6 +1209,10 @@ const splitAsset = (asset: string) => {
   const [code, issuer] = asset.split(":");
   return { code: code || "USDC", issuer: issuer || "" };
 };
+
+const defaultPowerSessionAsset = () =>
+  env("KIVO_DEFAULT_USDC_ASSET") ||
+  (env("USDC_ISSUER") ? `USDC:${env("USDC_ISSUER")}` : "XLM");
 
 const stellarPassphrase = () =>
   env("STELLAR_NETWORK", "testnet") === "mainnet"
@@ -1404,6 +1564,411 @@ const handlePayments = async (req: Request, path: string) => {
   }
 
   return apiError(req, 404, "not_found", "Payment route not found.");
+};
+
+const handlePowerTotems = async (req: Request, path: string) => {
+  const user = await requireUser(req);
+  const detail = path.match(
+    /^\/v1\/power-totems\/([^/]+)(?:\/(pairing-token))?$/,
+  );
+
+  if (path === "/v1/power-totems" && req.method === "GET") {
+    const rows = await selectRows<DbPowerTotem>("kivo_power_totems", {
+      select: "*",
+      owner_id: `eq.${user.id}`,
+      order: "created_at.desc",
+    });
+    return json(req, 200, rows.map(toPowerTotem));
+  }
+
+  if (path === "/v1/power-totems" && req.method === "POST") {
+    const input = await req.json().catch(() => ({})) as Record<
+      string,
+      unknown
+    >;
+    const name = typeof input.name === "string" ? input.name.trim() : "";
+    const price = typeof input.price === "number" ||
+        typeof input.price === "string"
+      ? String(input.price).trim()
+      : "";
+    const unit = typeof input.unit === "string" && input.unit.trim()
+      ? input.unit.trim()
+      : "session";
+    if (!name) {
+      return apiError(
+        req,
+        400,
+        "invalid_power_totem",
+        "Power Totem name is required.",
+      );
+    }
+    if (!price || !Number.isFinite(Number(price)) || Number(price) <= 0) {
+      return apiError(
+        req,
+        400,
+        "invalid_power_totem_price",
+        "Power Totem price must be greater than zero.",
+      );
+    }
+    if (!["session", "minute", "kWh"].includes(unit)) {
+      return apiError(
+        req,
+        400,
+        "invalid_power_totem_unit",
+        "Power Totem unit must be session, minute, or kWh.",
+      );
+    }
+    let durationSeconds: number;
+    try {
+      durationSeconds = ensureValidDuration(
+        Number(input.sessionDurationSeconds ?? input.durationSeconds ?? 30),
+      );
+    } catch (error) {
+      return apiError(
+        req,
+        400,
+        "invalid_power_totem_duration",
+        error instanceof Error ? error.message : "Invalid session duration.",
+      );
+    }
+    const qrSlug = sanitizeQrSlug(
+      typeof input.qrSlug === "string" ? input.qrSlug : name,
+    );
+    let resource: string;
+    try {
+      resource = buildPowerTotemResource(qrSlug);
+    } catch (error) {
+      return apiError(
+        req,
+        400,
+        "invalid_power_totem_resource",
+        error instanceof Error
+          ? error.message
+          : "Invalid Power Totem resource.",
+      );
+    }
+    const row = await insertRow<DbPowerTotem>("kivo_power_totems", {
+      owner_id: user.id,
+      name,
+      resource,
+      price,
+      unit,
+      session_duration_seconds: durationSeconds,
+      status: "draft",
+      qr_slug: qrSlug,
+      metadata: recordOrEmpty(input.metadata),
+    });
+    await insertRow<DbPricingRule>("kivo_x402_pricing_rules", {
+      owner_id: user.id,
+      resource,
+      amount: price,
+      asset: defaultPowerSessionAsset(),
+      max_timeout: 300,
+      enabled: true,
+      description: `Power Totem: ${name}`,
+    });
+    return json(req, 201, toPowerTotem(row));
+  }
+
+  if (detail && req.method === "GET" && !detail[2]) {
+    const rows = await selectRows<DbPowerTotem>("kivo_power_totems", {
+      select: "*",
+      id: `eq.${detail[1]}`,
+      owner_id: `eq.${user.id}`,
+      limit: 1,
+    });
+    if (!rows[0]) {
+      return apiError(
+        req,
+        404,
+        "power_totem_not_found",
+        "Power Totem not found.",
+      );
+    }
+    return json(req, 200, toPowerTotem(rows[0]));
+  }
+
+  if (detail && req.method === "POST" && detail[2] === "pairing-token") {
+    const totems = await selectRows<DbPowerTotem>("kivo_power_totems", {
+      select: "*",
+      id: `eq.${detail[1]}`,
+      owner_id: `eq.${user.id}`,
+      limit: 1,
+    });
+    const totem = totems[0];
+    if (!totem) {
+      return apiError(
+        req,
+        404,
+        "power_totem_not_found",
+        "Power Totem not found.",
+      );
+    }
+    const input = await req.json().catch(() => ({})) as Record<
+      string,
+      unknown
+    >;
+    const rawGatewayToken = randomToken("kgw_");
+    const rawPairingToken = randomToken("kpair_");
+    const adapter = typeof input.adapter === "string" &&
+        ["simulator", "raspberry"].includes(input.adapter)
+      ? input.adapter
+      : "simulator";
+    const gateway = await insertRow<DbGateway>("kivo_gateways", {
+      owner_id: user.id,
+      totem_id: totem.id,
+      name: typeof input.name === "string" && input.name.trim()
+        ? input.name.trim()
+        : `${totem.name} gateway`,
+      token_hash: await sha256Hex(rawGatewayToken),
+      token_preview: secretPreview(rawGatewayToken),
+      pairing_token_hash: await sha256Hex(rawPairingToken),
+      pairing_token_preview: secretPreview(rawPairingToken),
+      status: "pairing",
+      adapter,
+      metadata: recordOrEmpty(input.metadata),
+    });
+    return json(req, 201, {
+      gateway: toGateway(gateway),
+      gatewayToken: rawGatewayToken,
+      pairingToken: rawPairingToken,
+    });
+  }
+
+  return apiError(req, 404, "not_found", "Power Totem route not found.");
+};
+
+const handleGateways = async (req: Request, path: string) => {
+  const gateway = await requireGateway(req);
+  const detail = path.match(
+    /^\/v1\/gateways\/([^/]+)\/(heartbeat|authorization|events)$/,
+  );
+  if (!detail) {
+    return apiError(req, 404, "not_found", "Gateway route not found.");
+  }
+  if (detail[1] !== gateway.id) {
+    return apiError(
+      req,
+      403,
+      "gateway_route_mismatch",
+      "Gateway token does not match this route.",
+    );
+  }
+
+  if (detail[2] === "heartbeat" && req.method === "POST") {
+    const rows = await patchRows<DbGateway>("kivo_gateways", {
+      id: `eq.${gateway.id}`,
+      owner_id: `eq.${gateway.owner_id}`,
+    }, {
+      status: "online",
+      last_seen_at: nowISO(),
+    });
+    return json(req, 200, toGateway(rows[0] ?? gateway));
+  }
+
+  if (detail[2] === "authorization" && req.method === "GET") {
+    const rows = await selectRows<DbPowerSession>("kivo_power_sessions", {
+      select: "*",
+      owner_id: `eq.${gateway.owner_id}`,
+      gateway_id: `eq.${gateway.id}`,
+      status: "eq.authorized",
+      order: "authorized_at.asc,created_at.asc",
+      limit: 1,
+    });
+    return json(req, 200, {
+      authorization: rows[0] ? toPowerSession(rows[0]) : null,
+    });
+  }
+
+  if (detail[2] === "events" && req.method === "POST") {
+    const input = await req.json().catch(() => ({})) as Record<
+      string,
+      unknown
+    >;
+    const eventType = typeof input.eventType === "string"
+      ? input.eventType.trim()
+      : typeof input.event_type === "string"
+      ? input.event_type.trim()
+      : "";
+    if (!eventType) {
+      return apiError(
+        req,
+        400,
+        "invalid_gateway_event",
+        "Gateway event type is required.",
+      );
+    }
+    const event = await insertRow<DbGatewayEvent>("kivo_gateway_events", {
+      owner_id: gateway.owner_id,
+      gateway_id: gateway.id,
+      totem_id: typeof input.totemId === "string" && input.totemId.trim()
+        ? input.totemId.trim()
+        : gateway.totem_id ?? null,
+      session_id: typeof input.sessionId === "string" && input.sessionId.trim()
+        ? input.sessionId.trim()
+        : null,
+      event_type: eventType,
+      payload: recordOrEmpty(input.payload),
+    });
+    return json(req, 201, toGatewayEvent(event));
+  }
+
+  return apiError(req, 404, "not_found", "Gateway route not found.");
+};
+
+const handlePowerSessions = async (req: Request, path: string) => {
+  const user = await requireUser(req);
+  const detail = path.match(
+    /^\/v1\/power-sessions\/([^/]+)(?:\/(authorize|complete))?$/,
+  );
+
+  if (path === "/v1/power-sessions" && req.method === "GET") {
+    const rows = await selectRows<DbPowerSession>("kivo_power_sessions", {
+      select: "*",
+      owner_id: `eq.${user.id}`,
+      order: "created_at.desc",
+    });
+    return json(req, 200, rows.map(toPowerSession));
+  }
+
+  if (path === "/v1/power-sessions" && req.method === "POST") {
+    const input = await req.json().catch(() => ({})) as Record<
+      string,
+      unknown
+    >;
+    const totemId = typeof input.totemId === "string"
+      ? input.totemId.trim()
+      : "";
+    if (!totemId) {
+      return apiError(
+        req,
+        400,
+        "invalid_power_session",
+        "totemId is required.",
+      );
+    }
+    const totems = await selectRows<DbPowerTotem>("kivo_power_totems", {
+      select: "*",
+      id: `eq.${totemId}`,
+      owner_id: `eq.${user.id}`,
+      limit: 1,
+    });
+    const totem = totems[0];
+    if (!totem) {
+      return apiError(
+        req,
+        404,
+        "power_totem_not_found",
+        "Power Totem not found.",
+      );
+    }
+    const gateways = await selectRows<DbGateway>("kivo_gateways", {
+      select: "*",
+      owner_id: `eq.${user.id}`,
+      totem_id: `eq.${totem.id}`,
+      order: "created_at.desc",
+      limit: 1,
+    });
+    const row = await insertRow<DbPowerSession>("kivo_power_sessions", {
+      owner_id: user.id,
+      totem_id: totem.id,
+      gateway_id: gateways[0]?.id ?? null,
+      resource: totem.resource,
+      amount: totem.price,
+      asset: defaultPowerSessionAsset(),
+      duration_seconds: totem.session_duration_seconds,
+      status: "requested",
+      expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      events: [
+        paymentEvent(
+          "Session requested",
+          "Power session requested.",
+          "current",
+        ),
+      ],
+    });
+    return json(req, 201, toPowerSession(row));
+  }
+
+  if (detail && req.method === "POST" && detail[2] === "authorize") {
+    const rows = await selectRows<DbPowerSession>("kivo_power_sessions", {
+      select: "*",
+      id: `eq.${detail[1]}`,
+      owner_id: `eq.${user.id}`,
+      limit: 1,
+    });
+    const session = rows[0];
+    if (!session) {
+      return apiError(
+        req,
+        404,
+        "power_session_not_found",
+        "Power Session not found.",
+      );
+    }
+    if (session.status !== "paid") {
+      return apiError(
+        req,
+        409,
+        "power_session_not_paid",
+        "Power Session must be paid before authorization.",
+      );
+    }
+    const rawAuthorizationToken = randomToken("kauth_");
+    const updated = await patchRows<DbPowerSession>("kivo_power_sessions", {
+      id: `eq.${session.id}`,
+      owner_id: `eq.${user.id}`,
+    }, {
+      status: nextSessionStatus(session.status, "authorize"),
+      authorization_token_hash: await sha256Hex(rawAuthorizationToken),
+      authorization_token_preview: secretPreview(rawAuthorizationToken),
+      authorized_at: nowISO(),
+      events: [
+        ...session.events,
+        paymentEvent(
+          "Session authorized",
+          "Gateway authorization token created.",
+          "done",
+        ),
+      ],
+    });
+    return json(req, 200, {
+      session: toPowerSession(updated[0]),
+      authorizationToken: rawAuthorizationToken,
+    });
+  }
+
+  if (detail && req.method === "POST" && detail[2] === "complete") {
+    const rows = await selectRows<DbPowerSession>("kivo_power_sessions", {
+      select: "*",
+      id: `eq.${detail[1]}`,
+      owner_id: `eq.${user.id}`,
+      limit: 1,
+    });
+    const session = rows[0];
+    if (!session) {
+      return apiError(
+        req,
+        404,
+        "power_session_not_found",
+        "Power Session not found.",
+      );
+    }
+    const updated = await patchRows<DbPowerSession>("kivo_power_sessions", {
+      id: `eq.${session.id}`,
+      owner_id: `eq.${user.id}`,
+    }, {
+      status: "completed",
+      completed_at: nowISO(),
+      events: [
+        ...session.events,
+        paymentEvent("Session completed", "Power session completed.", "done"),
+      ],
+    });
+    return json(req, 200, toPowerSession(updated[0]));
+  }
+
+  return apiError(req, 404, "not_found", "Power Session route not found.");
 };
 
 const getPricingRuleForResource = async (
@@ -2016,12 +2581,23 @@ Deno.serve(async (req) => {
     if (path === "/v1/payments" || path.startsWith("/v1/payments/")) {
       return await handlePayments(req, path);
     }
+    if (path === "/v1/power-totems" || path.startsWith("/v1/power-totems/")) {
+      return await handlePowerTotems(req, path);
+    }
+    if (
+      path === "/v1/power-sessions" || path.startsWith("/v1/power-sessions/")
+    ) {
+      return await handlePowerSessions(req, path);
+    }
+    if (path.startsWith("/v1/gateways/")) {
+      return await handleGateways(req, path);
+    }
     if (path.startsWith("/v1/x402/")) {
       return await handleX402(req, path);
     }
     if (
       path.startsWith("/api/") || path.startsWith("/devices/") ||
-      path.startsWith("/data/")
+      path.startsWith("/data/") || path.startsWith("/power-totem/")
     ) {
       return await handleProtectedResource(req, path);
     }
