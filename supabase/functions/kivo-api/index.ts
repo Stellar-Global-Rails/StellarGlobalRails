@@ -13,6 +13,16 @@ import {
   sanitizeQrSlug,
 } from "./powerTotemDomain.ts";
 import { validatePaymentSettlementXdr } from "./settlementValidation.ts";
+import {
+  createStudioFlowFromIntent,
+  getLaunchOptionsForValidation,
+  listStudioTemplates,
+  type StudioGatewayMode,
+  type StudioIntent,
+  type StudioInteractionModel,
+  type StudioSurface,
+  type StudioValidationStatus,
+} from "./studioDomain.ts";
 
 const VERSION = "kivo-edge-transition-2026-05-17";
 
@@ -696,6 +706,225 @@ const requireEtherfuseKey = (req: Request) => {
     );
   }
   return undefined;
+};
+
+const studioSurfaces: StudioSurface[] = ["physical", "digital", "hybrid"];
+const studioInteractionModels: StudioInteractionModel[] = [
+  "H2M",
+  "M2M",
+  "A2M",
+  "mixed",
+];
+const studioGatewayModes: StudioGatewayMode[] = [
+  "raspberry",
+  "edge_device",
+  "physical_totem",
+  "proxy",
+  "middleware",
+  "sidecar",
+  "worker",
+  "api_guard",
+  "plugin",
+  "serverless_function",
+];
+const studioValidationStatuses: StudioValidationStatus[] = [
+  "not_configured",
+  "needs_connection",
+  "pending",
+  "running",
+  "passed",
+  "failed",
+  "needs_user_action",
+];
+
+const isStudioSurface = (value: unknown): value is StudioSurface =>
+  typeof value === "string" &&
+  studioSurfaces.includes(value as StudioSurface);
+
+const isStudioInteractionModel = (
+  value: unknown,
+): value is StudioInteractionModel =>
+  typeof value === "string" &&
+  studioInteractionModels.includes(value as StudioInteractionModel);
+
+const isStudioGatewayMode = (value: unknown): value is StudioGatewayMode =>
+  typeof value === "string" &&
+  studioGatewayModes.includes(value as StudioGatewayMode);
+
+const isStudioValidationStatus = (
+  value: unknown,
+): value is StudioValidationStatus =>
+  typeof value === "string" &&
+  studioValidationStatuses.includes(value as StudioValidationStatus);
+
+const inferStudioSurface = (prompt: string): StudioSurface => {
+  const normalized = prompt.toLowerCase();
+  const physical = normalized.includes("energia") ||
+    normalized.includes("totem") || normalized.includes("fisico") ||
+    normalized.includes("físico");
+  const digital = normalized.includes("api") || normalized.includes("dados") ||
+    normalized.includes("endpoint") || normalized.includes("software");
+
+  if (physical && digital) {
+    return "hybrid";
+  }
+  if (physical) {
+    return "physical";
+  }
+  return "digital";
+};
+
+const inferStudioInteractionModel = (
+  surface: StudioSurface,
+): StudioInteractionModel => surface === "physical" ? "H2M" : "M2M";
+
+const inferStudioGatewayMode = (
+  prompt: string,
+  surface: StudioSurface,
+): StudioGatewayMode => {
+  const normalized = prompt.toLowerCase();
+  if (normalized.includes("api") || surface === "digital") {
+    return "api_guard";
+  }
+  if (surface === "physical") {
+    return "physical_totem";
+  }
+  return "middleware";
+};
+
+const handleStudio = async (req: Request, path: string) => {
+  if (path === "/v1/studio/templates" && req.method === "GET") {
+    return json(req, 200, listStudioTemplates());
+  }
+
+  if (path === "/v1/studio/intents" && req.method === "POST") {
+    const input = await req.json().catch(() => ({})) as {
+      prompt?: unknown;
+      surface?: unknown;
+      interactionModel?: unknown;
+      gatewayMode?: unknown;
+    };
+    const prompt = typeof input.prompt === "string" ? input.prompt.trim() : "";
+    if (!prompt) {
+      return apiError(
+        req,
+        400,
+        "invalid_studio_intent",
+        "prompt is required.",
+      );
+    }
+
+    const surface = isStudioSurface(input.surface)
+      ? input.surface
+      : inferStudioSurface(prompt);
+    const interactionModel = isStudioInteractionModel(input.interactionModel)
+      ? input.interactionModel
+      : inferStudioInteractionModel(surface);
+    const recommendedGatewayMode = isStudioGatewayMode(input.gatewayMode)
+      ? input.gatewayMode
+      : inferStudioGatewayMode(prompt, surface);
+    const intent: StudioIntent = {
+      id: `intent_${crypto.randomUUID()}`,
+      prompt,
+      surface,
+      interactionModel,
+      recommendedGatewayMode,
+      createdAt: nowISO(),
+    };
+    return json(req, 201, intent);
+  }
+
+  if (path === "/v1/studio/flows" && req.method === "POST") {
+    const input = await req.json().catch(() => ({})) as {
+      intentId?: unknown;
+      prompt?: unknown;
+      surface?: unknown;
+      interactionModel?: unknown;
+      gatewayMode?: unknown;
+    };
+    const prompt = typeof input.prompt === "string" ? input.prompt.trim() : "";
+    if (!prompt) {
+      return apiError(
+        req,
+        400,
+        "invalid_studio_intent",
+        "prompt is required.",
+      );
+    }
+
+    const surface = isStudioSurface(input.surface)
+      ? input.surface
+      : inferStudioSurface(prompt);
+    const intent: StudioIntent = {
+      id: typeof input.intentId === "string" && input.intentId.trim()
+        ? input.intentId.trim()
+        : `intent_${crypto.randomUUID()}`,
+      prompt,
+      surface,
+      interactionModel: isStudioInteractionModel(input.interactionModel)
+        ? input.interactionModel
+        : inferStudioInteractionModel(surface),
+      recommendedGatewayMode: isStudioGatewayMode(input.gatewayMode)
+        ? input.gatewayMode
+        : inferStudioGatewayMode(prompt, surface),
+      createdAt: nowISO(),
+    };
+    return json(req, 201, createStudioFlowFromIntent(intent));
+  }
+
+  const validationRun = path.match(
+    /^\/v1\/studio\/flows\/([^/]+)\/validation-runs$/,
+  );
+  if (validationRun && req.method === "POST") {
+    const now = nowISO();
+    return json(req, 201, {
+      id: `validation_${crypto.randomUUID()}`,
+      flowId: validationRun[1],
+      status: "needs_connection",
+      success: false,
+      createdAt: now,
+      updatedAt: now,
+      steps: [
+        {
+          id: "gateway",
+          label: "Gateway",
+          status: "needs_connection",
+          message: "Conecte um gateway antes de validar o flow.",
+        },
+        {
+          id: "x402",
+          label: "x402",
+          status: "blocked",
+          message: "A validacao x402 depende do gateway conectado.",
+        },
+        {
+          id: "etherfuse",
+          label: "Etherfuse",
+          status: "blocked",
+          message: "A validacao Etherfuse roda depois do pagamento testnet.",
+        },
+      ],
+    });
+  }
+
+  const launchOptions = path.match(
+    /^\/v1\/studio\/flows\/([^/]+)\/launch-options$/,
+  );
+  if (launchOptions && req.method === "GET") {
+    const url = new URL(req.url);
+    const rawStatus = url.searchParams.get("validationStatus") ??
+      "needs_connection";
+    const validationStatus = isStudioValidationStatus(rawStatus)
+      ? rawStatus
+      : "needs_connection";
+    return json(req, 200, {
+      flowId: launchOptions[1],
+      validationStatus,
+      options: getLaunchOptionsForValidation(validationStatus),
+    });
+  }
+
+  return apiError(req, 404, "not_found", "Studio route not found.");
 };
 
 const proxyEtherfuse = async (
@@ -2861,6 +3090,12 @@ Deno.serve(async (req) => {
     }
     if (path === "/v1/deploy/services" && req.method === "GET") {
       return json(req, 200, deployServices(req));
+    }
+    if (
+      path === "/v1/studio/templates" || path === "/v1/studio/intents" ||
+      path === "/v1/studio/flows" || path.startsWith("/v1/studio/flows/")
+    ) {
+      return await handleStudio(req, path);
     }
     if (path === "/v1/dashboard" && req.method === "GET") {
       return await handleDashboard(req);
