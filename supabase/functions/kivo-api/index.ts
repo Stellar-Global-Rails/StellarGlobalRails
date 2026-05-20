@@ -1378,6 +1378,13 @@ const listPricingRulesForUser = async (ownerId: string) =>
     order: "updated_at.desc",
   })).map(toPricingRule);
 
+const listGatewaysForUser = async (ownerId: string) =>
+  (await selectRows<DbGateway>("kivo_gateways", {
+    select: "*",
+    owner_id: `eq.${ownerId}`,
+    order: "updated_at.desc,created_at.desc",
+  })).map(toGateway);
+
 const dashboardSummary = async (req: Request) => {
   const user = await requireUser(req);
   const [devices, payments] = await Promise.all([
@@ -2045,6 +2052,11 @@ const handlePowerTotems = async (req: Request, path: string) => {
 };
 
 const handleGateways = async (req: Request, path: string) => {
+  if (path === "/v1/gateways" && req.method === "GET") {
+    const user = await requireUser(req);
+    return json(req, 200, await listGatewaysForUser(user.id));
+  }
+
   const gateway = await requireGateway(req);
   const detail = path.match(
     /^\/v1\/gateways\/([^/]+)\/(heartbeat|authorization|events)$/,
@@ -3160,7 +3172,7 @@ Deno.serve(async (req) => {
     ) {
       return await handlePowerSessions(req, path);
     }
-    if (path.startsWith("/v1/gateways/")) {
+    if (path === "/v1/gateways" || path.startsWith("/v1/gateways/")) {
       return await handleGateways(req, path);
     }
     if (path.startsWith("/v1/x402/")) {

@@ -82,6 +82,7 @@ export interface KivoApiClient {
   createPowerTotem(input: CreatePowerTotemInput): Promise<PowerTotem>;
   getPowerTotem(id: string): Promise<PowerTotem>;
   createPowerTotemPairingToken(totemId: string): Promise<GatewayPairingResult>;
+  listGateways(): Promise<Gateway[]>;
   listPowerSessions(): Promise<PowerSession[]>;
   createPowerSession(totemId: string): Promise<PowerSession>;
   startPowerSessionCheckout(
@@ -274,6 +275,10 @@ export class HttpKivoApiClient implements KivoApiClient {
 
   async createPowerTotemPairingToken(totemId: string): Promise<GatewayPairingResult> {
     return this.request(`/v1/power-totems/${encodeURIComponent(totemId)}/pairing-token`, { method: 'POST' });
+  }
+
+  async listGateways(): Promise<Gateway[]> {
+    return this.request('/v1/gateways');
   }
 
   async listPowerSessions(): Promise<PowerSession[]> {

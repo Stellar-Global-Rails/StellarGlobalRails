@@ -22,9 +22,10 @@ export default function TotemSimulatorPage() {
   const [gatewayToken, setGatewayToken] = useState(routeState.gatewayToken ?? '');
   const [state, setState] = useState<SimulatorState>('locked');
   const [authorization, setAuthorization] = useState<PowerSession | null>(null);
-  const [log, setLog] = useState<string[]>(['Simulador pronto. Cole gatewayId e token ou use o modo local.']);
+  const [log, setLog] = useState<string[]>(['Runtime web pronto. Cole gatewayId e token emitidos pelo Studio para chamar a API real.']);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const hasGatewayCredentials = Boolean(gatewayId.trim() && gatewayToken.trim());
 
   const appendLog = (entry: string) => setLog((current) => [`${new Date().toLocaleTimeString('pt-BR')} - ${entry}`, ...current].slice(0, 8));
 
@@ -32,8 +33,8 @@ export default function TotemSimulatorPage() {
     setBusy(true);
     setError('');
     try {
-      if (!gatewayId || !gatewayToken) {
-        appendLog('Heartbeat local simulado sem chamar API.');
+      if (!hasGatewayCredentials) {
+        setError('Cole gatewayId e gateway token emitidos pelo Studio antes de enviar heartbeat.');
         return;
       }
       const gateway = await kivoClient.sendGatewayHeartbeat(gatewayId, gatewayToken);
@@ -50,10 +51,9 @@ export default function TotemSimulatorPage() {
     setError('');
     setState('polling');
     try {
-      if (!gatewayId || !gatewayToken) {
-        appendLog('Autorizacao local encontrada para a demo.');
-        setAuthorization(createLocalAuthorization());
-        setState('unlocked');
+      if (!hasGatewayCredentials) {
+        setError('Cole gatewayId e gateway token emitidos pelo Studio antes de consultar autorizacao.');
+        setState('locked');
         return;
       }
       const response = await kivoClient.getGatewayAuthorization(gatewayId, gatewayToken);
@@ -72,8 +72,12 @@ export default function TotemSimulatorPage() {
     setBusy(true);
     setError('');
     try {
-      if (!gatewayId || !gatewayToken) {
-        appendLog(`Evento local ${eventType}.`);
+      if (!hasGatewayCredentials) {
+        setError('Cole gatewayId e gateway token emitidos pelo Studio antes de enviar eventos.');
+        return;
+      }
+      if (!authorization?.id) {
+        setError('Consulte uma autorizacao antes de enviar evento de sessao.');
         return;
       }
       await kivoClient.createGatewayEvent(gatewayId, gatewayToken, {
@@ -85,6 +89,10 @@ export default function TotemSimulatorPage() {
         },
       });
       appendLog(`Evento ${eventType} enviado.`);
+      if (eventType === 'session.completed') {
+        setState('locked');
+        setAuthorization(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Nao foi possivel enviar evento.');
     } finally {
@@ -92,26 +100,26 @@ export default function TotemSimulatorPage() {
     }
   };
 
-  const lockAgain = () => {
+  const clearDisplayedSession = () => {
     setState('locked');
     setAuthorization(null);
-    appendLog('Saida bloqueada novamente.');
+    appendLog('Sessao exibida limpa; aguardando nova autorizacao da API.');
   };
 
   return (
     <div className="space-y-8">
       <PageHeader
         eyebrow="Gateway"
-        title="Simulador de Power Totem"
+        title="Runtime web do Power Totem"
         icon="solar:gamepad-bold-duotone"
-        description="Fallback local para demonstrar heartbeat, consulta de autorizacao e eventos do gateway depois de um pagamento x402 com trilha Etherfuse, sem depender de hardware fisico."
+        description="Cliente operacional para testar o contrato real do Gateway sem hardware fisico: heartbeat, autorizacao e eventos passam pela Kivo API."
         action={<Badge tone={state === 'unlocked' ? 'ready' : state === 'polling' ? 'processing' : 'warning'}>{stateLabel(state)}</Badge>}
       />
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <Card>
           <h2 className="font-bricolage text-xl font-bold text-white">Credenciais do gateway</h2>
-          <p className="mt-2 text-sm leading-6 text-neutral-400">Use o token emitido no Studio. Se deixar vazio, o simulador roda em modo local para apresentacao, mantendo claro onde entram x402 e Etherfuse no fluxo real.</p>
+          <p className="mt-2 text-sm leading-6 text-neutral-400">Use o gatewayId e o token emitidos no Studio. Sem essas credenciais, nenhuma acao chama a API nem libera a saida.</p>
           <div className="mt-5 space-y-4">
             <label className="block">
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">Gateway ID</span>
@@ -144,21 +152,25 @@ export default function TotemSimulatorPage() {
             </div>
 
             <div className="space-y-3">
-              <button type="button" disabled={busy} onClick={heartbeat} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" disabled={busy || !hasGatewayCredentials} onClick={heartbeat} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50">
                 <Icon icon="solar:pulse-2-bold-duotone" />
                 Enviar heartbeat
               </button>
-              <button type="button" disabled={busy} onClick={pollAuthorization} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" disabled={busy || !hasGatewayCredentials} onClick={pollAuthorization} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50">
                 <Icon icon="solar:shield-check-bold-duotone" />
                 Consultar autorizacao
               </button>
-              <button type="button" disabled={busy || state !== 'unlocked'} onClick={() => void sendEvent('relay.opened')} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">
+              <button type="button" disabled={busy || state !== 'unlocked' || !authorization} onClick={() => void sendEvent('session.started')} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">
                 <Icon icon="solar:power-bold-duotone" />
-                Enviar relay.opened
+                Reportar session.started
               </button>
-              <button type="button" disabled={busy} onClick={lockAgain} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" disabled={busy || !authorization} onClick={() => void sendEvent('session.completed')} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">
+                <Icon icon="solar:check-circle-bold-duotone" />
+                Reportar session.completed
+              </button>
+              <button type="button" disabled={busy} onClick={clearDisplayedSession} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50">
                 <Icon icon="solar:lock-keyhole-bold-duotone" />
-                Bloquear saida
+                Limpar sessao exibida
               </button>
               <Link to="/studio" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-emerald-400">
                 <Icon icon="solar:add-circle-bold-duotone" />
@@ -172,7 +184,7 @@ export default function TotemSimulatorPage() {
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-bricolage text-xl font-bold text-white">Log do gateway</h2>
-          <Badge tone={busy ? 'processing' : 'neutral'}>{busy ? 'sincronizando' : 'local'}</Badge>
+          <Badge tone={busy ? 'processing' : hasGatewayCredentials ? 'ready' : 'warning'}>{busy ? 'sincronizando' : hasGatewayCredentials ? 'API' : 'sem credenciais'}</Badge>
         </div>
         <div className="mt-4 grid gap-2">
           {log.map((entry) => (
@@ -191,22 +203,4 @@ function stateLabel(state: SimulatorState) {
     unlocked: 'liberado',
   };
   return labels[state];
-}
-
-function createLocalAuthorization(): PowerSession {
-  const now = new Date().toISOString();
-  return {
-    id: `local_${Date.now()}`,
-    totemId: 'local_totem',
-    gatewayId: 'local_gateway',
-    resource: '/power-totem/local/session',
-    amount: '0.50',
-    asset: 'USDC',
-    durationSeconds: 30,
-    status: 'authorized',
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    events: [],
-    createdAt: now,
-    updatedAt: now,
-  };
 }

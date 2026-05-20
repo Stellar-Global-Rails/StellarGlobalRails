@@ -153,6 +153,40 @@ describe('HttpKivoApiClient', () => {
     expect(result).not.toHaveProperty('serviceRoleSecret');
   });
 
+  it('lists real Gateway records through the operator API route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        return jsonResponse([
+          {
+            id: 'gateway_1',
+            totemId: 'totem_1',
+            name: 'Station A gateway',
+            tokenPreview: 'kgw_...1234',
+            pairingTokenPreview: 'kpair_...5678',
+            status: 'online',
+            adapter: 'raspberry',
+            lastSeenAt: '2026-05-19T20:00:00Z',
+            metadata: {},
+            createdAt: '2026-05-19T19:00:00Z',
+            updatedAt: '2026-05-19T20:00:00Z',
+          },
+        ]);
+      },
+    });
+
+    const gateways = await client.listGateways();
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/gateways');
+    expect(method).toBe('GET');
+    expect(gateways[0].status).toBe('online');
+    expect(gateways[0]).not.toHaveProperty('gatewayToken');
+  });
+
   it('starts Power Session checkout through the documented API route', async () => {
     let requestedUrl = '';
     let method = '';
