@@ -55,12 +55,12 @@ export default function GatewayPage() {
         eyebrow="Kivo Gateway"
         title="Runtime conectado ao backend"
         icon="solar:server-square-cloud-linear"
-        description="Aqui aparecem apenas gateways criados pela API do Kivo. Se nada estiver pareado, o produto mostra estado vazio em vez de inventar runtime online."
+        description="Aqui aparecem os runtimes reais provisionados por templates adquiridos. O Studio desenha solucoes; a Biblioteca configura templates e gera o pacote local quando existir runtime."
         action={
           <div className="flex flex-wrap gap-2">
-            <Link to="/studio" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
-              <Icon icon="solar:add-circle-linear" />
-              Criar Gateway
+            <Link to="/library" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
+              <Icon icon="solar:folder-with-files-linear" />
+              Abrir Biblioteca
             </Link>
             <Link to="/sdk" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
               <Icon icon="solar:code-square-linear" />
@@ -78,7 +78,7 @@ export default function GatewayPage() {
             </Badge>
             <h2 className="mt-4 font-bricolage text-2xl font-bold text-white">Estado real dos runtimes</h2>
             <p className="mt-3 text-sm leading-6 text-neutral-300">
-              O Gateway so aparece aqui depois de ser criado pelo Studio e persistido no Supabase. Heartbeats, autorizacoes e eventos passam pela Edge Function.
+              O Gateway so aparece aqui depois que o pacote Docker e gerado. Heartbeats, autorizacoes e eventos passam pela Kivo API, enquanto fila e estado operacional ficam no banco local do runtime.
             </p>
             {loadError && <p className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs leading-5 text-red-200">{loadError}</p>}
           </div>
@@ -97,9 +97,9 @@ export default function GatewayPage() {
             <h2 className="font-bricolage text-xl font-bold text-white">Gateways pareados</h2>
             <p className="mt-1 text-sm text-neutral-500">Lista vinda de `/v1/gateways`; tokens completos aparecem uma unica vez no pareamento.</p>
           </div>
-          <Link to="/totem-simulator" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
-            <Icon icon="solar:gamepad-linear" />
-            Abrir runtime web
+          <Link to="/library/power-totem" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
+            <Icon icon="solar:folder-with-files-linear" />
+            Abrir Power Totem
           </Link>
         </div>
 
@@ -133,11 +133,11 @@ export default function GatewayPage() {
               <Badge tone="warning">acao necessaria</Badge>
               <h3 className="mt-3 font-bricolage text-xl font-bold text-white">Nenhum Gateway real foi pareado</h3>
               <p className="mt-2 text-sm leading-6 text-amber-50/80">
-                Crie um Power Totem no Studio e gere o token do Gateway. Depois rode o runtime web ou o pacote `apps/kivo/gateway` com o gatewayId e token emitidos.
+                Adquira o Power Totem no Marketplace, abra a Biblioteca e gere o pacote Docker. O gatewayId e o token ficam dentro do bundle gerado uma unica vez.
               </p>
-              <Link to="/studio" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
-                <Icon icon="solar:stars-line-duotone" />
-                Ir para Studio
+              <Link to="/marketplace" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
+                <Icon icon="solar:widget-linear" />
+                Abrir Marketplace
               </Link>
             </div>
           )}

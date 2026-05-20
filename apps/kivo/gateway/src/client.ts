@@ -4,7 +4,6 @@ import type {
   GatewayClient,
   GatewayEvent,
   GatewayEventInput,
-  PowerSession,
 } from "./types.js";
 
 export type GatewayFetch = typeof fetch;
@@ -13,7 +12,6 @@ export interface KivoGatewayClientOptions {
   baseUrl: string;
   gatewayId: string;
   gatewayToken: string;
-  apiToken?: string;
   fetcher?: GatewayFetch;
 }
 
@@ -21,23 +19,13 @@ export class KivoGatewayClient implements GatewayClient {
   private readonly baseUrl: string;
   private readonly gatewayId: string;
   private readonly gatewayToken: string;
-  private readonly apiToken?: string;
   private readonly fetcher: GatewayFetch;
 
   constructor(options: KivoGatewayClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, "");
     this.gatewayId = options.gatewayId;
     this.gatewayToken = options.gatewayToken;
-    this.apiToken = options.apiToken;
     this.fetcher = options.fetcher ?? fetch;
-  }
-
-  assertCanCompleteSessions(): void {
-    if (!this.apiToken?.trim()) {
-      throw new Error(
-        "KIVO_API_TOKEN is required before completing Power Sessions.",
-      );
-    }
   }
 
   heartbeat(): Promise<Gateway> {
@@ -64,31 +52,14 @@ export class KivoGatewayClient implements GatewayClient {
     );
   }
 
-  async completeSession(sessionId: string): Promise<PowerSession> {
-    this.assertCanCompleteSessions();
-    return await this.request<PowerSession>(
-      `/v1/power-sessions/${encodeURIComponent(sessionId)}/complete`,
-      { method: "POST" },
-      { gatewayToken: true, apiToken: true },
-    );
-  }
-
   private async request<T>(
     path: string,
     init: RequestInit,
-    auth: { gatewayToken?: boolean; apiToken?: boolean },
+    auth: { gatewayToken?: boolean },
   ): Promise<T> {
     const headers = new Headers(init.headers);
     if (auth.gatewayToken) {
       headers.set("x-gateway-token", this.gatewayToken);
-    }
-    const apiToken = this.apiToken?.trim();
-    if (auth.apiToken && apiToken) {
-      headers.set("authorization", `Bearer ${apiToken}`);
-    } else if (auth.apiToken) {
-      throw new Error(
-        "KIVO_API_TOKEN is required before completing Power Sessions.",
-      );
     }
     if (init.body && !headers.has("content-type")) {
       headers.set("content-type", "application/json");

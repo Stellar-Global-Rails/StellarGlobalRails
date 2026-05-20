@@ -3,9 +3,9 @@ import { NavLink } from 'react-router-dom';
 
 const items = [
   { to: '/studio', icon: 'solar:stars-line-duotone', label: 'Studio' },
+  { to: '/marketplace', icon: 'solar:widget-linear', label: 'Market' },
+  { to: '/library', icon: 'solar:folder-with-files-linear', label: 'Biblioteca' },
   { to: '/gateway', icon: 'solar:server-square-cloud-linear', label: 'Gateway' },
-  { to: '/validation', icon: 'solar:shield-check-linear', label: 'Validar' },
-  { to: '/sdk', icon: 'solar:code-square-linear', label: 'SDK' },
 ];
 
 export default function BottomNav() {

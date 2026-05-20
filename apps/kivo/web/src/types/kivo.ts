@@ -109,6 +109,12 @@ export interface GatewayPairingResult {
   pairingToken?: string;
 }
 
+export interface GatewayBundleInput {
+  name?: string;
+  adapter?: GatewayAdapter;
+  metadata?: Record<string, unknown>;
+}
+
 export interface PowerSession {
   id: string;
   totemId: string;

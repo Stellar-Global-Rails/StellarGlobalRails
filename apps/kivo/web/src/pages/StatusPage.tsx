@@ -65,9 +65,9 @@ export default function StatusPage() {
     {
       id: 'gateway',
       label: 'Power Gateway heartbeat',
-      description: 'Sinal do gateway fisico/simulador que marca a operacao online.',
+      description: 'Sinal do Gateway local instalado que marca a operacao online.',
       status: gatewaySignal ?? 'degraded',
-      detail: gatewaySignal ? `Health reportou ${gatewaySignal}.` : 'Sem heartbeat agregado no status; valide no simulador ou no gateway package.',
+      detail: gatewaySignal ? `Health reportou ${gatewaySignal}.` : 'Sem heartbeat agregado no status; instale o pacote Docker do Power Totem.',
       icon: 'solar:radio-minimalistic-bold-duotone',
     },
   ];
@@ -76,7 +76,7 @@ export default function StatusPage() {
     <div className="space-y-8">
       <PageHeader
         eyebrow="Power Totem"
-        title="Status da demo"
+        title="Status do Power Totem"
         icon="solar:pulse-2-bold-duotone"
         description="Quatro sinais para decidir se o caminho Power Totem esta pronto para palco."
         action={<Link to="/health" className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/5">Ver readiness</Link>}
@@ -90,7 +90,7 @@ export default function StatusPage() {
         description="Use esta tela para conferir API, Stellar, Etherfuse e o sinal honesto do gateway antes de iniciar checkout e autorizacao fisica."
         checkpoints={['Kivo API', 'Stellar', 'Etherfuse', 'Gateway']}
         primaryAction={{ to: '/checkout', label: 'Abrir checkout' }}
-        secondaryAction={{ to: '/totem-simulator', label: 'Simulador gateway' }}
+        secondaryAction={{ to: '/library/power-totem', label: 'Abrir Power Totem' }}
       />
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -118,7 +118,7 @@ export default function StatusPage() {
         <StatCard
           title="Gateway"
           value={gatewayReady ? 'Online' : 'Aguardando'}
-          detail="heartbeat fisico/simulador"
+          detail="heartbeat do runtime local"
           icon="solar:radio-minimalistic-bold-duotone"
           tone={gatewayReady ? 'emerald' : 'amber'}
         />

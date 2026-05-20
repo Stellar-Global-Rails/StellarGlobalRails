@@ -9,12 +9,12 @@ import { kivoClient } from '@/services/kivoClient';
 const sdkSteps = [
   {
     title: 'Baixe o Gateway SDK',
-    description: 'Um pacote pequeno com cliente TypeScript e exemplo de gateway Power Totem para Raspberry ou simulador.',
+    description: 'Um pacote pequeno com cliente TypeScript e exemplo de gateway Power Totem para Raspberry.',
     icon: 'solar:download-bold-duotone',
   },
   {
-    title: 'Cole o token do gateway',
-    description: 'Use o token pareado no Studio para autenticar heartbeat, autorizacao e eventos do totem.',
+    title: 'Instale o runtime',
+    description: 'Use o bundle Docker para receber gatewayId, token, banco local e UI do totem.',
     icon: 'solar:key-minimalistic-bold-duotone',
   },
   {
@@ -35,7 +35,6 @@ const starterFiles = [
   'src/cli.ts',
   'src/client.ts',
   'src/runner.ts',
-  'src/adapters/simulator.ts',
   'src/adapters/raspberry.ts',
 ];
 
@@ -68,7 +67,7 @@ export default function IntegrationsPage() {
         eyebrow="Power Totem Gateway SDK"
         title="Conecte o gateway do Power Totem"
         icon="solar:code-square-bold-duotone"
-        description="Baixe o starter, use o token pareado no Studio e envie heartbeat, autorizacao e eventos para liberar o recurso fisico."
+        description="Baixe o pacote Docker do Gateway, rode no Raspberry e envie heartbeat, autorizacao e eventos para liberar o recurso fisico."
         action={
           <a
             href="/sdk/kivo-sdk-starter.zip"
@@ -111,7 +110,7 @@ export default function IntegrationsPage() {
             <div>
               <h2 className="font-bricolage text-xl font-bold text-white">Starter do Gateway SDK</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">
-                O starter e o caminho recomendado para a demo: baixar, colar o token do gateway e adaptar o exemplo do Power Totem.
+                O bundle Docker e o caminho recomendado: baixar, rodar no Raspberry e adaptar os comandos locais do Power Totem.
               </p>
             </div>
             <a
@@ -135,18 +134,20 @@ export default function IntegrationsPage() {
 
           <pre className="mt-5 overflow-auto rounded-2xl border border-white/10 bg-black/40 p-4 text-xs leading-6 text-blue-100">{`import { KivoGatewayClient } from './src/client';
 import { runOnce } from './src/runner';
-import { SimulatorPowerAdapter } from './src/adapters/simulator';
+import { RaspberryShellAdapter } from './src/adapters/raspberry';
 
 const client = new KivoGatewayClient({
   baseUrl: process.env.KIVO_API_URL!,
   gatewayId: process.env.KIVO_GATEWAY_ID!,
   gatewayToken: process.env.KIVO_GATEWAY_TOKEN!,
-  apiToken: process.env.KIVO_API_TOKEN,
 });
 
 await runOnce({
   client,
-  adapter: new SimulatorPowerAdapter(),
+  adapter: new RaspberryShellAdapter({
+    enableCommand: process.env.KIVO_GATEWAY_ENABLE_COMMAND!,
+    disableCommand: process.env.KIVO_GATEWAY_DISABLE_COMMAND!,
+  }),
 });`}</pre>
         </Card>
 
@@ -158,8 +159,8 @@ await runOnce({
                 Abrir Kivo Studio
                 <Icon icon="solar:arrow-right-linear" />
               </Link>
-              <Link to="/totem-simulator" className="flex items-center justify-between rounded-xl bg-black/30 p-3 text-sm font-bold text-neutral-200 hover:bg-white/5">
-                Abrir simulador
+              <Link to="/library/power-totem" className="flex items-center justify-between rounded-xl bg-black/30 p-3 text-sm font-bold text-neutral-200 hover:bg-white/5">
+                Abrir Power Totem na biblioteca
                 <Icon icon="solar:arrow-right-linear" />
               </Link>
               <Link to="/checkout" className="flex items-center justify-between rounded-xl bg-emerald-500/10 p-3 text-sm font-bold text-emerald-300 hover:bg-emerald-500/15">

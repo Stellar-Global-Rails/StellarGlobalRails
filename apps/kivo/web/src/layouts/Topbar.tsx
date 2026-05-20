@@ -3,15 +3,17 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore, useUIStore } from '@/stores';
 
 const routeTitles: Record<string, { title: string; subtitle?: string; icon: string }> = {
-  '/dashboard': { title: 'Home', subtitle: 'Visao do workspace e proximo passo', icon: 'solar:home-2-bold-duotone' },
-  '/studio': { title: 'Kivo Studio', subtitle: 'Crie flow, Gateway e template funcional', icon: 'solar:stars-line-duotone' },
-  '/gateway': { title: 'Kivo Gateway', subtitle: 'Runtime que libera o recurso real', icon: 'solar:server-square-cloud-linear' },
+  '/dashboard': { title: 'Command Center', subtitle: 'Studio, templates, Gateway, validacao e launch', icon: 'solar:home-2-bold-duotone' },
+  '/studio': { title: 'Kivo Studio', subtitle: 'Crie solucoes, flows e templates com AI agents', icon: 'solar:stars-line-duotone' },
+  '/marketplace': { title: 'Marketplace', subtitle: 'Templates disponiveis, roadmap e comunidade', icon: 'solar:widget-linear' },
+  '/templates': { title: 'Template', subtitle: 'Apresentacao e aquisicao do template', icon: 'solar:widget-linear' },
+  '/library': { title: 'Biblioteca', subtitle: 'Templates adquiridos e instalacao do runtime', icon: 'solar:folder-with-files-linear' },
+  '/gateway': { title: 'Kivo Gateway', subtitle: 'Runtimes fisicos e digitais provisionados', icon: 'solar:server-square-cloud-linear' },
   '/sdk': { title: 'Kivo SDK', subtitle: 'Bundle TypeScript local para testar e adaptar', icon: 'solar:code-square-linear' },
   '/validation': { title: 'Validacao', subtitle: 'Evidencia real com x402, Etherfuse e Gateway', icon: 'solar:shield-check-linear' },
   '/launch': { title: 'Launch', subtitle: 'Mainnet privada, testnet ou template publico', icon: 'solar:rocket-linear' },
   '/totems': { title: 'Power Totems', icon: 'solar:electric-refueling-bold-duotone' },
   '/totem': { title: 'Power Totem', icon: 'solar:electric-refueling-bold-duotone' },
-  '/totem-simulator': { title: 'Simulador Power Totem', subtitle: 'Teste Gateway sem hardware fisico', icon: 'solar:bolt-circle-bold-duotone' },
   '/checkout': { title: 'Pagamento x402', subtitle: 'Prove o fluxo de compra e liberacao', icon: 'solar:card-transfer-bold-duotone' },
   '/status': { title: 'Status do sistema', subtitle: 'Sinais essenciais para teste com usuario', icon: 'solar:pulse-2-bold-duotone' },
   '/settings': { title: 'Ajustes', subtitle: 'Conta, ambiente e conexoes', icon: 'solar:settings-bold-duotone' },

@@ -17,7 +17,6 @@ export async function runOnce(options: RunOnceOptions): Promise<RunOnceResult> {
     processedSessionIds,
   } = options;
 
-  client.assertCanCompleteSessions?.();
   await client.heartbeat();
 
   const { authorization } = await client.getAuthorization();
@@ -97,7 +96,6 @@ async function runAuthorizedSession(
     }
   }
 
-  await client.completeSession(authorization.id);
   await client.createGatewayEvent({
     eventType: "session.completed",
     sessionId: authorization.id,

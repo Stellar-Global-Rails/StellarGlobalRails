@@ -95,9 +95,9 @@ export default function PowerTotemDetailPage() {
               <Icon icon="solar:wallet-money-bold-duotone" />
               Pagar via Checkout
             </Link>
-            <Link to="/totem-simulator" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10">
-              <Icon icon="solar:gamepad-bold-duotone" />
-              Simulador
+            <Link to="/library/power-totem" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 transition-colors hover:bg-white/10">
+              <Icon icon="solar:download-minimalistic-bold-duotone" />
+              Baixar Docker
             </Link>
           </div>
         </Card>

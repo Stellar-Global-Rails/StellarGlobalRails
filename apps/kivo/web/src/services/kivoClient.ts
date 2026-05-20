@@ -21,6 +21,7 @@ import type {
   EtherfuseQuoteResponse,
   EtherfuseStatus,
   Gateway,
+  GatewayBundleInput,
   GatewayEvent,
   GatewayPairingResult,
   McpAgentConfig,
@@ -82,6 +83,7 @@ export interface KivoApiClient {
   createPowerTotem(input: CreatePowerTotemInput): Promise<PowerTotem>;
   getPowerTotem(id: string): Promise<PowerTotem>;
   createPowerTotemPairingToken(totemId: string): Promise<GatewayPairingResult>;
+  downloadPowerTotemGatewayBundle(totemId: string, input?: GatewayBundleInput): Promise<Blob>;
   listGateways(): Promise<Gateway[]>;
   listPowerSessions(): Promise<PowerSession[]>;
   createPowerSession(totemId: string): Promise<PowerSession>;
@@ -277,6 +279,13 @@ export class HttpKivoApiClient implements KivoApiClient {
     return this.request(`/v1/power-totems/${encodeURIComponent(totemId)}/pairing-token`, { method: 'POST' });
   }
 
+  async downloadPowerTotemGatewayBundle(totemId: string, input: GatewayBundleInput = {}): Promise<Blob> {
+    return this.requestBlob(`/v1/power-totems/${encodeURIComponent(totemId)}/gateway-bundle`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  }
+
   async listGateways(): Promise<Gateway[]> {
     return this.request('/v1/gateways');
   }
@@ -412,6 +421,23 @@ export class HttpKivoApiClient implements KivoApiClient {
       return undefined as T;
     }
     return (await response.json()) as T;
+  }
+
+  private async requestBlob(path: string, init: RequestInit = {}): Promise<Blob> {
+    const token = await this.getToken?.();
+    const headers = new Headers(init.headers);
+    if (!headers.has('Content-Type') && init.body) {
+      headers.set('Content-Type', 'application/json');
+    }
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    const response = await this.fetcher(this.resolveUrl(path), { ...init, headers });
+    if (!response.ok) {
+      throw new Error(await readApiErrorMessage(response));
+    }
+    return response.blob();
   }
 
   private resolveUrl(path: string): string {

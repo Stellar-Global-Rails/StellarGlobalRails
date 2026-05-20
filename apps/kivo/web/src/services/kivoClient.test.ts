@@ -153,6 +153,37 @@ describe('HttpKivoApiClient', () => {
     expect(result).not.toHaveProperty('serviceRoleSecret');
   });
 
+  it('downloads the Power Totem Docker bundle through the gateway export route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let body = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        body = String(init?.body ?? '');
+        return new Response(new Blob(['PK bundle']), {
+          status: 201,
+          headers: { 'Content-Type': 'application/zip' },
+        });
+      },
+    });
+
+    const bundle = await client.downloadPowerTotemGatewayBundle('totem_1', {
+      adapter: 'raspberry',
+      name: 'RJ Power Totem Gateway',
+    });
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/power-totems/totem_1/gateway-bundle');
+    expect(method).toBe('POST');
+    expect(JSON.parse(body)).toEqual({
+      adapter: 'raspberry',
+      name: 'RJ Power Totem Gateway',
+    });
+    expect(bundle.type).toBe('application/zip');
+  });
+
   it('lists real Gateway records through the operator API route', async () => {
     let requestedUrl = '';
     let method = '';
