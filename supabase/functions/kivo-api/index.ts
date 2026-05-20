@@ -2236,7 +2236,12 @@ const handleGateways = async (req: Request, path: string) => {
       }
       session = sessions[0];
     }
-    if (session && eventType === "session.started") {
+    const startsSession = eventType === "session.started" ||
+      eventType === "output_enabled";
+    const completesSession = eventType === "session.completed" ||
+      eventType === "completed";
+    const failsSession = eventType === "failed";
+    if (session && startsSession) {
       let nextStatus: PowerSessionStatus;
       try {
         nextStatus = nextSessionStatus(session.status, "start");
@@ -2279,7 +2284,7 @@ const handleGateways = async (req: Request, path: string) => {
       }
       session = updated[0];
     }
-    if (session && eventType === "session.completed") {
+    if (session && completesSession) {
       if (session.status === "running") {
         const completedAt = nowISO();
         const updated = await patchRows<DbPowerSession>("kivo_power_sessions", {
@@ -2310,6 +2315,27 @@ const handleGateways = async (req: Request, path: string) => {
           "gateway_session_complete_conflict",
           "Power Session cannot be completed from its current status.",
         );
+      }
+    }
+    if (session && failsSession && session.status !== "failed") {
+      const updated = await patchRows<DbPowerSession>("kivo_power_sessions", {
+        id: `eq.${session.id}`,
+        owner_id: `eq.${gateway.owner_id}`,
+        gateway_id: `eq.${gateway.id}`,
+        totem_id: `eq.${gateway.totem_id}`,
+      }, {
+        status: nextSessionStatus(session.status, "fail"),
+        events: [
+          ...session.events,
+          paymentEvent(
+            "Session failed",
+            "Gateway reported a runtime failure.",
+            "failed",
+          ),
+        ],
+      });
+      if (updated[0]) {
+        session = updated[0];
       }
     }
     const event = await insertRow<DbGatewayEvent>("kivo_gateway_events", {

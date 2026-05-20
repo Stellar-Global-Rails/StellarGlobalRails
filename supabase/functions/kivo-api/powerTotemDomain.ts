@@ -70,6 +70,13 @@ export function ensureValidDuration(durationSeconds: number): number {
   return durationSeconds;
 }
 
+export function isGatewaySessionAuthorized(session: {
+  status: string;
+  authorized_at: string | null;
+}): boolean {
+  return session.status === "authorized" && Boolean(session.authorized_at);
+}
+
 export function nextSessionStatus(
   current: PowerSessionStatus,
   action: PowerSessionAction,

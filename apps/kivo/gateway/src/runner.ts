@@ -75,33 +75,60 @@ async function runAuthorizedSession(
     options;
 
   let enabled = false;
+  let currentSessionId: string | null = authorization.id;
   try {
     await client.createGatewayEvent({
-      eventType: "session.started",
+      eventType: "authorized",
       sessionId: authorization.id,
       payload: {
-        adapter: adapter.name,
         durationSeconds: authorization.durationSeconds,
       },
     });
     await adapter.enable(authorization);
     enabled = true;
+    await client.createGatewayEvent({
+      eventType: "output_enabled",
+      sessionId: authorization.id,
+      payload: {
+        adapter: adapter.name,
+      },
+    });
 
     if (shouldWaitForDuration) {
       await sleep(Math.max(0, authorization.durationSeconds) * 1000);
     }
-  } finally {
+
+    if (enabled) {
+      await adapter.disable(authorization);
+      enabled = false;
+      await client.createGatewayEvent({
+        eventType: "output_disabled",
+        sessionId: authorization.id,
+        payload: {
+          adapter: adapter.name,
+        },
+      });
+    }
+
+    await client.createGatewayEvent({
+      eventType: "completed",
+      sessionId: authorization.id,
+      payload: {
+        completedAt: new Date().toISOString(),
+        durationSeconds: authorization.durationSeconds,
+      },
+    });
+  } catch (error) {
     if (enabled) {
       await adapter.disable(authorization);
     }
+    await client.createGatewayEvent({
+      eventType: "failed",
+      sessionId: currentSessionId,
+      payload: {
+        message: error instanceof Error ? error.message : String(error),
+      },
+    });
+    throw error;
   }
-
-  await client.createGatewayEvent({
-    eventType: "session.completed",
-    sessionId: authorization.id,
-    payload: {
-      adapter: adapter.name,
-      durationSeconds: authorization.durationSeconds,
-    },
-  });
 }
