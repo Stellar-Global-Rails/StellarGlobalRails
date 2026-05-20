@@ -50,14 +50,22 @@ Kivo is no longer presented as a developer sandbox. The active product direction
 
 ## Power Totem Go/No-Go
 
-- [ ] Power Totem can be created in Studio.
-- [ ] Gateway token is shown once and not exposed again.
+- [ ] Power Totem created in Studio and visible in `/totems/:id`.
+  Evidence: `kivo_power_totems` has a new row for the operator and the UI shows the same totem id.
+- [ ] Gateway bundle generated once and token copied only from the one-time screen.
+  Evidence: `kivo_gateways` has a new row with `token_hash` set and no plaintext token stored.
 - [ ] Gateway heartbeat marks the gateway online.
+  Evidence: `kivo_gateways.last_seen_at` updates after the gateway process starts.
 - [ ] Checkout creates x402 challenge for `/power-totem/{id}/session`.
+  Evidence: `kivo_power_sessions.checkout_resource` matches `/power-totem/{id}/session`.
 - [ ] Valid signed payment authorizes one session.
-- [ ] Gateway simulator receives authorization and reports session events.
-- [ ] Raspberry demo uses only low-voltage output.
-- [ ] Browser simulator is ready if hardware fails.
+  Evidence: `kivo_power_sessions.status = 'authorized'` and `authorized_at` is not null.
+- [ ] Gateway receives authorization and reports lifecycle events.
+  Evidence: `kivo_gateway_events` contains `authorized`, `output_enabled`, `output_disabled`, and `completed` for the session.
+- [ ] Browser simulator is ready as fallback.
+  Evidence: gateway can run with `KIVO_GATEWAY_ADAPTER=simulator`.
+- [ ] Raspberry mode is safe.
+  Evidence: demo uses only low-voltage output commands and no AC mains switching.
 
 ## Demo Flow
 

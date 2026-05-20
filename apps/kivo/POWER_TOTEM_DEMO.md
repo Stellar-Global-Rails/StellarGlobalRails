@@ -39,3 +39,25 @@ Power Totem is the proof that the Kivo Gateway can release a real-world resource
 ## Safety
 
 Use low-voltage demo hardware only. Do not switch AC mains, wall power, or any unsafe load during the demo.
+
+## Evidence Query
+
+Run this after the demo session:
+
+```sql
+select
+  s.id as session_id,
+  s.status,
+  s.checkout_resource,
+  s.authorized_at,
+  g.id as gateway_id,
+  g.last_seen_at,
+  count(e.id)::int as gateway_events
+from public.kivo_power_sessions s
+join public.kivo_power_totems t on t.id = s.totem_id
+left join public.kivo_gateways g on g.totem_id = t.id
+left join public.kivo_gateway_events e on e.session_id = s.id
+where s.created_at > now() - interval '2 hours'
+group by s.id, s.status, s.checkout_resource, s.authorized_at, g.id, g.last_seen_at
+order by s.created_at desc;
+```
