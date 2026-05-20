@@ -45,9 +45,9 @@ export const powerTotemTemplate: PowerTotemExperienceTemplate = {
     },
     {
       id: 'parear',
-      label: 'Parear gateway',
+      label: 'Provisionar gateway',
       icon: 'solar:link-circle-bold-duotone',
-      description: 'Emita um token de uso unico para o gateway que fala com o hardware ou simulador.',
+      description: 'Baixe o pacote Docker que cria gatewayId, token, runtime local, banco local e UI do totem.',
     },
     {
       id: 'qr',
@@ -71,7 +71,7 @@ export const powerTotemTemplate: PowerTotemExperienceTemplate = {
       id: 'monitorar',
       label: 'Monitorar',
       icon: 'solar:pulse-2-bold-duotone',
-      description: 'Acompanhe sessoes, eventos e estado do gateway durante a demo.',
+      description: 'Acompanhe sessoes, eventos e estado do gateway local durante a operacao.',
     },
   ],
 };

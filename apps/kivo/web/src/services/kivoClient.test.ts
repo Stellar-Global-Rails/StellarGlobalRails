@@ -153,6 +153,71 @@ describe('HttpKivoApiClient', () => {
     expect(result).not.toHaveProperty('serviceRoleSecret');
   });
 
+  it('downloads the Power Totem Docker bundle through the gateway export route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let body = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        body = String(init?.body ?? '');
+        return new Response(new Blob(['PK bundle']), {
+          status: 201,
+          headers: { 'Content-Type': 'application/zip' },
+        });
+      },
+    });
+
+    const bundle = await client.downloadPowerTotemGatewayBundle('totem_1', {
+      adapter: 'raspberry',
+      name: 'RJ Power Totem Gateway',
+    });
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/power-totems/totem_1/gateway-bundle');
+    expect(method).toBe('POST');
+    expect(JSON.parse(body)).toEqual({
+      adapter: 'raspberry',
+      name: 'RJ Power Totem Gateway',
+    });
+    expect(bundle.type).toBe('application/zip');
+  });
+
+  it('lists real Gateway records through the operator API route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        return jsonResponse([
+          {
+            id: 'gateway_1',
+            totemId: 'totem_1',
+            name: 'Station A gateway',
+            tokenPreview: 'kgw_...1234',
+            pairingTokenPreview: 'kpair_...5678',
+            status: 'online',
+            adapter: 'raspberry',
+            lastSeenAt: '2026-05-19T20:00:00Z',
+            metadata: {},
+            createdAt: '2026-05-19T19:00:00Z',
+            updatedAt: '2026-05-19T20:00:00Z',
+          },
+        ]);
+      },
+    });
+
+    const gateways = await client.listGateways();
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/gateways');
+    expect(method).toBe('GET');
+    expect(gateways[0].status).toBe('online');
+    expect(gateways[0]).not.toHaveProperty('gatewayToken');
+  });
+
   it('starts Power Session checkout through the documented API route', async () => {
     let requestedUrl = '';
     let method = '';
@@ -377,6 +442,124 @@ describe('HttpKivoApiClient', () => {
     }
 
     expect(errorMessage).toBe('valid Supabase JWT or Kivo API key is required');
+  });
+
+  it('creates Studio solution intents through the real API route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let body = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        body = String(init?.body ?? '');
+        return jsonResponse({
+          id: 'intent_power_api',
+          prompt: 'Quero cobrar por uma API de dados',
+          surface: 'digital',
+          interactionModel: 'M2M',
+          recommendedGatewayMode: 'api_guard',
+          createdAt: '2026-05-19T12:00:00Z',
+        });
+      },
+    });
+
+    const intent = await client.createStudioIntent({
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+    });
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/studio/intents');
+    expect(method).toBe('POST');
+    expect(JSON.parse(body)).toEqual({
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+    });
+    expect(intent.recommendedGatewayMode).toBe('api_guard');
+  });
+
+  it('creates Studio flows with the full intent payload because intents are not persisted yet', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let body = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        body = String(init?.body ?? '');
+        return jsonResponse({
+          id: 'flow_power_api',
+          intentId: 'intent_power_api',
+          name: 'Quero cobrar por uma API de dados',
+          surface: 'digital',
+          interactionModel: 'M2M',
+          gatewayMode: 'api_guard',
+          resourceName: 'Protected API',
+          price: '0.1000000',
+          asset: 'USDC:testnet',
+          accessRule: 'Require a valid x402 payment before releasing the protected resource.',
+          status: 'needs_setup',
+          createdAt: '2026-05-19T12:00:00Z',
+          updatedAt: '2026-05-19T12:00:00Z',
+        });
+      },
+    });
+
+    const flow = await client.createStudioFlow({
+      id: 'intent_power_api',
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+      interactionModel: 'M2M',
+      recommendedGatewayMode: 'api_guard',
+      createdAt: '2026-05-19T12:00:00Z',
+    });
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/studio/flows');
+    expect(method).toBe('POST');
+    expect(JSON.parse(body)).toEqual({
+      intentId: 'intent_power_api',
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+      interactionModel: 'M2M',
+      gatewayMode: 'api_guard',
+    });
+    expect(flow.name).toBe('Quero cobrar por uma API de dados');
+  });
+
+  it('starts validation runs without returning fabricated success', async () => {
+    let requestedUrl = '';
+    let method = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        return jsonResponse({
+          id: 'val_1',
+          flowId: 'flow_1',
+          status: 'needs_connection',
+          steps: [
+            {
+              id: 'gateway',
+              label: 'Gateway',
+              status: 'needs_connection',
+              message: 'Conecte um Gateway antes de validar',
+            },
+          ],
+          createdAt: '2026-05-19T12:00:00Z',
+          updatedAt: '2026-05-19T12:00:00Z',
+        });
+      },
+    });
+
+    const validation = await client.startStudioValidation('flow_1');
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/studio/flows/flow_1/validation-runs');
+    expect(method).toBe('POST');
+    expect(validation.status).toBe('needs_connection');
+    expect(validation.status).not.toBe('passed');
   });
 });
 

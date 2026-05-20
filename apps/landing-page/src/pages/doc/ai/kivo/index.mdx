@@ -6,7 +6,9 @@ description: "Kivo is a physical and digital gateway for monetizing access to re
 
 # Kivo
 
-Kivo is a physical and digital gateway for monetizing access to resources.
+Kivo is a Gateway-core + Studio-led platform for monetizing and controlling physical or digital resources with x402, Stellar, Etherfuse, a programmable Gateway runtime, and a TypeScript SDK.
+
+Kivo Gateway is the runtime. Kivo Studio is the AI-agent creation environment. Kivo SDK is the downloadable integration layer. Power Totem is the functional hackathon template. Other templates are roadmap or marketplace candidates.
 
 It combines:
 
@@ -18,7 +20,7 @@ It combines:
 - Etherfuse for visible anchor/funding context;
 - private mainnet billing for validated flows that must remain private.
 
-The hackathon functional template is Power Totem. Other templates are roadmap accelerators.
+Power Totem is the only implemented hackathon template today. API Toll, Data Gate, Agent Tool Paywall, Compute Gate, Automation Gate, IoT Device Access, EV Charging, and P2P Energy are roadmap or marketplace candidates until implemented.
 
 ---
 
@@ -32,7 +34,7 @@ The core flow is:
 resource -> policy -> x402 requirement -> Stellar proof -> Etherfuse context -> Kivo authorization -> Gateway release -> receipt and health
 ```
 
-Kivo Gateway enforces the authorization. Kivo Studio helps users design the flow with AI agents. Kivo SDK gives developers the TypeScript integration surface for resources, policies, payment requirements, authorizations, gateway events, webhooks, and tests.
+Kivo Gateway enforces the authorization. Kivo Studio helps users design the flow with AI agents. The current Kivo SDK gives developers a TypeScript client for x402 challenge/payment/unlock, Gateway heartbeat, adapters, examples, and tests. Broader resource-policy, authorization, webhook, and pairing helpers are planned after the hackathon MVP.
 
 ---
 
@@ -50,7 +52,7 @@ It demonstrates a physical gateway flow:
 6. The physical gateway releases a safe load.
 7. Kivo records status, health, receipt, and completion events.
 
-Other templates, including API Toll, Data Gate, Agent Tool Paywall, Compute Gate, Automation Gate, IoT Device Access, EV Charging, and P2P Energy, are roadmap accelerators rather than hackathon-ready features.
+Other templates, including API Toll, Data Gate, Agent Tool Paywall, Compute Gate, Automation Gate, IoT Device Access, EV Charging, and P2P Energy, are roadmap or marketplace candidates rather than hackathon-ready features.
 
 ---
 
@@ -66,13 +68,13 @@ Power Totem is the first functional Kivo template. It represents a physical gate
 
 ### Template API Toll
 
-API Toll applies the same resource-policy-authorization model to an HTTP route. A protected endpoint returns an x402 requirement, Kivo verifies payment state, and the digital gateway lets the request continue only while the authorization is valid.
+API Toll is a roadmap or marketplace candidate for applying the same resource-policy-authorization model to an HTTP route. A protected endpoint returns an x402 requirement, Kivo verifies payment state, and the digital gateway lets the request continue only while the authorization is valid.
 
 <a id="template-agent-tool-paywall"></a>
 
 ### Template Agent Tool Paywall
 
-Agent Tool Paywall adapts Kivo for AI tool calls. An agent requests a paid tool, satisfies the x402 requirement, and receives a scoped authorization for that tool invocation without relying on a standing API key or monthly billing account.
+Agent Tool Paywall is a roadmap or marketplace candidate for AI tool calls. An agent requests a paid tool, satisfies the x402 requirement, and receives a scoped authorization for that tool invocation without relying on a standing API key or monthly billing account.
 
 ---
 

@@ -85,64 +85,43 @@ describe("KivoGatewayClient", () => {
     ).toBe("kgw_secret");
   });
 
-  it("completeSession posts to the power session completion route", async () => {
+  it("completes sessions by sending only gateway lifecycle events", async () => {
     let requestedUrl = "";
     let requestedMethod = "";
     let authorization = "";
-
+    let gatewayToken = "";
     const client = new KivoGatewayClient({
       baseUrl: "https://api.kivo.example",
       gatewayId: "gateway_123",
       gatewayToken: "kgw_secret",
-      apiToken: "user_token",
       fetcher: async (input, init) => {
         requestedUrl = input.toString();
         requestedMethod = init?.method ?? "GET";
-        authorization = new Headers(init?.headers).get("authorization") ?? "";
-        return Response.json({
-          id: "session_1",
-          totemId: "totem_1",
-          resource: "/power-totem/totem_1/session",
-          amount: "1.0000000",
-          asset: "XLM",
-          durationSeconds: 5,
-          status: "completed",
-          expiresAt: "2026-05-18T00:00:00.000Z",
-          events: [],
-          createdAt: "2026-05-18T00:00:00.000Z",
-          updatedAt: "2026-05-18T00:00:00.000Z",
-        });
+        const headers = new Headers(init?.headers);
+        authorization = headers.get("authorization") ?? "";
+        gatewayToken = headers.get("x-gateway-token") ?? "";
+        return Response.json(
+          {
+            id: "event_1",
+            gatewayId: "gateway_123",
+            eventType: "session.completed",
+            payload: {},
+            createdAt: "2026-05-18T00:00:00.000Z",
+          },
+          { status: 201 },
+        );
       },
     });
 
-    await client.completeSession("session_1");
+    await client.createGatewayEvent({
+      eventType: "session.completed",
+      sessionId: "session_1",
+    });
 
-    expect(requestedUrl).toBe(
-      "https://api.kivo.example/v1/power-sessions/session_1/complete",
-    );
+    expect(requestedUrl).toBe("https://api.kivo.example/v1/gateways/gateway_123/events");
     expect(requestedMethod).toBe("POST");
-    expect(authorization).toBe("Bearer user_token");
-  });
-
-  it("rejects completion before network I/O when the API token is missing", async () => {
-    let called = false;
-    const client = new KivoGatewayClient({
-      baseUrl: "https://api.kivo.example",
-      gatewayId: "gateway_123",
-      gatewayToken: "kgw_secret",
-      fetcher: async () => {
-        called = true;
-        return Response.json({});
-      },
-    });
-
-    expect(() => client.assertCanCompleteSessions()).toThrow(
-      "KIVO_API_TOKEN is required before completing Power Sessions.",
-    );
-    await expect(client.completeSession("session_1")).rejects.toThrow(
-      "KIVO_API_TOKEN is required before completing Power Sessions.",
-    );
-    expect(called).toBe(false);
+    expect(gatewayToken).toBe("kgw_secret");
+    expect(authorization).toBe("");
   });
 
   it("uses the current Edge API error message shape", async () => {

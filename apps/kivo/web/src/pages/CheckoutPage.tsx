@@ -535,9 +535,9 @@ export default function CheckoutPage() {
               )}
               {powerTotems.error && <p className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-100">{powerTotems.error}</p>}
               {!powerTotems.loading && !selectedPowerTotem && (
-                <Link to="/studio" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
+                <Link to="/library/power-totem" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
                   <Icon icon="solar:add-circle-bold-duotone" />
-                  Criar Power Totem no Studio
+                  Configurar Power Totem
                 </Link>
               )}
               <button

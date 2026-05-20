@@ -1,376 +1,158 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo — x402 Protocol"
-description: "Deep dive into the HTTP 402 Payment Required protocol for machine-native payments: flow, Go server implementation, TypeScript client, and Stellar payment encoding."
+title: "Kivo - x402 Protocol"
+description: "Kivo x402 flow for Supabase Edge, Stellar payment proof, Gateway authorization, and future worker paths."
 ---
 
 # x402 Protocol Deep Dive
 
-The x402 protocol repurposes the HTTP 402 Payment Required status code — originally reserved but never widely used — as a machine-native payment primitive. It is the backbone of Kivo's API monetization layer and the protocol that makes M2M payments as simple as an HTTP header.
+x402 is Kivo's paid access requirement layer. A protected resource returns an HTTP 402-style payment challenge. The client pays on Stellar, submits signed proof, and Kivo authorizes a physical or digital Gateway release.
+
+The current Kivo MVP implements x402 through the Supabase Edge Function `kivo-api`. Go/Fiber middleware and Redis nonce examples are historical protocol-design sketches or future worker paths, not current runtime.
 
 ---
 
 ## Role In Kivo
 
-x402 is the paid access requirement layer in Kivo.
+Kivo Gateway is the runtime. Kivo Studio is the AI-agent creation environment. Kivo SDK is the integration layer. Power Totem is the functional hackathon template.
 
-When a client requests a protected resource, Kivo returns an x402 payment requirement. After payment and settlement proof are validated, Kivo issues an authorization that a physical gateway or digital gateway can enforce. x402 tells the client what must be paid; Kivo decides whether that payment unlocks the resource.
-
----
-
-## What x402 Is
-
-HTTP 402 was defined in RFC 7231 as "Payment Required," with the note that it was "reserved for future use." The x402 protocol fills that future: a server responds to an unauth'd request with `402` and a machine-readable description of what to pay. The client pays, encodes the proof, and retries. The server verifies and responds with the protected resource.
-
-No OAuth, no API key signup, no billing dashboard. The payment **is** the credential.
+x402 tells the client what must be paid. Kivo validates the signed Stellar transaction and decides whether the Gateway can release the protected resource.
 
 ---
 
-## Why x402 is Perfect for M2M
+## Current Edge Routes
 
-| Traditional API Auth | x402 |
+| Endpoint | Purpose |
 |---|---|
-| Requires human to create account | No human needed — device signs autonomously |
-| Monthly invoicing / credit card | Per-request micropayment settlement |
-| API key = persistent credential (rotation needed) | Payment proof = one-time credential |
-| Works in browsers (OAuth redirect) | Works in any HTTP client, including embedded C |
-| Cannot express "pay per kWh" | Pricing can be any arbitrary unit |
-| Requires TLS + cookie session | Stateless — one header is the entire auth |
+| `GET /v1/x402/challenge?resource=/api/x402/data` | Create an x402 challenge for a protected resource |
+| `POST /v1/x402/pay` | Validate nonce, signed Stellar `txXDR`, destination, amount, and asset |
+| `GET /api/x402/data` | Example x402-protected data route |
+| `GET /power-totem/{id}/session` | Power Totem protected resource |
 
-Embedded firmware on a $10 microcontroller can implement x402 with nothing more than an HTTP POST and a SHA-256 library.
+Power Totem checkout also uses:
 
----
-
-## Protocol Flow
-
-```
-Step 1 — Initial Request (no payment):
-  Device → Server
-  GET /api/ev/data HTTP/1.1
-  Host: api.charger.example
-
-Step 2 — Server responds 402:
-  Server → Device
-  HTTP/1.1 402 Payment Required
-  X-PAYMENT-REQUIRED: scheme=stellar,network=testnet,payTo=GDQP2KPQ...,amount=0.10,asset=USDC:GA5ZSEJ...,maxTimeout=300,nonce=f3a1b2c9
-
-Step 3 — Device builds and signs payment:
-  Device: decode X-PAYMENT-REQUIRED
-  Device: build Stellar payment transaction (from_device → payTo, amount, asset)
-  Device: sign transaction XDR with device keypair
-  Device: base64-encode signed XDR + nonce + timestamp → X-PAYMENT header value
-
-Step 4 — Retry with payment:
-  Device → Server
-  GET /api/ev/data HTTP/1.1
-  Host: api.charger.example
-  X-PAYMENT: eyJzY2hlbWUiOiJzdGVsbGFyIiwidHhYRFIiOiJBQUFBQS...==
-
-Step 5 — Server verifies and settles:
-  Server: decode X-PAYMENT header
-  Server: check nonce not seen before (Redis)
-  Server: verify Stellar signature against device's known public key
-  Server: enqueue Stellar transaction settlement (async)
-  Server → Device
-  HTTP/1.1 200 OK
-  Content-Type: application/json
-  { "data": "sensor_reading_42.7_kwh", "timestamp": "..." }
-```
+| Endpoint | Purpose |
+|---|---|
+| `POST /v1/power-sessions/:id/start-checkout` | Creates the Power Totem x402 challenge |
+| `POST /v1/power-sessions/:id/authorize` | Authorizes a paid session after validation |
+| `GET /v1/gateways/:id/authorization` | Lets the Gateway claim short-lived authorization |
 
 ---
 
-## X-PAYMENT-REQUIRED Header Format
+## Current Flow
 
-```
-X-PAYMENT-REQUIRED: scheme=stellar,network=testnet,payTo=GDQP2KPQ...,amount=0.10,asset=USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVV,maxTimeout=300,nonce=f3a1b2c9d4e5
+```txt
+1. Client requests protected resource or starts Power Totem checkout.
+2. Kivo Edge returns a Stellar x402 challenge with amount, asset, payTo, timeout, and nonce.
+3. Wallet or SDK signs a Stellar transaction XDR with the nonce memo.
+4. Client submits `POST /v1/x402/pay` with `{ nonce, txXDR }`.
+5. Kivo validates destination, amount, asset, nonce memo, and Stellar settlement submission.
+6. Kivo marks the resource/session paid or authorized.
+7. Gateway fetches authorization and releases the resource.
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `scheme` | string | Always `stellar` for Kivo |
-| `network` | string | `testnet` or `mainnet` |
-| `payTo` | string | Stellar public key of the resource provider |
-| `amount` | decimal | Amount to pay (in `asset` units) |
-| `asset` | string | `XLM` or `CODE:ISSUER` (e.g. `USDC:GA5ZSEJ...`) |
-| `maxTimeout` | integer | Seconds the client has to pay before the nonce expires |
-| `nonce` | string | Server-generated random value, bound to this request |
+Redis nonce issuance is not part of the active MVP. The current implementation uses Edge validation and Supabase state. Redis or another queue/cache can be introduced later for high-volume replay protection and durable settlement work.
 
 ---
 
-## X-PAYMENT Header Format
+## Challenge Shape
 
-The client encodes the signed payment as a base64 JSON envelope:
+The current client type represents a challenge as:
 
 ```json
 {
+  "status": 402,
+  "resource": "/api/x402/data",
   "scheme": "stellar",
   "network": "testnet",
-  "nonce": "f3a1b2c9d4e5",
-  "timestamp": "2025-06-01T12:00:00Z",
-  "resource": "/api/ev/data",
-  "payTo": "GDQP2KPQ...",
-  "amount": "0.10",
-  "asset": "USDC:GA5ZSEJ...",
-  "txXDR": "AAAAAQAAAAD...base64-encoded-Stellar-tx-XDR..."
+  "payTo": "G...",
+  "amount": "0.0500000",
+  "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  "maxTimeout": 300,
+  "nonce": "nonce_...",
+  "requiredHeader": "X-PAYMENT"
 }
 ```
 
-This JSON is base64-encoded and placed in the `X-PAYMENT` header.
+The Stellar transaction must include the nonce as the memo so Kivo can bind payment proof to the challenge.
 
 ---
 
-## Go Server Implementation
+## Payment Submission
 
-```go
-// internal/middleware/x402.go
+Submit signed XDR to:
 
-package middleware
+```http
+POST /v1/x402/pay
+Content-Type: application/json
+```
 
-import (
-    "encoding/base64"
-    "encoding/json"
-    "fmt"
-    "os"
-    "time"
-
-    "github.com/gofiber/fiber/v2"
-    "github.com/redis/go-redis/v9"
-)
-
-type PaymentRequired struct {
-    Scheme     string `json:"scheme"`
-    Network    string `json:"network"`
-    PayTo      string `json:"payTo"`
-    Amount     string `json:"amount"`
-    Asset      string `json:"asset"`
-    MaxTimeout int    `json:"maxTimeout"`
-    Nonce      string `json:"nonce"`
-}
-
-type PaymentEnvelope struct {
-    Scheme    string `json:"scheme"`
-    Network   string `json:"network"`
-    Nonce     string `json:"nonce"`
-    Timestamp string `json:"timestamp"`
-    Resource  string `json:"resource"`
-    PayTo     string `json:"payTo"`
-    Amount    string `json:"amount"`
-    Asset     string `json:"asset"`
-    TxXDR     string `json:"txXDR"`
-}
-
-// X402 returns a Fiber middleware that protects a route with x402 payment.
-// amount: decimal string (e.g. "0.10"), asset: "USDC:GA5ZSEJ..." or "XLM"
-func X402(rdb *redis.Client, sc *stellar.Client, amount, asset string) fiber.Handler {
-    platformPublicKey := os.Getenv("X402_PLATFORM_KEY")
-
-    return func(c *fiber.Ctx) error {
-        paymentHeader := c.Get("X-PAYMENT")
-        if paymentHeader == "" {
-            nonce := generateNonce()
-            pr := PaymentRequired{
-                Scheme:     "stellar",
-                Network:    os.Getenv("STELLAR_NETWORK"),
-                PayTo:      platformPublicKey,
-                Amount:     amount,
-                Asset:      asset,
-                MaxTimeout: 300,
-                Nonce:      nonce,
-            }
-            // Cache nonce for validation
-            rdb.Set(c.Context(), "x402:issued:"+nonce, "1", 5*time.Minute)
-
-            return c.Status(402).
-                Set("X-PAYMENT-REQUIRED", encodePaymentRequired(pr)).
-                JSON(fiber.Map{
-                    "error":   "payment required",
-                    "details": pr,
-                })
-        }
-
-        // Decode and validate payment
-        env, err := decodePaymentHeader(paymentHeader)
-        if err != nil {
-            return c.Status(400).JSON(fiber.Map{"error": "malformed X-PAYMENT header"})
-        }
-
-        // Verify nonce was issued by us
-        issued, _ := rdb.Get(c.Context(), "x402:issued:"+env.Nonce).Result()
-        if issued == "" {
-            return c.Status(400).JSON(fiber.Map{"error": "unknown or expired nonce"})
-        }
-
-        // Check nonce not already used (replay protection)
-        used, _ := rdb.SetNX(c.Context(), "x402:used:"+env.Nonce, "1", 10*time.Minute).Result()
-        if !used {
-            return c.Status(400).JSON(fiber.Map{"error": "nonce already used"})
-        }
-
-        // Verify timestamp freshness
-        ts, err := time.Parse(time.RFC3339, env.Timestamp)
-        if err != nil || time.Since(ts) > 5*time.Minute {
-            return c.Status(400).JSON(fiber.Map{"error": "payment timestamp expired"})
-        }
-
-        // Verify Stellar transaction XDR
-        if err := sc.VerifyPaymentXDR(env.TxXDR, env.PayTo, env.Amount, env.Asset); err != nil {
-            return c.Status(401).JSON(fiber.Map{"error": "invalid payment: " + err.Error()})
-        }
-
-        // Enqueue settlement (non-blocking)
-        go sc.SettlePaymentAsync(context.Background(), env.TxXDR)
-
-        return c.Next()
-    }
-}
-
-func decodePaymentHeader(header string) (*PaymentEnvelope, error) {
-    decoded, err := base64.StdEncoding.DecodeString(header)
-    if err != nil {
-        return nil, err
-    }
-    var env PaymentEnvelope
-    if err := json.Unmarshal(decoded, &env); err != nil {
-        return nil, err
-    }
-    return &env, nil
+```json
+{
+  "nonce": "nonce_...",
+  "txXDR": "AAAA..."
 }
 ```
 
-**Route registration:**
+Successful response:
 
-```go
-// cmd/server/main.go
-
-app := fiber.New()
-
-// Public route — no payment needed
-app.Get("/api/public/health", handlers.Health)
-
-// x402-protected premium data endpoint
-app.Get("/api/x402/data",
-    middleware.X402(rdb, stellarClient, "0.10", "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVV"),
-    handlers.PremiumData,
-)
+```json
+{
+  "status": 200,
+  "paymentHeader": "x402_...",
+  "stellarHash": "8a3f...",
+  "stellarLedger": 49823041,
+  "data": {}
+}
 ```
 
----
+Errors use the current Edge shape:
 
-## TypeScript Client Implementation
-
-```typescript
-// Using @x402/fetch for JS/TS devices or AI agents
-// npm install @x402/fetch @kivo/sdk
-
-import { withPayment } from "@x402/fetch";
-import { KivoDevice } from "@kivo/sdk";
-
-const device = new KivoDevice({
-  apiKey: process.env.KIVO_API_KEY!,
-  deviceId: process.env.KIVO_DEVICE_ID!,
-});
-
-// Wrap fetch with x402 payment capability
-const payingFetch = withPayment(fetch, {
-  // Called when a 402 is received — returns signed payment header
-  onPaymentRequired: async (paymentRequired) => {
-    const envelope = await device.signPayment({
-      payTo: paymentRequired.payTo,
-      amount: paymentRequired.amount,
-      asset: paymentRequired.asset,
-      nonce: paymentRequired.nonce,
-      resource: paymentRequired.resource,
-    });
-    return Buffer.from(JSON.stringify(envelope)).toString("base64");
-  },
-});
-
-// This fetch call will automatically handle 402 and retry with payment
-const response = await payingFetch("https://api.charger.example/api/x402/data");
-const data = await response.json();
-console.log("Sensor reading:", data);
+```json
+{
+  "error": "x402_payment_mismatch",
+  "message": "Signed transaction does not match the x402 challenge.",
+  "status": 400
+}
 ```
-
----
-
-## Stellar Payment Encoding
-
-The `txXDR` field in the payment envelope is a base64-encoded Stellar transaction XDR. The transaction must:
-
-1. Have exactly one `Payment` operation paying `amount` of `asset` to `payTo`
-2. Be signed by the device's Stellar keypair (provable via public key on file)
-3. Have a valid sequence number from the device's Stellar account
-4. Have timebounds within `maxTimeout` seconds from `timestamp`
-5. Include the `nonce` as the transaction memo (ensures payment is bound to this request)
-
-The server verifies the signature by decoding the XDR, extracting the source account, and verifying it matches a registered device's `stellar_public_key`.
 
 ---
 
 ## Replay Protection
 
-Three layers of replay protection:
+Current MVP replay protection is tied to the stored x402 nonce and Stellar transaction memo validation. Future scale work may add:
 
-| Layer | Mechanism | Window |
-|---|---|---|
-| Nonce issuance | Server caches issued nonces in Redis | 5 minutes |
-| Nonce consumption | `SetNX` marks nonce as used | 10 minutes |
-| Timestamp | Envelope timestamp must be within 5 minutes | 5 minutes |
+| Future layer | Purpose |
+|---|---|
+| Redis or queue/cache nonce ledger | Faster high-volume replay checks |
+| Durable settlement worker | Retry and reconciliation outside request path |
+| Rate limiting | Per-user, per-gateway, and per-resource abuse control |
 
-Even if an attacker intercepts an `X-PAYMENT` header from network traffic, they cannot reuse it: the nonce is consumed on first use.
+Do not document Redis `SetNX` nonce storage as current Kivo behavior until it is implemented in `kivo-api`.
+
+---
+
+## Integration With MCP
+
+The current MCP surface exposes only:
+
+- `kivo_create_payment`
+- `kivo_check_status`
+
+Future tools such as `kivo_execute_contract`, `kivo_subscribe_webhook`, and `kivo_simulate_payment` are planned and must not be presented as current x402 automation.
 
 ---
 
 ## Pricing Strategies
 
-x402 is asset-agnostic and unit-agnostic. The `amount` field in `X-PAYMENT-REQUIRED` can represent any unit:
+x402 is asset-agnostic and unit-agnostic:
 
-| Strategy | Amount field | Use case |
+| Strategy | Example | Use case |
 |---|---|---|
-| Per-request flat fee | `0.001` USDC per call | Data API, weather, maps |
-| Per-byte | `0.0000001` USDC × bytes | Large file downloads |
-| Per-kWh | `0.30` USDC × kWh delivered | EV charging |
-| Per-compute-unit | `0.01` USDC × GPU seconds | Edge AI inference |
-| Time-based | `0.10` USDC per minute | Live data streams |
-| Tiered | `0.001` / `0.0005` / `0.0001` | Volume discounts |
+| Per request | `0.001` USDC | API, weather, maps |
+| Per session | `0.0500000` USDC | Power Totem session |
+| Per minute | `0.10` USDC | Time-based access |
+| Per reading | `0.005` USDC | IoT data feed |
+| Per compute unit | `0.01` USDC | Worker or AI tool call |
 
-Kivo's Gateway API allows resource providers to configure dynamic pricing per endpoint.
-
----
-
-## Integration with MCP
-
-AI agents that encounter x402 resources use the `kivo_create_payment` MCP tool to complete the payment automatically:
-
-```
-AI Agent loop:
-1. Agent: fetch https://premium-api.example.com/data
-2. Response: 402 + X-PAYMENT-REQUIRED
-3. Agent: call kivo_create_payment tool with {payTo, amount, asset, nonce, resource}
-4. Tool returns: {x_payment_header: "eyJ..."}
-5. Agent: fetch https://premium-api.example.com/data + X-PAYMENT: eyJ...
-6. Response: 200 OK + data
-7. Agent: process data, continue task
-```
-
-The agent never requires human approval for micropayments below a configured threshold (e.g. < $0.10 per request).
-
----
-
-## Real Example: EV Charger Data API
-
-An EV charger operator monetizes real-time session data:
-
-```go
-// Charger data API — $0.05 USDC per query
-app.Get("/api/charger/:id/session",
-    middleware.X402(rdb, stellarClient, "0.05", "USDC:GA5ZSEJ..."),
-    func(c *fiber.Ctx) error {
-        chargerID := c.Params("id")
-        session := getChargerSession(chargerID) // fetch from DB
-        return c.JSON(session)
-    },
-)
-```
-
-An EV fleet management AI agent queries all charger sessions every 5 minutes to optimize routing. At $0.05/query × 100 chargers × 288 queries/day = $1,440/day in autonomous micropayment revenue — with no human invoicing, no accounts receivable, and no payment processor.
+Power Totem is the current functional hackathon template. API Toll, Data Gate, Agent Tool Paywall, Compute Gate, Automation Gate, IoT Device Access, EV Charging, and P2P Energy remain roadmap or marketplace candidates until implemented.

@@ -2,33 +2,21 @@ import { Icon } from '@iconify/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore, useUIStore } from '@/stores';
 
-const routeTitles: Record<string, { title: string; icon: string }> = {
-  '/dashboard': { title: 'Power Totem Home', icon: 'solar:home-2-bold-duotone' },
-  '/studio': { title: 'Kivo Studio', icon: 'solar:electric-refueling-bold-duotone' },
+const routeTitles: Record<string, { title: string; subtitle?: string; icon: string }> = {
+  '/dashboard': { title: 'Command Center', subtitle: 'Studio, templates, Gateway, validacao e launch', icon: 'solar:home-2-bold-duotone' },
+  '/studio': { title: 'Kivo Studio', subtitle: 'Crie solucoes, flows e templates com AI agents', icon: 'solar:stars-line-duotone' },
+  '/marketplace': { title: 'Marketplace', subtitle: 'Templates disponiveis, roadmap e comunidade', icon: 'solar:widget-linear' },
+  '/templates': { title: 'Template', subtitle: 'Apresentacao e aquisicao do template', icon: 'solar:widget-linear' },
+  '/library': { title: 'Biblioteca', subtitle: 'Templates adquiridos e instalacao do runtime', icon: 'solar:folder-with-files-linear' },
+  '/gateway': { title: 'Kivo Gateway', subtitle: 'Runtimes fisicos e digitais provisionados', icon: 'solar:server-square-cloud-linear' },
+  '/sdk': { title: 'Kivo SDK', subtitle: 'Bundle TypeScript local para testar e adaptar', icon: 'solar:code-square-linear' },
+  '/validation': { title: 'Validacao', subtitle: 'Evidencia real com x402, Etherfuse e Gateway', icon: 'solar:shield-check-linear' },
+  '/launch': { title: 'Launch', subtitle: 'Mainnet privada, testnet ou template publico', icon: 'solar:rocket-linear' },
   '/totems': { title: 'Power Totems', icon: 'solar:electric-refueling-bold-duotone' },
   '/totem': { title: 'Power Totem', icon: 'solar:electric-refueling-bold-duotone' },
-  '/totem-simulator': { title: 'Simulador do totem', icon: 'solar:bolt-circle-bold-duotone' },
-  '/create-flow': { title: 'Roadmap de templates', icon: 'solar:map-arrow-right-bold-duotone' },
-  '/flows': { title: 'Recursos legados', icon: 'solar:bolt-circle-bold-duotone' },
-  '/advanced': { title: 'Ferramentas avancadas', icon: 'solar:settings-bold-duotone' },
-  '/team': { title: 'Time e escala', icon: 'solar:users-group-rounded-bold-duotone' },
-  '/operations': { title: 'Operacao M2M', icon: 'solar:devices-bold-duotone' },
-  '/checkout': { title: 'Checkout', icon: 'solar:card-transfer-bold-duotone' },
-  '/integrations': { title: 'Power Totem Gateway SDK', icon: 'solar:code-square-bold-duotone' },
-  '/finance': { title: 'Financeiro', icon: 'solar:chart-square-bold-duotone' },
-  '/health': { title: 'Saude', icon: 'solar:heart-pulse-bold-duotone' },
-  '/status': { title: 'Status', icon: 'solar:pulse-2-bold-duotone' },
-  '/ops-dashboard': { title: 'Painel operacional', icon: 'solar:widget-5-bold-duotone' },
-  '/devices': { title: 'Devices', icon: 'solar:devices-bold-duotone' },
-  '/payments': { title: 'Pagamentos', icon: 'solar:wallet-money-bold-duotone' },
-  '/webhooks': { title: 'Webhooks', icon: 'solar:widget-2-bold-duotone' },
-  '/api-keys': { title: 'API Keys', icon: 'solar:key-minimalistic-bold-duotone' },
-  '/mcp': { title: 'MCP Console', icon: 'solar:cpu-bolt-bold-duotone' },
-  '/x402': { title: 'Regras x402', icon: 'solar:shield-keyhole-bold-duotone' },
-  '/templates': { title: 'Templates roadmap', icon: 'solar:bolt-circle-bold-duotone' },
-  '/workflows': { title: 'Workflows', icon: 'solar:routing-2-bold-duotone' },
-  '/deploy': { title: 'Deploy', icon: 'solar:rocket-bold-duotone' },
-  '/settings': { title: 'Configuracoes', icon: 'solar:settings-bold-duotone' },
+  '/checkout': { title: 'Pagamento x402', subtitle: 'Prove o fluxo de compra e liberacao', icon: 'solar:card-transfer-bold-duotone' },
+  '/status': { title: 'Status do sistema', subtitle: 'Sinais essenciais para teste com usuario', icon: 'solar:pulse-2-bold-duotone' },
+  '/settings': { title: 'Ajustes', subtitle: 'Conta, ambiente e conexoes', icon: 'solar:settings-bold-duotone' },
 };
 
 export default function Topbar() {
@@ -40,7 +28,8 @@ export default function Topbar() {
   const setEnvironment = useUIStore((state) => state.setEnvironment);
   const setCommandOpen = useUIStore((state) => state.setCommandOpen);
   const basePath = `/${location.pathname.split('/')[1] || 'dashboard'}`;
-  const info = routeTitles[basePath] ?? { title: 'Kivo Pay', icon: 'solar:wallet-linear' };
+  const info = routeTitles[basePath] ?? { title: 'Kivo', subtitle: 'Studio, Gateway e SDK para recursos pagos', icon: 'solar:wallet-linear' };
+  const subtitle = info.subtitle ?? 'Configure, cobre e libere recursos pelo Gateway Kivo';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/5 bg-neutral-950/85 px-4 backdrop-blur-xl md:px-8">
@@ -50,7 +39,7 @@ export default function Topbar() {
         </div>
         <div className="min-w-0">
           <h1 className="hidden truncate font-bricolage text-xl font-bold text-white sm:block">{info.title}</h1>
-          <p className="hidden text-xs text-neutral-500 sm:block">Configure, cobre e libere energia pelo gateway Power Totem</p>
+          <p className="hidden text-xs text-neutral-500 sm:block">{subtitle}</p>
         </div>
       </div>
 
@@ -78,7 +67,7 @@ export default function Topbar() {
           ))}
         </div>
 
-        <Link to="/team" className="hidden rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-neutral-400 hover:bg-white/10 hover:text-white lg:block">
+        <Link to="/settings" className="hidden rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-neutral-400 hover:bg-white/10 hover:text-white lg:block">
           {user?.name ?? 'Conta'}
         </Link>
 

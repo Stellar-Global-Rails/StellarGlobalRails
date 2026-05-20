@@ -26,22 +26,22 @@ export default function HealthPage() {
   const loadError = health.error || etherfuse.error || powerTotems.error || powerSessions.error;
   const platformReady = health.data?.api === 'ok' && health.data?.stellar === 'ok' && etherfuse.data?.configured;
   const gatewayReady = sessions.some((session) => ['running', 'completed'].includes(session.status));
-  const demoReady = platformReady && activeTotems.length > 0 && gatewayReady;
-  const overallTone = loadError || failedSessions.length || (platformReady && activeTotems.length && !gatewayReady) ? 'warning' : demoReady ? 'ready' : 'processing';
+  const runtimeReady = platformReady && activeTotems.length > 0 && gatewayReady;
+  const overallTone = loadError || failedSessions.length || (platformReady && activeTotems.length && !gatewayReady) ? 'warning' : runtimeReady ? 'ready' : 'processing';
   const overallLabel = loadError
     ? 'Leitura parcial'
-    : demoReady
-      ? 'Demo pronta'
+    : runtimeReady
+      ? 'Runtime pronto'
       : platformReady && activeTotems.length && !gatewayReady
         ? 'Aguardando gateway'
-        : 'Preparando demo';
+        : 'Preparando runtime';
 
   const readiness = [
     {
       id: 'totem',
       label: 'Power Totem criado',
       complete: activeTotems.length > 0,
-      detail: activeTotems.length ? `${activeTotems.length} totem ativo/teste` : 'Crie no Studio antes do checkout.',
+      detail: activeTotems.length ? `${activeTotems.length} totem ativo/teste` : 'Configure o template na Biblioteca antes do checkout.',
     },
     {
       id: 'x402',
@@ -65,7 +65,7 @@ export default function HealthPage() {
       id: 'gateway',
       label: 'Gateway fisico',
       complete: gatewayReady,
-      detail: 'Use o simulador ou Raspberry low-voltage para reportar eventos.',
+      detail: 'Instale o pacote Docker no Raspberry ou mini PC para reportar eventos.',
     },
   ];
 
@@ -73,7 +73,7 @@ export default function HealthPage() {
     <div className="space-y-8">
       <PageHeader
         eyebrow="Power Totem"
-        title="Saude da demo fisica"
+        title="Saude do Power Totem"
         icon="solar:electric-refueling-bold-duotone"
         description="Power Totem: flow, gateway, x402, Stellar, Etherfuse e autorizacao fisica."
         action={<Link to="/studio" className="rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">Abrir Studio</Link>}
@@ -87,7 +87,7 @@ export default function HealthPage() {
         description="Esta pagina acompanha se o caminho de palco esta pronto: criar Totem, cobrar por x402/Stellar, autorizar uma sessao curta e receber evento do gateway."
         checkpoints={['Power Totem', 'x402', 'Stellar', 'Etherfuse', 'Gateway']}
         primaryAction={{ to: '/checkout', label: 'Testar checkout' }}
-        secondaryAction={{ to: '/totem-simulator', label: 'Abrir simulador' }}
+        secondaryAction={{ to: '/library/power-totem', label: 'Abrir template' }}
       />
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -101,7 +101,7 @@ export default function HealthPage() {
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <h2 className="font-bricolage text-xl font-bold text-white">Checklist Power Totem</h2>
-            <p className="mt-1 text-sm text-neutral-500">O que precisa estar verde antes da apresentacao ou fallback no browser.</p>
+            <p className="mt-1 text-sm text-neutral-500">O que precisa estar verde antes de operar o Power Totem.</p>
           </div>
           <Badge tone={overallTone}>{overallLabel}</Badge>
         </div>
@@ -148,10 +148,10 @@ export default function HealthPage() {
             <Icon icon="solar:electric-refueling-bold-duotone" className="mx-auto text-4xl text-emerald-300" />
             <h3 className="mt-3 font-bricolage text-xl font-bold text-white">Nenhum Power Totem criado ainda</h3>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-neutral-500">
-              Use o Studio para criar o Totem, gerar o token do gateway e iniciar o checkout fisico.
+              Adquira o Power Totem no Marketplace e configure o template pela Biblioteca.
             </p>
-            <Link to="/studio" className="mt-5 inline-flex rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
-              Criar Power Totem
+            <Link to="/marketplace" className="mt-5 inline-flex rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
+              Abrir Marketplace
             </Link>
           </div>
         )}

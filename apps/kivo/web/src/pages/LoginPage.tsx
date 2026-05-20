@@ -40,7 +40,7 @@ export default function LoginPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 text-sm font-black text-black">
               KV
             </div>
-            <span className="font-bricolage text-2xl font-bold tracking-tight">Kivo Pay</span>
+            <span className="font-bricolage text-2xl font-bold tracking-tight">Kivo</span>
           </div>
 
           <h1 className="font-bricolage text-3xl font-bold">Bem-vindo de volta</h1>

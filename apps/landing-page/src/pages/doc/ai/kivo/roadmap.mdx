@@ -8,6 +8,8 @@ description: "Current build status, phased implementation plan, open technical d
 
 This document tracks where Kivo is today, where it is going, the open architectural questions that are not yet resolved, and a changelog of significant decisions.
 
+Kivo Gateway is the runtime. Kivo Studio is the AI-agent creation environment. Kivo SDK is the downloadable integration layer. Power Totem is the functional hackathon template. Other templates are roadmap or marketplace candidates.
+
 ---
 
 ## Hackathon
@@ -15,16 +17,18 @@ This document tracks where Kivo is today, where it is going, the open architectu
 - Power Totem as the functional template.
 - Kivo Gateway physical flow.
 - x402, Stellar, and Etherfuse validation visible.
+- Studio intent capture, flow creation, validation runs, and launch options.
 - Health/status and receipt surfaces.
 
 ---
 
 ## After Hackathon
 
-- Kivo Studio as a Tauri app with AI agents.
-- Complete TypeScript SDK.
+- Kivo Studio as the AI-agent workspace for flows, config, SDK snippets, tests, and launch checklist.
+- Complete downloadable TypeScript SDK.
 - Digital gateway adapters.
-- Private mainnet billing.
+- Private mainnet publication as a paid path.
+- Public templates as fallback for users who do not pay for private mainnet usage.
 - Additional templates: API Toll, Agent Tool Paywall, Compute Gate, Automation Gate, IoT Device Access, EV Charging, and P2P Energy.
 
 ---
@@ -35,58 +39,56 @@ This document tracks where Kivo is today, where it is going, the open architectu
 |---|---|---|
 | Landing page | Complete | Deployed on Cloudflare Pages |
 | Documentation | Complete | This document set |
-| Go API scaffold | In progress | Fiber app skeleton, routes wired |
-| Supabase schema | In progress | Migrations written, not yet applied to prod |
-| Device registration API | In progress | Handler written, tests pending |
-| Etherfuse anchor | Planned | Sandbox/testnet contract documented; Go implementation pending |
-| x402 middleware | Planned | Core logic designed, not yet implemented |
-| MCP server | Planned | Tool specs finalized, Go implementation pending |
-| React dashboard | Planned | Wireframes complete |
-| EV charging template | Future | Phase 3 |
+| Supabase Edge API | Active | `kivo-api` owns health, deploy checks, Studio, Power Totem, x402, Etherfuse, gateway, dashboard, webhooks, API keys, MCP, and workflows |
+| Kivo Studio routes | Active | `POST /v1/studio/intents`, `POST /v1/studio/flows`, `POST /v1/studio/flows/:flowId/validation-runs`, `GET /v1/studio/flows/:flowId/launch-options`, and `GET /v1/studio/templates` |
+| Supabase schema | Active | `kivo_*` tables, RLS, grants, Power Totem tables, gateway events, and x402/session bridge alignment |
+| Power Totem template | Active | Only functional hackathon template |
+| Etherfuse anchor | Active | Sandbox/testnet state visible through Edge routes |
+| x402 payment path | Active | Challenge and signed Stellar XDR validation routes available |
+| Kivo SDK | In progress | Downloadable TypeScript integration layer with client, adapters, examples, and tests |
+| Other templates | Future | Roadmap or marketplace candidates |
 | Soroban integration | Future | Phase 4 |
 
 ---
 
 ## Phase 1 — Foundation (Now)
 
-**Goal:** Working Go API with device registration, basic payments, and Supabase schema running on Fly.io testnet.
+**Goal:** Supabase Edge Function runtime with Studio, Power Totem, x402, Etherfuse, gateway events, dashboard health, and SDK integration surfaces running on testnet.
 
 **Deliverables:**
 
-- Go + Fiber project scaffold with `sqlc`, `pgx v5`, `go-redis`
-- Supabase schema migrations applied (devices, payments, webhooks, api_keys)
-- `POST /v1/devices` — register device, generate Stellar keypair, issue API key
-- `GET /v1/devices/:id` — fetch device + Stellar balance via Horizon
-- `POST /v1/payments` — create payment (no condition, immediate Stellar submission)
-- `GET /v1/payments/:id` — payment status
-- `GET /v1/health` — health check with DB + Redis + Horizon ping
-- Etherfuse sandbox/testnet anchor endpoints: status, onboarding URL, assets, quote, order, fiat simulation, signed webhook
-- Device API key middleware (SHA-256 hash lookup)
+- Supabase Edge Function `kivo-api`
+- Supabase schema migrations applied for `kivo_*` tables, RLS, grants, Power Totems, gateway events, payments, webhooks, API keys, and x402/session bridge state
+- `POST /v1/studio/intents` and `POST /v1/studio/flows` for Studio-led creation
+- `POST /v1/studio/flows/:flowId/validation-runs` for testnet validation
+- `GET /v1/studio/flows/:flowId/launch-options` and `GET /v1/studio/templates` for publication and fallback templates
+- `GET|POST /v1/power-totems`, `POST /v1/power-totems/:id/pairing-token`, and `GET|POST /v1/power-sessions`
+- `POST /v1/power-sessions/:id/start-checkout`, `POST /v1/x402/pay`, and `GET /power-totem/{id}/session`
+- Etherfuse sandbox/testnet anchor endpoints: status, onboarding URL, assets, quote, order, fiat received simulation, and signed webhook
 - Supabase Auth JWT middleware
-- Payment worker goroutine (Redis → Stellar submission)
+- `GET /v1/health`, `GET /v1/deploy/checks`, and `GET /v1/deploy/services`
 - Testnet Friendbot funding helper for dev
-- Fly.io deployment with secrets
-- GitHub Actions CI: `go test ./...`, `sqlc generate`, Docker build
+- Vercel frontend connected to the Supabase Edge API; server-side secrets configured in Supabase Edge Function secrets
 
-**Timeline:** 3–4 weeks
+**Timeline:** Active hackathon track
 
 ---
 
 ## Phase 2 — x402 + MCP
 
-**Goal:** x402 middleware protecting real endpoints, MCP server exposing Kivo tools to AI agents.
+**Goal:** Broader x402 coverage, production MCP tooling, and durable background processing after the Edge MVP path is stable.
 
 **Deliverables:**
 
 - `GET /api/x402/data` — example x402-protected endpoint
-- x402 middleware: nonce issuance, replay prevention, Stellar XDR verification, async settlement
+- x402 middleware expansion: nonce issuance, replay prevention, Stellar XDR verification, and async settlement where needed
 - MCP server: `kivo_create_payment`, `kivo_check_status`, `kivo_simulate_payment`
 - Claude Desktop integration guide + test script
 - Conditional payments: `energy_kwh` condition type with threshold check
-- `POST /v1/payments/:id/condition` — condition proof submission
-- Webhook worker goroutine: Redis → HMAC-signed HTTP POST
+- `POST /v1/payments/:id/condition-proof` — condition proof submission
+- Future webhook worker: durable HMAC-signed HTTP delivery outside the current request path
 - `POST /v1/webhooks` — webhook registration with HMAC secret
-- Rate limiting middleware (Redis sliding window)
+- Future rate limiting middleware; Redis or another queue/cache backend remains an architecture choice, not a current MVP dependency
 - Testnet end-to-end test: device registers, creates conditional payment, submits proof, confirms on Stellar
 
 **Timeline:** 4–6 weeks
@@ -118,7 +120,7 @@ This document tracks where Kivo is today, where it is going, the open architectu
 **Deliverables:**
 
 - Soroban contract for multi-party conditional escrow
-- Go SDK for Soroban contract invocation (`txnbuild.InvokeHostFunction`)
+- SDK support for Soroban contract invocation
 - Oracle integration: signed readings from external data sources (energy meter, GPS, weather)
 - Multi-step payment channels: streaming micropayments per kWh with Soroban state
 - Cross-device payment routing: A pays B pays C (payment chain) in single atomic tx
@@ -148,33 +150,33 @@ This document tracks where Kivo is today, where it is going, the open architectu
 
 ## Open Technical Decisions
 
-### 1. RabbitMQ vs Redis for Queue at Scale
+### 1. Queue Backend for Future Scale
 
-**Current:** Redis (Upstash) with `LPUSH`/`BRPOP`.
+**Current:** The active hackathon MVP runs through Supabase Edge routes and Supabase persistence. Redis workers and Go goroutines are not part of the current runtime.
 
-**Problem at scale:** Redis lists provide no message acknowledgment. If a payment worker crashes after dequeuing but before submitting to Stellar, the payment is lost.
+**Future problem at scale:** Durable payment, webhook, and settlement jobs will need acknowledgment and replay guarantees once traffic exceeds the request/response Edge path.
 
 **Options:**
 - **Redis Streams** (`XADD`/`XREADGROUP`): adds consumer groups and acknowledgment without a new dependency. Simple upgrade path.
 - **RabbitMQ** (self-hosted or CloudAMQP): full message broker with dead letter queues, routing, and durable acknowledgment. Better for complex routing (payment events → webhook worker → retry queue).
 - **NATS JetStream**: high-throughput, lightweight, great for M2M messaging. Slightly less ecosystem support in Go compared to RabbitMQ.
 
-**Decision criteria:** Migrate when payment volume exceeds 5,000 payments/day or when a payment loss incident occurs in production.
+**Decision criteria:** Add a queue backend when payment volume exceeds 5,000 payments/day, webhook delivery needs durable retry, or settlement work can no longer safely run inline.
 
-**Current lean:** Redis Streams first (zero new dependencies), then RabbitMQ if routing complexity grows.
+**Current lean:** Redis Streams first if the platform already depends on Redis, then RabbitMQ or NATS JetStream if routing complexity grows.
 
 ---
 
-### 2. Rust Rewrite of Payment Hot Path
+### 2. Payment Hot Path Runtime
 
-**Context:** The payment submission path (decrypt Stellar secret → build transaction → sign → submit to Horizon) is latency-sensitive. For EV charging or energy trading use cases, every millisecond of settlement delay has user-visible impact.
+**Context:** The historical Go/Fiber plan included a server-side payment submission worker. The active Edge MVP validates signed Stellar XDR and submits through the Edge API path. Future private mainnet flows may need a dedicated signing or settlement service.
 
 **Options:**
-- **Stay in Go:** Already fast (sub-millisecond signing). Horizon network latency (200–500ms) dominates — Go vs Rust makes no difference.
-- **Rust sidecar for signing:** The secret decryption and transaction signing runs in a Rust binary called via Unix socket. Go handles HTTP, Rust handles crypto. Reduces attack surface for secret handling.
-- **Full Rust rewrite:** Axum + sqlx. Maximum performance, but significant rewrite cost.
+- **Stay in Edge TypeScript:** Keep current validation and submission in Supabase Edge while volumes and security needs fit the MVP.
+- **Dedicated signing service:** Move private mainnet signing into a small isolated service if Kivo starts holding signing authority.
+- **Rust sidecar or service:** Use Rust for sensitive signing/crypto boundaries if the risk profile justifies the added operational cost.
 
-**Current decision:** Stay in Go. Revisit at Phase 4 when Soroban contract invocation adds complexity.
+**Current decision:** Keep the Edge MVP path. Revisit a dedicated signing service for private mainnet publication or Soroban-heavy flows.
 
 ---
 
@@ -202,7 +204,7 @@ This document tracks where Kivo is today, where it is going, the open architectu
 
 ### 4. Self-Hosted Supabase vs Managed at Scale
 
-**Current:** Supabase managed (free tier → $25/month plan).
+**Current:** Managed Supabase backs the Edge MVP.
 
 **Problem:** At 1 million+ registered devices, the Supabase managed plan becomes expensive (~$600+/month for the Pro plan with add-ons). Each device creates rows in `devices`, potentially multiple rows in `payments` per day.
 
@@ -228,10 +230,10 @@ All 11 documentation files written covering architecture, data models, API refer
 Decided to implement x402 as the machine payment protocol rather than a custom header scheme. Aligned with emerging open standard for HTTP micropayments.
 
 ### 2025-04-15 — ADR-005: Upstash Redis Selected
-Selected Upstash Redis over self-hosted Redis for the job queue. Free tier sufficient for MVP. go-redis v9 client chosen for its context-aware API.
+Historical Go-era decision: selected Upstash Redis over self-hosted Redis for the job queue. This is superseded for the active Edge MVP; Redis remains a future queue/cache option.
 
 ### 2025-04-01 — ADR-001–004: Core Stack Finalized
-Go + Fiber, sqlc, pgx v5, and Supabase PostgreSQL selected as the core technology stack. Decision documented in ADRs to prevent future revisiting.
+Historical Go-era decision: Go + Fiber, sqlc, pgx v5, and Supabase PostgreSQL were selected as the original core stack. The active MVP runtime is now Supabase Edge Function `kivo-api` with Supabase Postgres.
 
 ### 2025-03-20 — MCP Server Added to Scope
 After reviewing the Anthropic MCP specification, the Kivo MCP server was added to the product roadmap as Layer 3. Tool specifications drafted for `kivo_create_payment`, `kivo_check_status`, `kivo_execute_contract`, `kivo_subscribe_webhook`, `kivo_simulate_payment`.

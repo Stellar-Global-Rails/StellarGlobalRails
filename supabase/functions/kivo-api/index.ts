@@ -13,6 +13,17 @@ import {
   sanitizeQrSlug,
 } from "./powerTotemDomain.ts";
 import { validatePaymentSettlementXdr } from "./settlementValidation.ts";
+import {
+  createStudioFlowFromIntent,
+  getLaunchOptionsForValidation,
+  listStudioTemplates,
+  type StudioGatewayMode,
+  type StudioIntent,
+  type StudioInteractionModel,
+  type StudioSurface,
+  type StudioValidationStatus,
+} from "./studioDomain.ts";
+import { buildGatewayBundleZip, deriveKivoApiUrl } from "./gatewayBundle.ts";
 
 const VERSION = "kivo-edge-transition-2026-05-17";
 
@@ -698,6 +709,271 @@ const requireEtherfuseKey = (req: Request) => {
   return undefined;
 };
 
+const studioSurfaces: StudioSurface[] = ["physical", "digital", "hybrid"];
+const studioInteractionModels: StudioInteractionModel[] = [
+  "H2M",
+  "M2M",
+  "A2M",
+  "mixed",
+];
+const studioGatewayModes: StudioGatewayMode[] = [
+  "raspberry",
+  "edge_device",
+  "physical_totem",
+  "proxy",
+  "middleware",
+  "sidecar",
+  "worker",
+  "api_guard",
+  "plugin",
+  "serverless_function",
+];
+const studioValidationStatuses: StudioValidationStatus[] = [
+  "not_configured",
+  "needs_connection",
+  "pending",
+  "running",
+  "passed",
+  "failed",
+  "needs_user_action",
+];
+
+const isStudioSurface = (value: unknown): value is StudioSurface =>
+  typeof value === "string" &&
+  studioSurfaces.includes(value as StudioSurface);
+
+const isStudioInteractionModel = (
+  value: unknown,
+): value is StudioInteractionModel =>
+  typeof value === "string" &&
+  studioInteractionModels.includes(value as StudioInteractionModel);
+
+const isStudioGatewayMode = (value: unknown): value is StudioGatewayMode =>
+  typeof value === "string" &&
+  studioGatewayModes.includes(value as StudioGatewayMode);
+
+const isStudioValidationStatus = (
+  value: unknown,
+): value is StudioValidationStatus =>
+  typeof value === "string" &&
+  studioValidationStatuses.includes(value as StudioValidationStatus);
+
+const invalidStudioEnumError = (
+  req: Request,
+  key: string,
+  allowed: string[],
+) =>
+  apiError(
+    req,
+    400,
+    "invalid_studio_intent",
+    `${key} must be one of: ${allowed.join(", ")}.`,
+  );
+
+const validateStudioEnumInputs = (
+  req: Request,
+  input: Record<string, unknown>,
+) => {
+  if (
+    input.surface !== undefined && !isStudioSurface(input.surface)
+  ) {
+    return invalidStudioEnumError(req, "surface", studioSurfaces);
+  }
+  if (
+    input.interactionModel !== undefined &&
+    !isStudioInteractionModel(input.interactionModel)
+  ) {
+    return invalidStudioEnumError(
+      req,
+      "interactionModel",
+      studioInteractionModels,
+    );
+  }
+  if (
+    input.gatewayMode !== undefined && !isStudioGatewayMode(input.gatewayMode)
+  ) {
+    return invalidStudioEnumError(req, "gatewayMode", studioGatewayModes);
+  }
+  return undefined;
+};
+
+const inferStudioSurface = (prompt: string): StudioSurface => {
+  const normalized = prompt.toLowerCase();
+  const physical = normalized.includes("energia") ||
+    normalized.includes("totem") || normalized.includes("fisico") ||
+    normalized.includes("físico");
+  const digital = normalized.includes("api") || normalized.includes("dados") ||
+    normalized.includes("endpoint") || normalized.includes("software");
+
+  if (physical && digital) {
+    return "hybrid";
+  }
+  if (physical) {
+    return "physical";
+  }
+  return "digital";
+};
+
+const inferStudioInteractionModel = (
+  surface: StudioSurface,
+): StudioInteractionModel => surface === "physical" ? "H2M" : "M2M";
+
+const inferStudioGatewayMode = (
+  prompt: string,
+  surface: StudioSurface,
+): StudioGatewayMode => {
+  const normalized = prompt.toLowerCase();
+  if (normalized.includes("api") || surface === "digital") {
+    return "api_guard";
+  }
+  if (surface === "physical") {
+    return "physical_totem";
+  }
+  return "middleware";
+};
+
+const handleStudio = async (req: Request, path: string) => {
+  if (path === "/v1/studio/templates" && req.method === "GET") {
+    return json(req, 200, listStudioTemplates());
+  }
+
+  if (path === "/v1/studio/intents" && req.method === "POST") {
+    await requireUser(req);
+    const input = await req.json().catch(() => ({})) as {
+      prompt?: unknown;
+      surface?: unknown;
+      interactionModel?: unknown;
+      gatewayMode?: unknown;
+    };
+    const enumError = validateStudioEnumInputs(req, input);
+    if (enumError) {
+      return enumError;
+    }
+    const prompt = typeof input.prompt === "string" ? input.prompt.trim() : "";
+    if (!prompt) {
+      return apiError(
+        req,
+        400,
+        "invalid_studio_intent",
+        "prompt is required.",
+      );
+    }
+
+    const surface = isStudioSurface(input.surface)
+      ? input.surface
+      : inferStudioSurface(prompt);
+    const interactionModel = isStudioInteractionModel(input.interactionModel)
+      ? input.interactionModel
+      : inferStudioInteractionModel(surface);
+    const recommendedGatewayMode = isStudioGatewayMode(input.gatewayMode)
+      ? input.gatewayMode
+      : inferStudioGatewayMode(prompt, surface);
+    const intent: StudioIntent = {
+      id: `intent_${crypto.randomUUID()}`,
+      prompt,
+      surface,
+      interactionModel,
+      recommendedGatewayMode,
+      createdAt: nowISO(),
+    };
+    return json(req, 201, intent);
+  }
+
+  if (path === "/v1/studio/flows" && req.method === "POST") {
+    await requireUser(req);
+    const input = await req.json().catch(() => ({})) as {
+      intentId?: unknown;
+      prompt?: unknown;
+      surface?: unknown;
+      interactionModel?: unknown;
+      gatewayMode?: unknown;
+    };
+    const enumError = validateStudioEnumInputs(req, input);
+    if (enumError) {
+      return enumError;
+    }
+    const prompt = typeof input.prompt === "string" && input.prompt.trim()
+      ? input.prompt.trim()
+      : "Novo Kivo flow";
+
+    const surface = isStudioSurface(input.surface)
+      ? input.surface
+      : inferStudioSurface(prompt);
+    const intent: StudioIntent = {
+      id: typeof input.intentId === "string" && input.intentId.trim()
+        ? input.intentId.trim()
+        : `intent_${crypto.randomUUID()}`,
+      prompt,
+      surface,
+      interactionModel: isStudioInteractionModel(input.interactionModel)
+        ? input.interactionModel
+        : inferStudioInteractionModel(surface),
+      recommendedGatewayMode: isStudioGatewayMode(input.gatewayMode)
+        ? input.gatewayMode
+        : inferStudioGatewayMode(prompt, surface),
+      createdAt: nowISO(),
+    };
+    return json(req, 201, createStudioFlowFromIntent(intent));
+  }
+
+  const validationRun = path.match(
+    /^\/v1\/studio\/flows\/([^/]+)\/validation-runs$/,
+  );
+  if (validationRun && req.method === "POST") {
+    await requireUser(req);
+    const now = nowISO();
+    return json(req, 201, {
+      id: `validation_${crypto.randomUUID()}`,
+      flowId: validationRun[1],
+      status: "needs_connection",
+      success: false,
+      createdAt: now,
+      updatedAt: now,
+      steps: [
+        {
+          id: "gateway",
+          label: "Gateway",
+          status: "needs_connection",
+          message: "Conecte um gateway antes de validar o flow.",
+        },
+        {
+          id: "x402",
+          label: "x402",
+          status: "pending",
+          message: "A validacao x402 depende do gateway conectado.",
+        },
+        {
+          id: "etherfuse",
+          label: "Etherfuse",
+          status: "not_configured",
+          message: "A validacao Etherfuse roda depois do pagamento testnet.",
+        },
+      ],
+    });
+  }
+
+  const launchOptions = path.match(
+    /^\/v1\/studio\/flows\/([^/]+)\/launch-options$/,
+  );
+  if (launchOptions && req.method === "GET") {
+    await requireUser(req);
+    const url = new URL(req.url);
+    const rawStatus = url.searchParams.get("validationStatus");
+    if (rawStatus !== null && !isStudioValidationStatus(rawStatus)) {
+      return apiError(
+        req,
+        400,
+        "invalid_studio_validation_status",
+        "validationStatus must be a valid Studio validation status.",
+      );
+    }
+    const validationStatus = rawStatus ?? "needs_connection";
+    return json(req, 200, getLaunchOptionsForValidation(validationStatus));
+  }
+
+  return apiError(req, 404, "not_found", "Studio route not found.");
+};
+
 const proxyEtherfuse = async (
   req: Request,
   endpoint: string,
@@ -1102,6 +1378,13 @@ const listPricingRulesForUser = async (ownerId: string) =>
     owner_id: `eq.${ownerId}`,
     order: "updated_at.desc",
   })).map(toPricingRule);
+
+const listGatewaysForUser = async (ownerId: string) =>
+  (await selectRows<DbGateway>("kivo_gateways", {
+    select: "*",
+    owner_id: `eq.${ownerId}`,
+    order: "updated_at.desc,created_at.desc",
+  })).map(toGateway);
 
 const dashboardSummary = async (req: Request) => {
   const user = await requireUser(req);
@@ -1605,7 +1888,7 @@ const handlePayments = async (req: Request, path: string) => {
 const handlePowerTotems = async (req: Request, path: string) => {
   const user = await requireUser(req);
   const detail = path.match(
-    /^\/v1\/power-totems\/([^/]+)(?:\/(pairing-token))?$/,
+    /^\/v1\/power-totems\/([^/]+)(?:\/(pairing-token|gateway-bundle))?$/,
   );
 
   if (path === "/v1/power-totems" && req.method === "GET") {
@@ -1766,10 +2049,89 @@ const handlePowerTotems = async (req: Request, path: string) => {
     });
   }
 
+  if (detail && req.method === "POST" && detail[2] === "gateway-bundle") {
+    const totems = await selectRows<DbPowerTotem>("kivo_power_totems", {
+      select: "*",
+      id: `eq.${detail[1]}`,
+      owner_id: `eq.${user.id}`,
+      limit: 1,
+    });
+    const totem = totems[0];
+    if (!totem) {
+      return apiError(
+        req,
+        404,
+        "power_totem_not_found",
+        "Power Totem not found.",
+      );
+    }
+    const input = await req.json().catch(() => ({})) as Record<
+      string,
+      unknown
+    >;
+    const adapter = typeof input.adapter === "string" &&
+        ["simulator", "raspberry"].includes(input.adapter)
+      ? input.adapter as "simulator" | "raspberry"
+      : "raspberry";
+    const rawGatewayToken = randomToken("kgw_");
+    const gateway = await insertRow<DbGateway>("kivo_gateways", {
+      owner_id: user.id,
+      totem_id: totem.id,
+      name: typeof input.name === "string" && input.name.trim()
+        ? input.name.trim()
+        : `${totem.name} gateway`,
+      token_hash: await sha256Hex(rawGatewayToken),
+      token_preview: secretPreview(rawGatewayToken),
+      pairing_token_hash: null,
+      pairing_token_preview: null,
+      status: "pairing",
+      adapter,
+      metadata: {
+        ...recordOrEmpty(input.metadata),
+        installation: "docker-power-totem",
+        generatedAt: nowISO(),
+      },
+    });
+    const zip = buildGatewayBundleZip({
+      apiUrl: typeof input.apiUrl === "string" && input.apiUrl.trim()
+        ? input.apiUrl.trim()
+        : deriveKivoApiUrl(req.url),
+      gatewayId: gateway.id,
+      gatewayToken: rawGatewayToken,
+      gatewayName: gateway.name,
+      adapter,
+      totemName: totem.name,
+      totemResource: totem.resource,
+      price: String(totem.price),
+      asset: defaultPowerSessionAsset(),
+      durationSeconds: totem.session_duration_seconds,
+    });
+    const filename = `kivo-power-totem-${totem.id.slice(0, 8)}.zip`;
+    const body = zip.buffer.slice(
+      zip.byteOffset,
+      zip.byteOffset + zip.byteLength,
+    ) as ArrayBuffer;
+    return new Response(body, {
+      status: 201,
+      headers: {
+        ...corsHeaders(req),
+        "content-type": "application/zip",
+        "content-disposition": `attachment; filename="${filename}"`,
+        "x-kivo-gateway-id": gateway.id,
+        "x-kivo-gateway-token-preview": secretPreview(rawGatewayToken),
+      },
+    });
+  }
+
   return apiError(req, 404, "not_found", "Power Totem route not found.");
 };
 
 const handleGateways = async (req: Request, path: string) => {
+  if (path === "/v1/gateways" && req.method === "GET") {
+    const user = await requireUser(req);
+    return json(req, 200, await listGatewaysForUser(user.id));
+  }
+
   const gateway = await requireGateway(req);
   const detail = path.match(
     /^\/v1\/gateways\/([^/]+)\/(heartbeat|authorization|events)$/,
@@ -2862,6 +3224,12 @@ Deno.serve(async (req) => {
     if (path === "/v1/deploy/services" && req.method === "GET") {
       return json(req, 200, deployServices(req));
     }
+    if (
+      path === "/v1/studio/templates" || path === "/v1/studio/intents" ||
+      path === "/v1/studio/flows" || path.startsWith("/v1/studio/flows/")
+    ) {
+      return await handleStudio(req, path);
+    }
     if (path === "/v1/dashboard" && req.method === "GET") {
       return await handleDashboard(req);
     }
@@ -2879,7 +3247,7 @@ Deno.serve(async (req) => {
     ) {
       return await handlePowerSessions(req, path);
     }
-    if (path.startsWith("/v1/gateways/")) {
+    if (path === "/v1/gateways" || path.startsWith("/v1/gateways/")) {
       return await handleGateways(req, path);
     }
     if (path.startsWith("/v1/x402/")) {

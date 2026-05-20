@@ -1,6 +1,6 @@
 # Kivo Power Totem Gateway
 
-Small Node.js gateway package for the Power Totem demo. It polls Kivo for an authorized session, enables an output adapter, reports lifecycle events, disables the adapter, and asks the API to complete the session.
+Small Node.js gateway runtime for the Power Totem. It polls Kivo for an authorized session, enables an output adapter, reports lifecycle events, disables the adapter, and lets the Kivo API complete the session from the signed Gateway event.
 
 ## Setup
 
@@ -15,8 +15,7 @@ Required environment variables:
 $env:KIVO_API_URL="https://your-kivo-api.example"
 $env:KIVO_GATEWAY_ID="gateway_..."
 $env:KIVO_GATEWAY_TOKEN="kgw_..."
-$env:KIVO_API_TOKEN="workspace_or_user_token_for_completion_route"
-$env:KIVO_GATEWAY_ADAPTER="simulator"
+$env:KIVO_GATEWAY_ADAPTER="raspberry"
 ```
 
 Optional environment variables:
@@ -28,9 +27,9 @@ $env:KIVO_GATEWAY_ENABLE_COMMAND="path-to-enable-command"
 $env:KIVO_GATEWAY_DISABLE_COMMAND="path-to-disable-command"
 ```
 
-`KIVO_GATEWAY_TOKEN` is sent as `x-gateway-token` for heartbeat, authorization, and gateway event requests. `KIVO_API_TOKEN` is required for the current MVP because `completeSession` calls the authenticated `POST /v1/power-sessions/:id/complete` route. This requirement can be removed when gateway-token completion is promoted in the API, or when the x402 bridge owns the status transition end to end.
+`KIVO_GATEWAY_TOKEN` is sent as `x-gateway-token` for heartbeat, authorization, and gateway event requests. The runtime does not need a user API token: `session.completed` is accepted only when the Gateway token belongs to the session's Gateway.
 
-## Simulator
+## Local Run
 
 Run one polling cycle:
 
@@ -44,7 +43,7 @@ Run continuously:
 npm run dev -- start
 ```
 
-For quick local demos that should not wait for the full authorization duration:
+For quick local hardware tests that should not wait for the full authorization duration:
 
 ```powershell
 $env:KIVO_GATEWAY_WAIT="false"

@@ -109,6 +109,12 @@ export interface GatewayPairingResult {
   pairingToken?: string;
 }
 
+export interface GatewayBundleInput {
+  name?: string;
+  adapter?: GatewayAdapter;
+  metadata?: Record<string, unknown>;
+}
+
 export interface PowerSession {
   id: string;
   totemId: string;
@@ -519,4 +525,124 @@ export interface DashboardSummary {
   pendingPayments: number;
   failedPayments: number;
   health: SystemHealth;
+}
+
+export type KivoSolutionSurface = 'physical' | 'digital' | 'hybrid';
+export type KivoInteractionModel = 'H2M' | 'M2M' | 'A2M' | 'mixed';
+export type KivoGatewayMode =
+  | 'raspberry'
+  | 'edge_device'
+  | 'physical_totem'
+  | 'proxy'
+  | 'middleware'
+  | 'sidecar'
+  | 'worker'
+  | 'api_guard'
+  | 'plugin'
+  | 'serverless_function';
+
+export type KivoStudioAgentId =
+  | 'discovery'
+  | 'flow_architect'
+  | 'gateway'
+  | 'sdk'
+  | 'validation'
+  | 'launch';
+
+export type KivoValidationStatus =
+  | 'not_configured'
+  | 'needs_connection'
+  | 'pending'
+  | 'running'
+  | 'passed'
+  | 'failed'
+  | 'needs_user_action';
+
+export type KivoLaunchOptionId = 'private_mainnet' | 'stay_testnet' | 'public_template';
+export type KivoTemplateStatus = 'functional' | 'planned' | 'research' | 'alpha' | 'beta';
+
+export interface StudioIntentInput {
+  prompt: string;
+  surface: KivoSolutionSurface;
+}
+
+export interface StudioIntent {
+  id: string;
+  prompt: string;
+  surface: KivoSolutionSurface;
+  interactionModel: KivoInteractionModel;
+  recommendedGatewayMode: KivoGatewayMode;
+  createdAt: string;
+}
+
+export interface StudioFlow {
+  id: string;
+  intentId: string;
+  name: string;
+  surface: KivoSolutionSurface;
+  interactionModel: KivoInteractionModel;
+  gatewayMode: KivoGatewayMode;
+  resourceName: string;
+  price: string;
+  asset: string;
+  accessRule: string;
+  status: 'draft' | 'needs_setup' | 'validating' | 'validated' | 'ready_to_launch' | 'published';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudioFlowInput {
+  intentId: string;
+  prompt: string;
+  surface: KivoSolutionSurface;
+  interactionModel: KivoInteractionModel;
+  gatewayMode: KivoGatewayMode;
+}
+
+export interface StudioValidationStep {
+  id: 'gateway' | 'x402' | 'etherfuse' | 'payment' | 'release' | string;
+  label: string;
+  status: KivoValidationStatus;
+  message: string;
+  evidence?: Record<string, unknown>;
+}
+
+export interface StudioValidationRun {
+  id: string;
+  flowId: string;
+  status: KivoValidationStatus;
+  steps: StudioValidationStep[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SdkExportBundle {
+  flowId: string;
+  packageName: '@kivo/sdk';
+  version: string;
+  downloadUrl: string;
+  installCommand: string;
+  snippets: Array<{
+    id: string;
+    label: string;
+    language: 'ts' | 'bash' | 'json';
+    code: string;
+  }>;
+}
+
+export interface StudioLaunchOption {
+  id: KivoLaunchOptionId;
+  label: string;
+  description: string;
+  enabled: boolean;
+  reason?: string;
+}
+
+export interface StudioTemplateSummary {
+  id: string;
+  name: string;
+  status: KivoTemplateStatus;
+  description: string;
+  surface: KivoSolutionSurface;
+  isFunctionalHackathonTemplate: boolean;
 }
