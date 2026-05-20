@@ -575,6 +575,7 @@ const systemHealth = () => ({
   workers: "ok",
   stellar: "ok",
   mcp: "degraded",
+  mcp_reason: "optional_console_not_required_for_power_totem",
   version: VERSION,
 });
 
