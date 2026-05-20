@@ -16,7 +16,15 @@ describe('templateMarketplace', () => {
     expect(available[0]).toMatchObject({
       id: 'power-totem',
       availability: 'available',
+      status: 'functional',
+      isFunctionalHackathonTemplate: true,
     });
+  });
+
+  it('only marks Power Totem as functional for hackathon delivery', () => {
+    const functional = templateCatalog.filter((template) => template.isFunctionalHackathonTemplate);
+
+    expect(functional.map((template) => template.id)).toEqual(['power-totem']);
   });
 
   it('keeps the rest of the marketplace as coming soon', () => {

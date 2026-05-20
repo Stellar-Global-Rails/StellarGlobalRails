@@ -57,8 +57,16 @@ export interface GatewayEvent {
   createdAt: string;
 }
 
+export type GatewayEventType =
+  | "heartbeat"
+  | "authorized"
+  | "output_enabled"
+  | "output_disabled"
+  | "completed"
+  | "failed";
+
 export interface GatewayEventInput {
-  eventType: "session.started" | "session.completed" | string;
+  eventType: GatewayEventType | "session.started" | "session.completed" | string;
   sessionId?: string | null;
   payload?: Record<string, unknown>;
 }

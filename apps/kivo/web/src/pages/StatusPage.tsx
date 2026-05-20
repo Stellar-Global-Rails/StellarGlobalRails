@@ -70,6 +70,16 @@ export default function StatusPage() {
       detail: gatewaySignal ? `Health reportou ${gatewaySignal}.` : 'Sem heartbeat agregado no status; instale o pacote Docker do Power Totem.',
       icon: 'solar:radio-minimalistic-bold-duotone',
     },
+    {
+      id: 'mcp',
+      label: 'MCP console',
+      description: system?.mcp === 'ok'
+        ? 'Ferramentas MCP disponiveis para operadores avancados.'
+        : 'Console MCP opcional; Power Totem, x402, Stellar e Gateway nao dependem dele.',
+      status: system?.mcp ?? 'degraded',
+      detail: typeof system?.mcp_reason === 'string' ? system.mcp_reason : 'Opcional para o caminho principal de palco.',
+      icon: 'solar:programming-bold-duotone',
+    },
   ];
 
   return (
@@ -87,8 +97,8 @@ export default function StatusPage() {
         title={powerPathReady ? 'Power Totem pronto para teste' : 'Power Totem precisa de atencao'}
         icon="solar:shield-check-bold-duotone"
         tone={powerPathReady ? 'ready' : 'warning'}
-        description="Use esta tela para conferir API, Stellar, Etherfuse e o sinal honesto do gateway antes de iniciar checkout e autorizacao fisica."
-        checkpoints={['Kivo API', 'Stellar', 'Etherfuse', 'Gateway']}
+        description="Use esta tela para conferir API, Stellar, Etherfuse, gateway e dependencias opcionais antes de iniciar checkout e autorizacao fisica."
+        checkpoints={['Kivo API', 'Stellar', 'Etherfuse', 'Gateway', 'MCP opcional']}
         primaryAction={{ to: '/checkout', label: 'Abrir checkout' }}
         secondaryAction={{ to: '/library/power-totem', label: 'Abrir Power Totem' }}
       />

@@ -1,4 +1,5 @@
 export type TemplateAvailability = 'available' | 'soon';
+export type TemplateStatus = 'functional' | 'planned' | 'research';
 export type TemplateSurface = 'physical' | 'digital' | 'hybrid';
 
 export interface KivoTemplateCatalogItem {
@@ -6,6 +7,8 @@ export interface KivoTemplateCatalogItem {
   name: string;
   shortName: string;
   availability: TemplateAvailability;
+  status: TemplateStatus;
+  isFunctionalHackathonTemplate: boolean;
   category: string;
   surface: TemplateSurface;
   badge: string;
@@ -32,6 +35,8 @@ export const templateCatalog: KivoTemplateCatalogItem[] = [
     name: 'Power Totem',
     shortName: 'Power Totem',
     availability: 'available',
+    status: 'functional',
+    isFunctionalHackathonTemplate: true,
     category: 'Template funcional',
     surface: 'hybrid',
     badge: 'Hackathon ready',
@@ -96,6 +101,8 @@ export const templateCatalog: KivoTemplateCatalogItem[] = [
     name: 'API Toll',
     shortName: 'API Toll',
     availability: 'soon',
+    status: 'planned',
+    isFunctionalHackathonTemplate: false,
     category: 'Gateway digital',
     surface: 'digital',
     badge: 'Em breve',
@@ -121,6 +128,8 @@ export const templateCatalog: KivoTemplateCatalogItem[] = [
     name: 'Agent Tool Paywall',
     shortName: 'Agent Tools',
     availability: 'soon',
+    status: 'research',
+    isFunctionalHackathonTemplate: false,
     category: 'AI agents',
     surface: 'digital',
     badge: 'Em breve',
@@ -146,6 +155,8 @@ export const templateCatalog: KivoTemplateCatalogItem[] = [
     name: 'IoT Data Marketplace',
     shortName: 'IoT Data',
     availability: 'soon',
+    status: 'planned',
+    isFunctionalHackathonTemplate: false,
     category: 'Dados IoT',
     surface: 'hybrid',
     badge: 'Em breve',
@@ -171,6 +182,8 @@ export const templateCatalog: KivoTemplateCatalogItem[] = [
     name: 'Compute Meter',
     shortName: 'Compute',
     availability: 'soon',
+    status: 'planned',
+    isFunctionalHackathonTemplate: false,
     category: 'Edge compute',
     surface: 'hybrid',
     badge: 'Em breve',
@@ -199,7 +212,7 @@ export const getTemplateById = (templateId: string) =>
   templateCatalog.find((template) => template.id === templateId) ?? null;
 
 export const getAvailableTemplates = () =>
-  templateCatalog.filter((template) => template.availability === 'available');
+  templateCatalog.filter((template) => template.isFunctionalHackathonTemplate);
 
 export const getComingSoonTemplates = () =>
   templateCatalog.filter((template) => template.availability === 'soon');
