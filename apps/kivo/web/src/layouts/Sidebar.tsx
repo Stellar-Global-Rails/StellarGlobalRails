@@ -5,25 +5,28 @@ import { useAuthStore, useUIStore } from '@/stores';
 
 const navGroups = [
   {
-    title: 'Produto',
+    title: 'Criar',
     items: [
       { to: '/dashboard', icon: 'solar:home-2-bold-duotone', label: 'Home' },
       { to: '/studio', icon: 'solar:stars-line-duotone', label: 'Studio' },
       { to: '/gateway', icon: 'solar:server-square-cloud-linear', label: 'Gateway' },
       { to: '/sdk', icon: 'solar:code-square-linear', label: 'SDK' },
       { to: '/validation', icon: 'solar:shield-check-linear', label: 'Validacao' },
-      { to: '/launch', icon: 'solar:rocket-linear', label: 'Launch' },
-      { to: '/totem-simulator', icon: 'solar:bolt-circle-bold-duotone', label: 'Simulador' },
-      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Checkout' },
     ],
   },
   {
-    title: 'Operacao',
+    title: 'Testar',
     items: [
-      { to: '/finance', icon: 'solar:chart-square-bold-duotone', label: 'Financeiro' },
-      { to: '/health', icon: 'solar:heart-pulse-bold-duotone', label: 'Saude' },
+      { to: '/totem-simulator', icon: 'solar:bolt-circle-bold-duotone', label: 'Simulador' },
+      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Pagamento' },
+      { to: '/launch', icon: 'solar:rocket-linear', label: 'Launch' },
+    ],
+  },
+  {
+    title: 'Conta',
+    items: [
       { to: '/status', icon: 'solar:pulse-2-bold-duotone', label: 'Status' },
-      { to: '/settings', icon: 'solar:settings-bold-duotone', label: 'Configuracoes' },
+      { to: '/settings', icon: 'solar:settings-bold-duotone', label: 'Ajustes' },
     ],
   },
 ];

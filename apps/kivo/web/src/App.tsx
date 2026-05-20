@@ -1,53 +1,22 @@
 import { Navigate, Route, BrowserRouter, Routes } from 'react-router-dom';
-import type { ReactNode } from 'react';
-import { areDevControlsEnabled } from '@/config/productMode';
 import AppLayout from '@/layouts/AppLayout';
 import AuthGuard from '@/layouts/AuthGuard';
-import AdvancedPage from '@/pages/AdvancedPage';
-import ApiKeysPage from '@/pages/ApiKeysPage';
 import CheckoutPage from '@/pages/CheckoutPage';
-import CreateFlowPage from '@/pages/CreateFlowPage';
-import DashboardPage from '@/pages/DashboardPage';
-import DeployPage from '@/pages/DeployPage';
-import DeviceDetailPage from '@/pages/DeviceDetailPage';
-import DevicesPage from '@/pages/DevicesPage';
-import FinancePage from '@/pages/FinancePage';
-import FlowDetailPage from '@/pages/FlowDetailPage';
-import FlowsPage from '@/pages/FlowsPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import GatewayPage from '@/pages/GatewayPage';
-import HealthPage from '@/pages/HealthPage';
-import IntegrationsPage from '@/pages/IntegrationsPage';
 import LaunchPage from '@/pages/LaunchPage';
 import LoginPage from '@/pages/LoginPage';
-import McpConsolePage from '@/pages/McpConsolePage';
 import NotFoundPage from '@/pages/NotFoundPage';
-import OperationsPage from '@/pages/OperationsPage';
-import PaymentDetailPage from '@/pages/PaymentDetailPage';
-import PaymentsPage from '@/pages/PaymentsPage';
 import PowerTotemDetailPage from '@/pages/PowerTotemDetailPage';
 import PowerTotemStudioPage from '@/pages/PowerTotemStudioPage';
 import RegisterPage from '@/pages/RegisterPage';
 import SettingsPage from '@/pages/SettingsPage';
 import SdkPage from '@/pages/SdkPage';
 import StatusPage from '@/pages/StatusPage';
-import TeamPage from '@/pages/TeamPage';
-import TemplatesPage from '@/pages/TemplatesPage';
 import TotemDisplayPage from '@/pages/TotemDisplayPage';
 import TotemSimulatorPage from '@/pages/TotemSimulatorPage';
 import ValidationPage from '@/pages/ValidationPage';
-import WebhooksPage from '@/pages/WebhooksPage';
 import WorkspaceHomePage from '@/pages/WorkspaceHomePage';
-import WorkflowsPage from '@/pages/WorkflowsPage';
-import X402Page from '@/pages/X402Page';
-
-function DevOnlyRoute({ children }: { children: ReactNode }) {
-  if (!areDevControlsEnabled()) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return children;
-}
 
 export default function App() {
   return (
@@ -70,30 +39,31 @@ export default function App() {
             <Route path="launch" element={<LaunchPage />} />
             <Route path="totems/:id" element={<PowerTotemDetailPage />} />
             <Route path="totem-simulator" element={<TotemSimulatorPage />} />
-            <Route path="create-flow" element={<CreateFlowPage />} />
-            <Route path="flows" element={<FlowsPage />} />
-            <Route path="flows/:id" element={<FlowDetailPage />} />
-            <Route path="advanced" element={<DevOnlyRoute><AdvancedPage /></DevOnlyRoute>} />
-            <Route path="operations" element={<DevOnlyRoute><OperationsPage /></DevOnlyRoute>} />
             <Route path="checkout" element={<CheckoutPage />} />
-            <Route path="integrations" element={<IntegrationsPage />} />
-            <Route path="finance" element={<FinancePage />} />
-            <Route path="health" element={<HealthPage />} />
             <Route path="status" element={<StatusPage />} />
-            <Route path="team" element={<TeamPage />} />
-            <Route path="ops-dashboard" element={<DevOnlyRoute><DashboardPage /></DevOnlyRoute>} />
-            <Route path="devices" element={<DevOnlyRoute><DevicesPage /></DevOnlyRoute>} />
-            <Route path="devices/:id" element={<DevOnlyRoute><DeviceDetailPage /></DevOnlyRoute>} />
-            <Route path="payments" element={<PaymentsPage />} />
-            <Route path="payments/:id" element={<PaymentDetailPage />} />
-            <Route path="webhooks" element={<WebhooksPage />} />
-            <Route path="api-keys" element={<ApiKeysPage />} />
-            <Route path="mcp" element={<DevOnlyRoute><McpConsolePage /></DevOnlyRoute>} />
-            <Route path="x402" element={<DevOnlyRoute><X402Page /></DevOnlyRoute>} />
-            <Route path="templates" element={<TemplatesPage />} />
-            <Route path="workflows" element={<DevOnlyRoute><WorkflowsPage /></DevOnlyRoute>} />
-            <Route path="deploy" element={<DevOnlyRoute><DeployPage /></DevOnlyRoute>} />
             <Route path="settings" element={<SettingsPage />} />
+
+            <Route path="create-flow" element={<Navigate to="/studio" replace />} />
+            <Route path="flows" element={<Navigate to="/studio" replace />} />
+            <Route path="flows/:id" element={<Navigate to="/studio" replace />} />
+            <Route path="templates" element={<Navigate to="/studio" replace />} />
+            <Route path="mcp" element={<Navigate to="/studio" replace />} />
+            <Route path="x402" element={<Navigate to="/validation" replace />} />
+            <Route path="integrations" element={<Navigate to="/sdk" replace />} />
+            <Route path="api-keys" element={<Navigate to="/sdk" replace />} />
+            <Route path="finance" element={<Navigate to="/launch" replace />} />
+            <Route path="payments" element={<Navigate to="/checkout" replace />} />
+            <Route path="payments/:id" element={<Navigate to="/checkout" replace />} />
+            <Route path="health" element={<Navigate to="/status" replace />} />
+            <Route path="workflows" element={<Navigate to="/launch" replace />} />
+            <Route path="deploy" element={<Navigate to="/status" replace />} />
+            <Route path="team" element={<Navigate to="/settings" replace />} />
+            <Route path="advanced" element={<Navigate to="/settings" replace />} />
+            <Route path="operations" element={<Navigate to="/gateway" replace />} />
+            <Route path="ops-dashboard" element={<Navigate to="/dashboard" replace />} />
+            <Route path="devices" element={<Navigate to="/gateway" replace />} />
+            <Route path="devices/:id" element={<Navigate to="/gateway" replace />} />
+            <Route path="webhooks" element={<Navigate to="/settings" replace />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>

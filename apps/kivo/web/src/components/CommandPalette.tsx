@@ -6,15 +6,15 @@ import { useUIStore } from '@/stores';
 
 const commands = [
   { label: 'Home', path: '/dashboard', icon: 'solar:home-2-bold-duotone', keywords: 'home power totem workspace' },
-  { label: 'Kivo Studio', path: '/studio', icon: 'solar:electric-refueling-bold-duotone', keywords: 'power totem raspberry gateway sdk ai agents' },
+  { label: 'Kivo Studio', path: '/studio', icon: 'solar:stars-line-duotone', keywords: 'flow power totem raspberry gateway sdk ai agents' },
+  { label: 'Kivo Gateway', path: '/gateway', icon: 'solar:server-square-cloud-linear', keywords: 'runtime fisico digital raspberry proxy' },
+  { label: 'SDK TypeScript', path: '/sdk', icon: 'solar:code-square-linear', keywords: 'download adapter x402 gateway' },
+  { label: 'Validacao testnet', path: '/validation', icon: 'solar:shield-check-linear', keywords: 'x402 etherfuse stellar gateway' },
   { label: 'Simulador do totem', path: '/totem-simulator', icon: 'solar:bolt-circle-bold-duotone', keywords: 'demo meet fallback raspberry gpio' },
-  { label: 'Pagamentos', path: '/payments', icon: 'solar:wallet-money-bold-duotone', keywords: 'payment payments stellar usdc' },
-  { label: 'Checkout real', path: '/checkout', icon: 'solar:card-transfer-bold-duotone', keywords: 'payer usuario payment required checkout x402' },
-  { label: 'Power Totem Gateway SDK', path: '/integrations', icon: 'solar:code-square-bold-duotone', keywords: 'sdk gateway totem raspberry simulator webhooks' },
-  { label: 'Financeiro', path: '/finance', icon: 'solar:chart-square-bold-duotone', keywords: 'recebiveis conciliacao settlement receita' },
-  { label: 'Saude do totem', path: '/health', icon: 'solar:heart-pulse-bold-duotone', keywords: 'health saude gateway totem setup falhas' },
+  { label: 'Pagamento x402', path: '/checkout', icon: 'solar:card-transfer-bold-duotone', keywords: 'payer usuario payment required checkout x402' },
+  { label: 'Launch', path: '/launch', icon: 'solar:rocket-linear', keywords: 'mainnet privado template publico' },
   { label: 'Status do Kivo', path: '/status', icon: 'solar:pulse-2-bold-duotone', keywords: 'status sistema kivo plataforma disponibilidade' },
-  { label: 'Configuracoes', path: '/settings', icon: 'solar:settings-bold-duotone', keywords: 'conta workspace ambiente conexoes' },
+  { label: 'Ajustes', path: '/settings', icon: 'solar:settings-bold-duotone', keywords: 'conta workspace ambiente conexoes' },
 ];
 
 export default function CommandPalette() {
@@ -59,7 +59,7 @@ export default function CommandPalette() {
           >
             <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
               <Icon icon="solar:magnifer-linear" className="text-xl text-neutral-500" />
-              <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar Studio, simulador ou pagamento..." className="w-full bg-transparent text-white outline-none placeholder:text-neutral-600" />
+              <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar Studio, Gateway, SDK ou pagamento..." className="w-full bg-transparent text-white outline-none placeholder:text-neutral-600" />
               <span className="rounded bg-white/5 px-2 py-1 text-[10px] text-neutral-500">ESC</span>
             </div>
             <div className="max-h-[50vh] overflow-y-auto p-2">

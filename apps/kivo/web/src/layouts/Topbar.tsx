@@ -3,36 +3,18 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore, useUIStore } from '@/stores';
 
 const routeTitles: Record<string, { title: string; subtitle?: string; icon: string }> = {
-  '/dashboard': { title: 'Power Totem Home', icon: 'solar:home-2-bold-duotone' },
-  '/studio': { title: 'Kivo Studio', subtitle: 'Agentes guiam do recurso ao launch', icon: 'solar:stars-line-duotone' },
+  '/dashboard': { title: 'Home', subtitle: 'Visao do workspace e proximo passo', icon: 'solar:home-2-bold-duotone' },
+  '/studio': { title: 'Kivo Studio', subtitle: 'Crie flow, Gateway e template funcional', icon: 'solar:stars-line-duotone' },
   '/gateway': { title: 'Kivo Gateway', subtitle: 'Runtime que libera o recurso real', icon: 'solar:server-square-cloud-linear' },
   '/sdk': { title: 'Kivo SDK', subtitle: 'Bundle TypeScript local para testar e adaptar', icon: 'solar:code-square-linear' },
   '/validation': { title: 'Validacao', subtitle: 'Evidencia real com x402, Etherfuse e Gateway', icon: 'solar:shield-check-linear' },
   '/launch': { title: 'Launch', subtitle: 'Mainnet privada, testnet ou template publico', icon: 'solar:rocket-linear' },
   '/totems': { title: 'Power Totems', icon: 'solar:electric-refueling-bold-duotone' },
   '/totem': { title: 'Power Totem', icon: 'solar:electric-refueling-bold-duotone' },
-  '/totem-simulator': { title: 'Simulador do totem', icon: 'solar:bolt-circle-bold-duotone' },
-  '/create-flow': { title: 'Roadmap de templates', icon: 'solar:map-arrow-right-bold-duotone' },
-  '/flows': { title: 'Recursos legados', icon: 'solar:bolt-circle-bold-duotone' },
-  '/advanced': { title: 'Ferramentas avancadas', icon: 'solar:settings-bold-duotone' },
-  '/team': { title: 'Time e escala', icon: 'solar:users-group-rounded-bold-duotone' },
-  '/operations': { title: 'Operacao M2M', icon: 'solar:devices-bold-duotone' },
-  '/checkout': { title: 'Checkout', icon: 'solar:card-transfer-bold-duotone' },
-  '/integrations': { title: 'Power Totem Gateway SDK', icon: 'solar:code-square-bold-duotone' },
-  '/finance': { title: 'Financeiro', icon: 'solar:chart-square-bold-duotone' },
-  '/health': { title: 'Saude', icon: 'solar:heart-pulse-bold-duotone' },
-  '/status': { title: 'Status', icon: 'solar:pulse-2-bold-duotone' },
-  '/ops-dashboard': { title: 'Painel operacional', icon: 'solar:widget-5-bold-duotone' },
-  '/devices': { title: 'Devices', icon: 'solar:devices-bold-duotone' },
-  '/payments': { title: 'Pagamentos', icon: 'solar:wallet-money-bold-duotone' },
-  '/webhooks': { title: 'Webhooks', icon: 'solar:widget-2-bold-duotone' },
-  '/api-keys': { title: 'API Keys', icon: 'solar:key-minimalistic-bold-duotone' },
-  '/mcp': { title: 'MCP Console', icon: 'solar:cpu-bolt-bold-duotone' },
-  '/x402': { title: 'Regras x402', icon: 'solar:shield-keyhole-bold-duotone' },
-  '/templates': { title: 'Templates roadmap', subtitle: 'Power Totem agora, marketplace depois', icon: 'solar:widget-linear' },
-  '/workflows': { title: 'Workflows', icon: 'solar:routing-2-bold-duotone' },
-  '/deploy': { title: 'Deploy', icon: 'solar:rocket-bold-duotone' },
-  '/settings': { title: 'Configuracoes', icon: 'solar:settings-bold-duotone' },
+  '/totem-simulator': { title: 'Simulador Power Totem', subtitle: 'Teste Gateway sem hardware fisico', icon: 'solar:bolt-circle-bold-duotone' },
+  '/checkout': { title: 'Pagamento x402', subtitle: 'Prove o fluxo de compra e liberacao', icon: 'solar:card-transfer-bold-duotone' },
+  '/status': { title: 'Status do sistema', subtitle: 'Sinais essenciais para teste com usuario', icon: 'solar:pulse-2-bold-duotone' },
+  '/settings': { title: 'Ajustes', subtitle: 'Conta, ambiente e conexoes', icon: 'solar:settings-bold-duotone' },
 };
 
 export default function Topbar() {
@@ -83,7 +65,7 @@ export default function Topbar() {
           ))}
         </div>
 
-        <Link to="/team" className="hidden rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-neutral-400 hover:bg-white/10 hover:text-white lg:block">
+        <Link to="/settings" className="hidden rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-neutral-400 hover:bg-white/10 hover:text-white lg:block">
           {user?.name ?? 'Conta'}
         </Link>
 
