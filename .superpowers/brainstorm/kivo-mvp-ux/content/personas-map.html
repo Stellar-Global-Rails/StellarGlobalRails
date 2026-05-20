@@ -1,0 +1,80 @@
+<h2>Personas do Kivo MVP</h2>
+<p class="subtitle">Um produto como o Kivo tem compradores, operadores, integradores e usuários finais. O MVP precisa escolher quem recebe a melhor experiência primeiro.</p>
+
+<div class="options">
+  <div class="option" data-choice="operator" onclick="toggleSelect(this)">
+    <div class="letter">1</div>
+    <div class="content">
+      <h3>Operador de infraestrutura M2M</h3>
+      <p>Dono de estação EV, rede IoT, marketplace de dados ou energia P2P. Usa o Kivo para cadastrar devices, acompanhar receita, ver pagamentos liquidados, status Stellar/Etherfuse e falhas operacionais.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="consumer" onclick="toggleSelect(this)">
+    <div class="letter">2</div>
+    <div class="content">
+      <h3>Usuário final pagador</h3>
+      <p>Pessoa, app ou agente que precisa consumir algo pago: carregar EV, comprar dados, rodar compute, acessar API ou liberar recurso x402. Quer pagar, entender preço/status e receber acesso imediatamente.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="integrator" onclick="toggleSelect(this)">
+    <div class="letter">3</div>
+    <div class="content">
+      <h3>Integrador / builder / dev de agentes</h3>
+      <p>Empresa ou dev que pluga o Kivo em produtos próprios. Usa templates, API keys, snippets, MCP tools, webhooks e x402 para implementar cobrança programável.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="finance" onclick="toggleSelect(this)">
+    <div class="letter">4</div>
+    <div class="content">
+      <h3>Financeiro / admin do negócio</h3>
+      <p>Pessoa que não opera device nem integra API, mas precisa ver recebíveis, conciliação, volume, taxas, falhas, exportações e provas de liquidação.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Como cada uma usaria o Kivo</h3>
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">Fluxo principal B2B2C</div>
+      <div class="mockup-body">
+        <div class="placeholder">Operador cria workspace e cadastra devices</div>
+        <div class="placeholder">Integrador conecta API/webhook/x402</div>
+        <div class="placeholder">Usuário final paga e desbloqueia uso</div>
+        <div class="placeholder">Financeiro acompanha receita e liquidação</div>
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">Produto visto por cada persona</div>
+      <div class="mockup-body">
+        <div class="mock-nav">Operação | Cliente | Integração | Financeiro</div>
+        <div class="placeholder" style="height:70px;">Cada aba tem linguagem diferente, mas compartilha os mesmos payments/devices por baixo.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="placeholder">Valor de negócio</div>
+          <div class="placeholder">Prova técnica</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>Minha leitura</h4>
+    <ul>
+      <li>A persona compradora/operadora deve ser a principal do MVP.</li>
+      <li>O usuário final precisa existir como fluxo de prova, não necessariamente como app completo.</li>
+      <li>O integrador precisa de um caminho curto para provar API/x402/MCP.</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Risco se não escolhermos</h4>
+    <ul>
+      <li>O app vira cockpit técnico demais.</li>
+      <li>A demo não mostra quem paga, quem recebe e por que isso importa.</li>
+    </ul>
+  </div>
+</div>

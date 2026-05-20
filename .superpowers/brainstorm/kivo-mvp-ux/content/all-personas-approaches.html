@@ -1,0 +1,99 @@
+<h2>Como incluir todas as personas sem virar bagunça</h2>
+<p class="subtitle">O Kivo pode atender todas, mas o MVP precisa de uma arquitetura de experiência clara: uma história principal e áreas especializadas.</p>
+
+<div class="cards">
+  <div class="card" data-choice="role-based" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A. App único com visão por persona</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Kivo | Operação | Pagar | Integrar | Financeiro</div>
+          <div class="placeholder" style="height:72px;">Home escolhe ou detecta persona</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="placeholder">Operador</div>
+            <div class="placeholder">Usuário final</div>
+            <div class="placeholder">Integrador</div>
+            <div class="placeholder">Financeiro</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Recomendado: produto único, navegação por persona</h3>
+      <p>Reaproveita o console atual como área avançada, mas muda a primeira experiência para jornadas reais.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="separate-portals" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">B. Quatro portais separados</div>
+        <div class="mockup-body">
+          <div class="placeholder">/operator</div>
+          <div class="placeholder">/pay</div>
+          <div class="placeholder">/developers</div>
+          <div class="placeholder">/finance</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Mais limpo, mais caro</h3>
+      <p>Cada persona tem produto próprio. Excelente a longo prazo, mas grande demais para fechar MVP rápido.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="guided-demo" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">C. Demo guiada por caso de uso</div>
+        <div class="mockup-body">
+          <div class="mock-nav">EV Charging Demo</div>
+          <div class="placeholder">1. Operador cadastra estação</div>
+          <div class="placeholder">2. Usuário paga sessão</div>
+          <div class="placeholder">3. Integrador vê API/webhook</div>
+          <div class="placeholder">4. Financeiro concilia</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Melhor para apresentação, menos produto</h3>
+      <p>Conta uma história muito forte para banca/demo, mas pode parecer um showcase se não tiver navegação de produto.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Desenho recomendado para MVP</h3>
+  <div class="mockup">
+    <div class="mockup-header">Kivo Pay: app único com quatro workspaces</div>
+    <div class="mockup-body">
+      <div class="mock-nav">Início | Operação | Checkout x402 | Integração | Financeiro | Avançado</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+        <div class="placeholder">Operador<br/>devices, sites, sessões</div>
+        <div class="placeholder">Usuário final<br/>pagar e desbloquear</div>
+        <div class="placeholder">Integrador<br/>templates, API, webhooks</div>
+        <div class="placeholder">Financeiro<br/>receita, liquidação, export</div>
+      </div>
+      <div class="placeholder" style="margin-top:10px;height:80px;">Console atual vira Avançado: MCP, deploy, API keys, playground técnico</div>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>Por que eu recomendo A</h4>
+    <ul>
+      <li>Mostra todas as personas sem criar quatro apps.</li>
+      <li>Dá cara de produto real, não de sandbox.</li>
+      <li>Permite usar dados e APIs que já existem.</li>
+      <li>O console técnico continua útil, só deixa de ser a porta de entrada.</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Limite saudável do MVP</h4>
+    <ul>
+      <li>Cada persona deve ter 1 jornada principal, não todas as features possíveis.</li>
+      <li>O usuário final precisa provar pagamento/desbloqueio, não virar app financeiro completo.</li>
+    </ul>
+  </div>
+</div>
