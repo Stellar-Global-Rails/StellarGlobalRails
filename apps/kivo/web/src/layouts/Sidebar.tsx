@@ -9,15 +9,16 @@ const navGroups = [
     items: [
       { to: '/dashboard', icon: 'solar:home-2-bold-duotone', label: 'Home' },
       { to: '/studio', icon: 'solar:stars-line-duotone', label: 'Studio' },
-      { to: '/gateway', icon: 'solar:server-square-cloud-linear', label: 'Gateway' },
-      { to: '/sdk', icon: 'solar:code-square-linear', label: 'SDK' },
-      { to: '/validation', icon: 'solar:shield-check-linear', label: 'Validacao' },
+      { to: '/marketplace', icon: 'solar:widget-linear', label: 'Marketplace' },
+      { to: '/library', icon: 'solar:folder-with-files-linear', label: 'Biblioteca' },
     ],
   },
   {
-    title: 'Testar',
+    title: 'Operar',
     items: [
-      { to: '/totem-simulator', icon: 'solar:bolt-circle-bold-duotone', label: 'Simulador' },
+      { to: '/gateway', icon: 'solar:server-square-cloud-linear', label: 'Gateway' },
+      { to: '/sdk', icon: 'solar:code-square-linear', label: 'SDK' },
+      { to: '/validation', icon: 'solar:shield-check-linear', label: 'Validacao' },
       { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Pagamento' },
       { to: '/launch', icon: 'solar:rocket-linear', label: 'Launch' },
     ],

@@ -6,15 +6,18 @@ import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import GatewayPage from '@/pages/GatewayPage';
 import LaunchPage from '@/pages/LaunchPage';
 import LoginPage from '@/pages/LoginPage';
+import MarketplacePage from '@/pages/MarketplacePage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import PowerTotemDetailPage from '@/pages/PowerTotemDetailPage';
-import PowerTotemStudioPage from '@/pages/PowerTotemStudioPage';
 import RegisterPage from '@/pages/RegisterPage';
 import SettingsPage from '@/pages/SettingsPage';
 import SdkPage from '@/pages/SdkPage';
 import StatusPage from '@/pages/StatusPage';
+import StudioPage from '@/pages/StudioPage';
+import TemplateDetailPage from '@/pages/TemplateDetailPage';
+import TemplateLibraryDetailPage from '@/pages/TemplateLibraryDetailPage';
+import TemplateLibraryPage from '@/pages/TemplateLibraryPage';
 import TotemDisplayPage from '@/pages/TotemDisplayPage';
-import TotemSimulatorPage from '@/pages/TotemSimulatorPage';
 import ValidationPage from '@/pages/ValidationPage';
 import WorkspaceHomePage from '@/pages/WorkspaceHomePage';
 
@@ -32,13 +35,19 @@ export default function App() {
           <Route element={<AuthGuard />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<WorkspaceHomePage />} />
-            <Route path="studio" element={<PowerTotemStudioPage />} />
+            <Route path="studio" element={<StudioPage />} />
+            <Route path="marketplace" element={<MarketplacePage />} />
+            <Route path="templates" element={<MarketplacePage />} />
+            <Route path="templates/:templateId" element={<TemplateDetailPage />} />
+            <Route path="library" element={<TemplateLibraryPage />} />
+            <Route path="library/:templateId" element={<TemplateLibraryDetailPage />} />
             <Route path="gateway" element={<GatewayPage />} />
+            <Route path="gateway/install" element={<Navigate to="/marketplace" replace />} />
             <Route path="sdk" element={<SdkPage />} />
             <Route path="validation" element={<ValidationPage />} />
             <Route path="launch" element={<LaunchPage />} />
             <Route path="totems/:id" element={<PowerTotemDetailPage />} />
-            <Route path="totem-simulator" element={<TotemSimulatorPage />} />
+            <Route path="totem-simulator" element={<Navigate to="/marketplace" replace />} />
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="status" element={<StatusPage />} />
             <Route path="settings" element={<SettingsPage />} />
@@ -46,7 +55,6 @@ export default function App() {
             <Route path="create-flow" element={<Navigate to="/studio" replace />} />
             <Route path="flows" element={<Navigate to="/studio" replace />} />
             <Route path="flows/:id" element={<Navigate to="/studio" replace />} />
-            <Route path="templates" element={<Navigate to="/studio" replace />} />
             <Route path="mcp" element={<Navigate to="/studio" replace />} />
             <Route path="x402" element={<Navigate to="/validation" replace />} />
             <Route path="integrations" element={<Navigate to="/sdk" replace />} />

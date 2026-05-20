@@ -16,7 +16,7 @@ operator creates Power Totem -> gateway pairs once -> x402 challenge -> signed S
 
 ## Hackathon Path: Power Totem
 
-The active hackathon path is Power Totem first. The operator creates a Power Totem in Studio, copies the one-time gateway token, runs the simulator or Raspberry gateway package, starts checkout for `/power-totem/{id}/session`, signs the Stellar payment, and lets the gateway fetch a short authorization before reporting session events.
+The active hackathon path is Power Totem first. The operator creates a Power Totem in Studio, opens Gateway Install, downloads the Docker bundle with the one-time gateway credentials, runs it on a Raspberry Pi or mini PC, starts checkout for `/power-totem/{id}/session`, signs the Stellar payment, and lets the local gateway fetch a short authorization before reporting session events.
 
 Other templates remain useful product context, but demo readiness is judged by the Power Totem path: Studio creation, one-time gateway token, x402 checkout, Stellar settlement, Etherfuse funding, gateway heartbeat, and safe physical authorization.
 
@@ -143,7 +143,8 @@ Solo MVP routes now served by Supabase Edge:
 Power Totem routes active now:
 
 - `GET|POST /v1/power-totems`
-- `POST /v1/power-totems/:id/pairing-token`
+- `POST /v1/power-totems/:id/pairing-token` (legacy pairing)
+- `POST /v1/power-totems/:id/gateway-bundle`
 - `GET|POST /v1/power-sessions`
 - `POST /v1/power-sessions/:id/start-checkout`
 - `POST /v1/gateways/:id/heartbeat`
@@ -155,7 +156,15 @@ Known external step: `POST /v1/x402/pay` requires a valid signed Stellar `txXDR`
 
 ## Power Totem Gateway
 
-The gateway package lives in `apps/kivo/gateway` and can run against the Supabase Edge API:
+The primary install path is the generated Docker bundle from `POST /v1/power-totems/:id/gateway-bundle`. It includes:
+
+- Docker Compose
+- Gateway local runtime
+- Postgres local database for state, events, retry queue, and offline recovery window
+- UI local for the totem
+- `.env` with `KIVO_API_URL`, `KIVO_GATEWAY_ID`, and `KIVO_GATEWAY_TOKEN`
+
+The source gateway package lives in `apps/kivo/gateway` and can also run against the Supabase Edge API:
 
 ```bash
 cd apps/kivo/gateway
@@ -170,11 +179,10 @@ Required environment:
 KIVO_API_URL=https://<project-ref>.supabase.co/functions/v1/kivo-api
 KIVO_GATEWAY_ID=gw_...
 KIVO_GATEWAY_TOKEN=kgw_...
-KIVO_API_TOKEN=<workspace-or-user-token-for-current-completion-route>
-KIVO_GATEWAY_ADAPTER=simulator
+KIVO_GATEWAY_ADAPTER=raspberry
 ```
 
-Simulator mode is the browser-safe and laptop-safe fallback for the hackathon. Raspberry mode is available with:
+Raspberry mode is available with:
 
 ```txt
 KIVO_GATEWAY_ADAPTER=raspberry

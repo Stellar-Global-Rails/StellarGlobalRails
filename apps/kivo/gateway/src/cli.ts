@@ -15,7 +15,6 @@ async function main(): Promise<void> {
     baseUrl: requiredEnv("KIVO_API_URL"),
     gatewayId: requiredEnv("KIVO_GATEWAY_ID"),
     gatewayToken: requiredEnv("KIVO_GATEWAY_TOKEN"),
-    apiToken: requiredEnv("KIVO_API_TOKEN"),
   });
   const adapter = createAdapter();
   const waitForDuration = readBooleanEnv("KIVO_GATEWAY_WAIT", true);

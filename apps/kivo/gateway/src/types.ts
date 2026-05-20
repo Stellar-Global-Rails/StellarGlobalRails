@@ -68,11 +68,9 @@ export interface GatewayAuthorizationResponse {
 }
 
 export interface GatewayClient {
-  assertCanCompleteSessions?(): void;
   heartbeat(): Promise<Gateway | void>;
   getAuthorization(): Promise<GatewayAuthorizationResponse>;
   createGatewayEvent(input: GatewayEventInput): Promise<GatewayEvent | void>;
-  completeSession(sessionId: string): Promise<PowerSession | void>;
 }
 
 export interface PowerOutputAdapter {

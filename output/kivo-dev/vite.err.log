@@ -1,0 +1,43 @@
+[2m09:28:02[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/config/productMode" from "src/pages/DeployPage.tsx". Does the file exist?
+[2m09:28:02[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/config/productMode" from "src/pages/DeployPage.tsx". Does the file exist?
+[2m09:28:02[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/services/kivoClient" from "src/pages/FlowsPage.tsx". Does the file exist?
+[2m09:28:02[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/services/kivoClient" from "src/pages/FlowsPage.tsx". Does the file exist?
+[2m09:28:02[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/data/powerTotemExperience" from "src/pages/PowerTotemStudioPage.tsx". Does the file exist?
+[2m09:28:02[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/data/powerTotemExperience" from "src/pages/PowerTotemStudioPage.tsx". Does the file exist?
+[2m09:28:03[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/config/productMode" from "src/pages/StatusPage.tsx". Does the file exist?
+[2m09:28:03[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/config/productMode" from "src/pages/StatusPage.tsx". Does the file exist?
+[2m09:28:03[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/config/productMode" from "src/pages/SettingsPage.tsx". Does the file exist?
+[2m09:28:03[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/config/productMode" from "src/pages/X402Page.tsx". Does the file exist?
+[2m09:28:03[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/config/productMode" from "src/pages/X402Page.tsx". Does the file exist?
+[2m09:28:03[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/config/productMode" from "src/pages/CheckoutPage.tsx". Does the file exist?
+[2m09:28:03[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to resolve import "@/config/productMode" from "src/pages/CheckoutPage.tsx". Does the file exist?
+[2m09:28:13[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/WorkflowsPage" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/App.tsx[39m:37:26
+[33m  50 |  import WebhooksPage from "@/pages/WebhooksPage";
+  51 |  import WorkspaceHomePage from "@/pages/WorkspaceHomePage";
+  52 |  import WorkflowsPage from "@/pages/WorkflowsPage";
+     |                             ^
+  53 |  import X402Page from "@/pages/X402Page";
+  54 |  function DevOnlyRoute({ children }) {[39m
+      at TransformPluginContext._formatError (file:///C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41)
+      at TransformPluginContext.error (file:///C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16)
+      at normalizeUrl (file:///C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+      at async Promise.all (index 38)
+      at async TransformPluginContext.transform (file:///C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7)
+      at async PluginContainer.transform (file:///C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18)
+      at async loadAndTransform (file:///C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27)
+      at async viteTransformMiddleware (file:///C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:62106:24)
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/config/productMode.ts (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/config/productMode.ts) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/pages/HealthPage.tsx (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/pages/HealthPage.tsx) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/config/productMode.ts (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/config/productMode.ts) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/config/productMode.ts (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/config/productMode.ts) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/config/productMode.ts (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/config/productMode.ts) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/pages/PowerTotemDetailPage.tsx (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/pages/PowerTotemDetailPage.tsx) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/pages/PowerTotemStudioPage.tsx (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/pages/PowerTotemStudioPage.tsx) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/pages/StatusPage.tsx (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/pages/StatusPage.tsx) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/pages/TotemDisplayPage.tsx (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/pages/TotemDisplayPage.tsx) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m09:28:48[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/pages/TotemSimulatorPage.tsx (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/pages/TotemSimulatorPage.tsx) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/index.css. Does the file exist?
+[2m00:45:31[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to load url /src/pages/WorkspaceHomePage.tsx (resolved id: C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/pages/WorkspaceHomePage.tsx) in C:/Users/charl/OneDrive/Documentos/GitHub/StellarGlobalRails/apps/kivo/web/src/App.tsx. Does the file exist?

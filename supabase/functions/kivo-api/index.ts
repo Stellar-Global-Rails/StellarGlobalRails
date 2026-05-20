@@ -23,6 +23,7 @@ import {
   type StudioSurface,
   type StudioValidationStatus,
 } from "./studioDomain.ts";
+import { buildGatewayBundleZip, deriveKivoApiUrl } from "./gatewayBundle.ts";
 
 const VERSION = "kivo-edge-transition-2026-05-17";
 
@@ -1887,7 +1888,7 @@ const handlePayments = async (req: Request, path: string) => {
 const handlePowerTotems = async (req: Request, path: string) => {
   const user = await requireUser(req);
   const detail = path.match(
-    /^\/v1\/power-totems\/([^/]+)(?:\/(pairing-token))?$/,
+    /^\/v1\/power-totems\/([^/]+)(?:\/(pairing-token|gateway-bundle))?$/,
   );
 
   if (path === "/v1/power-totems" && req.method === "GET") {
@@ -2045,6 +2046,80 @@ const handlePowerTotems = async (req: Request, path: string) => {
       gateway: toGateway(gateway),
       gatewayToken: rawGatewayToken,
       pairingToken: rawPairingToken,
+    });
+  }
+
+  if (detail && req.method === "POST" && detail[2] === "gateway-bundle") {
+    const totems = await selectRows<DbPowerTotem>("kivo_power_totems", {
+      select: "*",
+      id: `eq.${detail[1]}`,
+      owner_id: `eq.${user.id}`,
+      limit: 1,
+    });
+    const totem = totems[0];
+    if (!totem) {
+      return apiError(
+        req,
+        404,
+        "power_totem_not_found",
+        "Power Totem not found.",
+      );
+    }
+    const input = await req.json().catch(() => ({})) as Record<
+      string,
+      unknown
+    >;
+    const adapter = typeof input.adapter === "string" &&
+        ["simulator", "raspberry"].includes(input.adapter)
+      ? input.adapter as "simulator" | "raspberry"
+      : "raspberry";
+    const rawGatewayToken = randomToken("kgw_");
+    const gateway = await insertRow<DbGateway>("kivo_gateways", {
+      owner_id: user.id,
+      totem_id: totem.id,
+      name: typeof input.name === "string" && input.name.trim()
+        ? input.name.trim()
+        : `${totem.name} gateway`,
+      token_hash: await sha256Hex(rawGatewayToken),
+      token_preview: secretPreview(rawGatewayToken),
+      pairing_token_hash: null,
+      pairing_token_preview: null,
+      status: "pairing",
+      adapter,
+      metadata: {
+        ...recordOrEmpty(input.metadata),
+        installation: "docker-power-totem",
+        generatedAt: nowISO(),
+      },
+    });
+    const zip = buildGatewayBundleZip({
+      apiUrl: typeof input.apiUrl === "string" && input.apiUrl.trim()
+        ? input.apiUrl.trim()
+        : deriveKivoApiUrl(req.url),
+      gatewayId: gateway.id,
+      gatewayToken: rawGatewayToken,
+      gatewayName: gateway.name,
+      adapter,
+      totemName: totem.name,
+      totemResource: totem.resource,
+      price: String(totem.price),
+      asset: defaultPowerSessionAsset(),
+      durationSeconds: totem.session_duration_seconds,
+    });
+    const filename = `kivo-power-totem-${totem.id.slice(0, 8)}.zip`;
+    const body = zip.buffer.slice(
+      zip.byteOffset,
+      zip.byteOffset + zip.byteLength,
+    ) as ArrayBuffer;
+    return new Response(body, {
+      status: 201,
+      headers: {
+        ...corsHeaders(req),
+        "content-type": "application/zip",
+        "content-disposition": `attachment; filename="${filename}"`,
+        "x-kivo-gateway-id": gateway.id,
+        "x-kivo-gateway-token-preview": secretPreview(rawGatewayToken),
+      },
     });
   }
 
