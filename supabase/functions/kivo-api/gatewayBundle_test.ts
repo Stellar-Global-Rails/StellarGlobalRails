@@ -47,6 +47,30 @@ Deno.test("buildGatewayBundleFiles includes docker, local DB, UI, and credential
   );
 });
 
+Deno.test("buildGatewayBundleFiles generates a buyer-facing Power Totem UI", () => {
+  const files = buildGatewayBundleFiles({
+    apiUrl: "https://api.kivo.example/functions/v1/kivo-api",
+    gatewayId: "gateway_123",
+    gatewayToken: "kgw_secret",
+    gatewayName: "RJ gateway",
+    adapter: "raspberry",
+    totemName: "Power Totem RJ",
+    totemResource: "/power-totem/totem_1/session",
+    price: "0.2500000",
+    asset: "USDC:GTEST",
+    durationSeconds: 30,
+  });
+  const html = files.find((file) => file.path === "totem-ui/index.html")?.content ?? "";
+
+  assert(html.includes("Kivo Power Totem"));
+  assert(html.includes("Aproxime a camera ou siga o checkout Kivo"));
+  assert(html.includes("/power-totem/totem_1/session"));
+  assert(!html.includes("Iniciar runtime"));
+  assert(!html.includes("Executar poll agora"));
+  assert(!html.includes("Atualizar status"));
+  assert(!html.includes("<pre id=\"status\">"));
+});
+
 Deno.test("buildGatewayBundleZip produces a zip payload", () => {
   const zip = buildGatewayBundleZip({
     apiUrl: "https://api.kivo.example/functions/v1/kivo-api",
