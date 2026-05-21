@@ -1,0 +1,86 @@
+<h2>Qual experiência deve virar a frente do MVP?</h2>
+<p class="subtitle">O console técnico continua existindo como back office. A pergunta é qual fluxo o usuário final deve ver primeiro.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A. Portal do cliente</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Kivo Pay | Pagar | Histórico | Carteira</div>
+          <div class="placeholder" style="height: 90px;">Recurso bloqueado por x402</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="placeholder">Preço: 0.05 USDC</div>
+            <div class="placeholder">Status: aguardando pagamento</div>
+          </div>
+          <button class="mock-button">Pagar e desbloquear</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Cliente final usando x402</h3>
+      <p>Mostra o fluxo que uma pessoa ou app cliente vê: recurso protegido, pagamento, confirmação e acesso liberado.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">B. Operador de energia/IoT</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Kivo Pay | Sites | Devices | Recebíveis</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="placeholder">Carregador EV ativo</div>
+            <div class="placeholder">Receita hoje</div>
+          </div>
+          <div class="placeholder" style="height: 90px;">Sessões, kWh, pagamentos liquidados</div>
+          <button class="mock-button">Adicionar device</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Dono de device ou negócio</h3>
+      <p>Transforma o dashboard em produto operacional: conectar device, ver receita, histórico e status de liquidação.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">C. Agent/app builder</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Kivo Pay | Templates | API Keys | Testar fluxo</div>
+          <div class="placeholder" style="height: 72px;">Escolha: AI Agent Economy</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="placeholder">Gerar chave</div>
+            <div class="placeholder">Copiar snippet</div>
+          </div>
+          <button class="mock-button">Criar primeiro contrato</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Onboarding de integrador</h3>
+      <p>Faz o MVP parecer uma plataforma plugável: template, chave, snippet, teste x402 e deploy checklist.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>Minha recomendação</h4>
+      <ul>
+        <li>Para demo/hackathon, eu faria B + um fluxo A embutido.</li>
+        <li>O operador vê valor de negócio, e o cliente final prova que o pagamento x402 realmente desbloqueia algo.</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>O que sai do centro</h4>
+      <ul>
+        <li>MCP, API keys e deploy deixam de ser navegação principal.</li>
+        <li>Essas páginas viram área avançada, não primeira impressão.</li>
+      </ul>
+    </div>
+  </div>
+</div>

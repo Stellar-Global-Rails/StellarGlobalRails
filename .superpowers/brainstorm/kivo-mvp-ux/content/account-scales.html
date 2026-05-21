@@ -1,0 +1,99 @@
+<h2>Escalas de uso: solo, equipe pequena e operação grande</h2>
+<p class="subtitle">As personas continuam as mesmas, mas permissões, densidade da UI e onboarding mudam conforme o tamanho do cliente.</p>
+
+<div class="cards">
+  <div class="card" data-choice="solo" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Usuário único</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Kivo | Meu uso | Pagamentos | Integrações</div>
+          <div class="placeholder" style="height:70px;">Eu opero, pago e integro sozinho</div>
+          <button class="mock-button">Criar primeiro fluxo</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Solo / maker / dev</h3>
+      <p>Um usuário acumula papéis: opera device, testa x402, cria API key e acompanha custos. Precisa de onboarding rápido e pouca burocracia.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="small-team" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Equipe pequena</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Kivo | Operação | Integração | Financeiro | Time</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="placeholder">Operador</div>
+            <div class="placeholder">Dev</div>
+            <div class="placeholder">Admin</div>
+            <div class="placeholder">Financeiro</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Pequena equipe</h3>
+      <p>2-10 pessoas com papéis claros, mas simples: owner, operator, developer, finance. Precisa de convites, permissões básicas e audit trail leve.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="enterprise" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Operação grande</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Org | Workspaces | Sites | Finance | Security</div>
+          <div class="placeholder" style="height:70px;">Múltiplos sites, ambientes e times</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="placeholder">RBAC</div>
+            <div class="placeholder">Auditoria</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Grande equipe / enterprise</h3>
+      <p>Múltiplos workspaces, sites, ambientes, billing, aprovação, compliance e segregação. Para MVP, mostramos readiness sem construir tudo.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Modelo recomendado</h3>
+  <div class="mockup">
+    <div class="mockup-header">Workspace-first</div>
+    <div class="mockup-body">
+      <div class="placeholder">Conta pessoal cria ou entra em um workspace</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div class="placeholder">Solo<br/>1 pessoa, todos papéis</div>
+        <div class="placeholder">Team<br/>convites e roles simples</div>
+        <div class="placeholder">Org<br/>multi-workspace futuro</div>
+      </div>
+      <div class="placeholder" style="margin-top:10px;height:70px;">Cada workspace tem devices, pagamentos, API keys, webhooks, relatórios e checkout links.</div>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>O que entra no MVP</h4>
+    <ul>
+      <li>Workspace como unidade central.</li>
+      <li>Modo solo funcionando sem fricção.</li>
+      <li>Convite/roles simples para equipe pequena.</li>
+      <li>Enterprise readiness visual: audit log, ambientes, permissões futuras.</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>O que fica fora do MVP</h4>
+    <ul>
+      <li>RBAC granular demais.</li>
+      <li>Múltiplas organizações complexas.</li>
+      <li>Fluxos longos de aprovação financeira.</li>
+      <li>SSO/SAML, salvo se virar exigência imediata.</li>
+    </ul>
+  </div>
+</div>
