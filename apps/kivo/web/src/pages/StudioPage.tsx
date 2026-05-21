@@ -15,7 +15,7 @@ const surfaceOptions: Array<{ id: KivoSolutionSurface; label: string; detail: st
   {
     id: 'physical',
     label: 'Fisico',
-    detail: 'Raspberry Pi, totem, relay, sensor, bancada ou equipamento local.',
+    detail: 'Raspberry Pi, tela local, EVSE/OCPP, sensor, bancada ou controlador seguro.',
     icon: 'solar:bolt-circle-linear',
   },
   {

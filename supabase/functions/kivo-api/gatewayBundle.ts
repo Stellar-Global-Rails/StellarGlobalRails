@@ -149,13 +149,13 @@ function gatewayPackageJson(): string {
 }
 
 function bundleReadme(options: GatewayBundleOptions): string {
-  return `# Kivo Power Totem Local Gateway
+  return `# Kivo EV Charge Local Gateway
 
-Este pacote foi gerado pelo Kivo para rodar o Power Totem perto do recurso real.
+Este pacote foi gerado pelo Kivo para rodar o EV Charge perto da estacao de recarga ou controlador seguro.
 
 ## O que vem aqui
 
-- Docker Compose com Gateway local, Postgres local e UI local do totem.
+- Docker Compose com Gateway local, Postgres local e UI local da estacao.
 - Gateway ID: \`${options.gatewayId}\`
 - Recurso protegido: \`${options.totemResource}\`
 - Preco configurado: \`${options.price} ${options.asset}\`
@@ -169,13 +169,13 @@ docker compose up --build
 
 Depois abra:
 
-- UI local do totem: http://localhost:8088
+- UI local da estacao: http://localhost:8088
 - Health local do gateway: http://localhost:8787/health
 - Status local: http://localhost:8787/status
 
 ## Acionar hardware real
 
-Por seguranca, o pacote nao liga energia de parede diretamente. Use baixa tensao e um script seu para relay/GPIO/controlador.
+Por seguranca, o pacote nao liga energia de parede diretamente. Use EVSE, OCPP, baixa tensao ou um controlador eletrico seguro.
 
 Edite o arquivo \`.env\`:
 
@@ -225,7 +225,7 @@ const config = {
   gatewayId: required("KIVO_GATEWAY_ID"),
   gatewayToken: required("KIVO_GATEWAY_TOKEN"),
   gatewayName: env("KIVO_GATEWAY_NAME", "Kivo Gateway"),
-  totemName: env("KIVO_TOTEM_NAME", "Power Totem"),
+  totemName: env("KIVO_TOTEM_NAME", "Kivo EV Charge"),
   totemResource: env("KIVO_TOTEM_RESOURCE", "/power-totem/session"),
   adapter: env("KIVO_GATEWAY_ADAPTER", "raspberry"),
   pollIntervalMs: Number(env("KIVO_GATEWAY_POLL_INTERVAL_MS", "3000")),
@@ -446,7 +446,7 @@ function totemUiHtml(options: GatewayBundleOptions): string {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Kivo Power Totem</title>
+    <title>Kivo EV Charge</title>
     <style>
       :root { color-scheme: dark; }
       * { box-sizing: border-box; }
@@ -501,17 +501,17 @@ function totemUiHtml(options: GatewayBundleOptions): string {
     <main>
       <section class="hero">
         <div>
-          <p class="eyebrow">Kivo Power Totem</p>
+          <p class="eyebrow">Kivo EV Charge</p>
           <h1>${escapeHtml(options.totemName)}</h1>
-          <p>Aproxime a camera ou siga o checkout Kivo para liberar este recurso por ${options.durationSeconds}s com autorizacao x402/Stellar.</p>
+          <p>Aproxime a camera ou siga o checkout Kivo para autorizar esta sessao de recarga por ${options.durationSeconds}s com x402/Stellar.</p>
           <span id="stateBadge" class="status">Aguardando pagamento</span>
         </div>
 
         <div class="checkout" aria-label="Checkout Kivo">
           <div class="qr" id="qr" aria-hidden="true"></div>
           <div>
-            <h2 id="stateTitle">Escaneie para energizar</h2>
-            <p id="stateCopy">Quando a Kivo confirmar a autorizacao, a saida local abre automaticamente e esta tela muda para sessao ativa.</p>
+            <h2 id="stateTitle">Escaneie para recarregar</h2>
+            <p id="stateCopy">Quando a Kivo confirmar a autorizacao, o gateway sinaliza o controlador local e esta tela muda para sessao ativa.</p>
             <div class="resource">
               <p class="eyebrow">Recurso protegido</p>
               <code>${escapeHtml(options.totemResource)}</code>
@@ -529,13 +529,13 @@ function totemUiHtml(options: GatewayBundleOptions): string {
       <aside class="side">
         <section class="panel output">
           <div class="lock" id="outputIcon">ON</div>
-          <h2 id="outputTitle" style="margin-top: 22px;">Saida protegida</h2>
-          <p id="outputCopy">O totem esta pronto para liberar o recurso quando uma sessao paga chegar da Kivo API.</p>
+          <h2 id="outputTitle" style="margin-top: 22px;">Recarga protegida</h2>
+          <p id="outputCopy">A estacao esta pronta para autorizar a recarga quando uma sessao paga chegar da Kivo API.</p>
         </section>
 
         <section class="panel">
           <p class="eyebrow">Como usar</p>
-          <p>Abra o checkout Kivo no celular, conclua a autorizacao em USDC/Stellar e mantenha esta tela aberta no equipamento local.</p>
+          <p>Abra o checkout Kivo no celular, conclua a autorizacao em USDC/Stellar e mantenha esta tela aberta na estacao local.</p>
           <p>O gateway inicia sozinho dentro do Docker e consulta a Kivo API continuamente.</p>
         </section>
 
@@ -581,11 +581,11 @@ function totemUiHtml(options: GatewayBundleOptions): string {
         if (runtimeStatus === 'running' || auth.hasAuthorization) {
           badge.classList.add('active');
           setText('stateBadge', 'Sessao ativa');
-          setText('stateTitle', 'Energia liberada');
-          setText('stateCopy', 'A autorizacao foi confirmada. A saida local esta ativa pelo tempo contratado.');
+          setText('stateTitle', 'Recarga autorizada');
+          setText('stateCopy', 'A autorizacao foi confirmada. O controlador local pode manter a sessao ativa pelo tempo contratado.');
           setText('outputIcon', 'ON');
-          setText('outputTitle', 'Saida ativa');
-          setText('outputCopy', 'O gateway executou a liberacao local e vai encerrar a sessao automaticamente.');
+          setText('outputTitle', 'Sessao ativa');
+          setText('outputCopy', 'O gateway registrou a autorizacao local e vai encerrar a sessao automaticamente.');
           return;
         }
 
@@ -593,20 +593,20 @@ function totemUiHtml(options: GatewayBundleOptions): string {
           badge.classList.add('offline');
           setText('stateBadge', 'Gateway precisa de atencao');
           setText('stateTitle', 'Conexao local instavel');
-          setText('stateCopy', 'O checkout continua protegido, mas o gateway local precisa voltar a sincronizar para liberar a saida.');
+          setText('stateCopy', 'O checkout continua protegido, mas o gateway local precisa voltar a sincronizar para autorizar a recarga.');
           setText('outputIcon', 'OFF');
-          setText('outputTitle', 'Saida bloqueada');
+          setText('outputTitle', 'Recarga bloqueada');
           setText('outputCopy', 'Verifique internet, variaveis do bundle e status do container gateway.');
           return;
         }
 
         badge.classList.add('ready');
         setText('stateBadge', 'Aguardando pagamento');
-        setText('stateTitle', 'Escaneie para energizar');
-        setText('stateCopy', 'Quando a Kivo confirmar a autorizacao, a saida local abre automaticamente e esta tela muda para sessao ativa.');
+        setText('stateTitle', 'Escaneie para recarregar');
+        setText('stateCopy', 'Quando a Kivo confirmar a autorizacao, o gateway sinaliza o controlador local e esta tela muda para sessao ativa.');
         setText('outputIcon', 'ON');
-        setText('outputTitle', 'Saida protegida');
-        setText('outputCopy', 'O totem esta pronto para liberar o recurso quando uma sessao paga chegar da Kivo API.');
+        setText('outputTitle', 'Recarga protegida');
+        setText('outputCopy', 'A estacao esta pronta para autorizar a recarga quando uma sessao paga chegar da Kivo API.');
       }
 
       async function refresh() {

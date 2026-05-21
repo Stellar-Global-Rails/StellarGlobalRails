@@ -510,7 +510,7 @@ export default function CheckoutPage() {
             </p>
             <div className="mt-4 grid gap-3">
               <label className="block">
-                <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">Totem</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">Estacao EV</span>
                 <select
                   value={selectedPowerTotem?.id ?? ''}
                   onChange={(event) => {
@@ -552,7 +552,7 @@ export default function CheckoutPage() {
               {authorizedPowerSession && (
                 <Link to={`/totems/${authorizedPowerSession.totemId}`} className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-100 hover:bg-emerald-500/15">
                   <Icon icon="solar:clipboard-list-bold-duotone" />
-                  Ver autorizacao no totem
+                  Ver autorizacao na estacao
                 </Link>
               )}
             </div>

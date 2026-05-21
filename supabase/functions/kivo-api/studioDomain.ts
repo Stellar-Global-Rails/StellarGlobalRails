@@ -126,10 +126,10 @@ export function listStudioTemplates(): StudioTemplateSummary[] {
   return [
     {
       id: "power-totem",
-      name: "Power Totem",
+      name: "Kivo EV Charge",
       status: "functional",
       description:
-        "Template funcional do hackathon para liberar recurso fisico com Gateway.",
+        "Template funcional do hackathon para vender sessoes de recarga EV com Gateway.",
       surface: "physical",
       isFunctionalHackathonTemplate: true,
     },
@@ -165,8 +165,13 @@ function inferResourceName(prompt: string): string {
   if (normalized.includes("api")) {
     return "Protected API";
   }
-  if (normalized.includes("energia") || normalized.includes("totem")) {
-    return "Power Totem";
+  if (
+    normalized.includes("energia") ||
+    normalized.includes("recarga") ||
+    normalized.includes("ev") ||
+    normalized.includes("totem")
+  ) {
+    return "Kivo EV Charge";
   }
   return "Protected resource";
 }
