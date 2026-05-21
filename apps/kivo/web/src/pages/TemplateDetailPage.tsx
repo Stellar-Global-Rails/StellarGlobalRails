@@ -34,7 +34,7 @@ export default function TemplateDetailPage() {
   }
 
   const owned = hasTemplate(template.id);
-  const isAvailable = template.availability === 'available';
+  const isAvailable = template.isFunctionalHackathonTemplate;
 
   const handleAcquire = () => {
     if (!isAvailable) return;
@@ -85,7 +85,7 @@ export default function TemplateDetailPage() {
                   className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm font-bold text-neutral-400"
                 >
                   <Icon icon="solar:lock-keyhole-linear" />
-                  Em breve
+                  Entrar na lista
                 </button>
               )}
               <Link to="/studio" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">

@@ -9,14 +9,22 @@ import {
 } from './templateMarketplace';
 
 describe('templateMarketplace', () => {
-  it('keeps Power Totem as the only available hackathon template', () => {
+  it('keeps EV Charge as the only available hackathon template', () => {
     const available = getAvailableTemplates();
 
     expect(available).toHaveLength(1);
     expect(available[0]).toMatchObject({
       id: 'power-totem',
       availability: 'available',
+      status: 'functional',
+      isFunctionalHackathonTemplate: true,
     });
+  });
+
+  it('only marks EV Charge as functional for hackathon delivery', () => {
+    const functional = templateCatalog.filter((template) => template.isFunctionalHackathonTemplate);
+
+    expect(functional.map((template) => template.id)).toEqual(['power-totem']);
   });
 
   it('keeps the rest of the marketplace as coming soon', () => {
@@ -32,7 +40,7 @@ describe('templateMarketplace', () => {
   });
 
   it('returns only catalog templates owned by the workspace', () => {
-    expect(getTemplateById('power-totem')?.name).toBe('Power Totem');
+    expect(getTemplateById('power-totem')?.name).toBe('Kivo EV Charge');
     expect(getOwnedTemplates(['missing', 'power-totem']).map((template) => template.id)).toEqual(['power-totem']);
   });
 });

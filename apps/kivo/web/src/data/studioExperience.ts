@@ -70,7 +70,7 @@ export const gatewayModes: GatewayModeCard[] = [
     id: 'raspberry',
     label: 'Raspberry Pi',
     surface: 'physical',
-    bestFor: 'Totens, relays, sensores e prototipos presenciais.',
+    bestFor: 'Estacoes EV, telas locais, sensores e prototipos presenciais.',
     runtime: 'Node.js local com token de Gateway e adaptador de hardware.',
   },
   {
@@ -82,10 +82,10 @@ export const gatewayModes: GatewayModeCard[] = [
   },
   {
     id: 'physical_totem',
-    label: 'Totem fisico',
+    label: 'Estacao com tela',
     surface: 'physical',
-    bestFor: 'Experiencias presenciais com tela, QR e atuador.',
-    runtime: 'Gateway local + display + relay ou saida segura.',
+    bestFor: 'Experiencias presenciais com tela, QR e controlador local seguro.',
+    runtime: 'Gateway local + display + EVSE, OCPP ou controlador eletrico.',
   },
   {
     id: 'proxy',
@@ -174,9 +174,9 @@ export const studioSteps: StudioStep[] = [
 export const studioTemplates: StudioTemplateSummary[] = [
   {
     id: 'power-totem',
-    name: 'Power Totem',
+    name: 'Kivo EV Charge',
     status: 'functional',
-    description: 'Template funcional do hackathon para liberar um recurso fisico via Gateway.',
+    description: 'Template funcional do hackathon para vender sessoes de recarga EV via Gateway.',
     surface: 'physical',
     isFunctionalHackathonTemplate: true,
   },

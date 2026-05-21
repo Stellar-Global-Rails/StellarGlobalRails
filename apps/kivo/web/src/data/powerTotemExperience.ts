@@ -25,35 +25,35 @@ export interface PowerTotemExperienceTemplate {
 
 export const powerTotemTemplate: PowerTotemExperienceTemplate = {
   id: 'power-totem',
-  name: 'Power Totem',
-  shortName: 'Totem de energia',
+  name: 'Kivo EV Charge',
+  shortName: 'EV Charge',
   status: 'functional',
   resourcePattern: '/power-totem/{totemId}/session',
   icon: 'solar:bolt-circle-bold-duotone',
-  defaultName: 'Totem de bancada',
-  defaultPrice: '0.50',
+  defaultName: 'EV Charger Demo',
+  defaultPrice: '0.25',
   defaultUnit: 'session',
-  defaultDurationSeconds: 30,
-  operatorUseCase: 'Operadores que precisam liberar energia, recarga ou um rele fisico somente depois de pagamento x402 confirmado.',
-  customerPromise: 'O cliente escaneia o QR, paga a sessao e ve o estado mudar de bloqueado para liberado.',
+  defaultDurationSeconds: 120,
+  operatorUseCase: 'Operadores que querem vender sessoes curtas de recarga EV em wallboxes, bancadas EVSE ou estacoes locais somente depois de pagamento x402 confirmado.',
+  customerPromise: 'O motorista escaneia o QR, paga a sessao e ve a estacao mudar de aguardando pagamento para recarga autorizada.',
   steps: [
     {
       id: 'criar',
-      label: 'Criar totem',
+      label: 'Criar estacao',
       icon: 'solar:add-circle-bold-duotone',
-      description: 'Defina nome, preco, unidade e duracao da sessao para gerar o recurso protegido.',
+      description: 'Defina nome, preco e duracao para gerar a sessao protegida da estacao EV.',
     },
     {
       id: 'parear',
       label: 'Provisionar gateway',
       icon: 'solar:link-circle-bold-duotone',
-      description: 'Baixe o pacote Docker que cria gatewayId, token, runtime local, banco local e UI do totem.',
+      description: 'Baixe o pacote Docker que cria gatewayId, token, runtime local, banco local e UI da estacao.',
     },
     {
       id: 'qr',
       label: 'Exibir QR',
       icon: 'solar:qr-code-bold-duotone',
-      description: 'Abra a tela de display para colocar o recurso pago na frente do cliente.',
+      description: 'Abra a tela local para colocar o checkout da recarga na frente do motorista.',
     },
     {
       id: 'testar-x402',
@@ -63,9 +63,9 @@ export const powerTotemTemplate: PowerTotemExperienceTemplate = {
     },
     {
       id: 'liberar-saida',
-      label: 'Liberar saida',
+      label: 'Autorizar recarga',
       icon: 'solar:power-bold-duotone',
-      description: 'O gateway consulta autorizacoes e aciona a saida quando a sessao esta autorizada.',
+      description: 'O gateway consulta autorizacoes e sinaliza o EVSE/OCPP/controlador quando a sessao esta autorizada.',
     },
     {
       id: 'monitorar',

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createKivoClient } from './kivoClient';
 
 describe('HttpKivoApiClient', () => {
@@ -266,6 +266,30 @@ describe('HttpKivoApiClient', () => {
     expect(checkout.session.status).toBe('payment_required');
     expect(checkout.checkoutResource).toBe('/power-totem/totem_1/session');
     expect(checkout.challenge.nonce).toBe('nonce_1');
+  });
+
+  it('starts Power Totem checkout and pays the returned x402 nonce', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        session: { id: 'ps_1', status: 'payment_required' },
+        checkoutResource: '/power-totem/pt_1/session',
+        challenge: { nonce: 'nonce_1', amount: '0.10', asset: 'USDC' },
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        status: 200,
+        paymentHeader: 'x402 pay_1',
+        stellarHash: 'hash_1',
+        stellarLedger: 123,
+        data: { authorized: true },
+      }));
+
+    const client = createKivoClient({ baseUrl: 'https://api.example.test', fetcher });
+    const checkout = await client.startPowerSessionCheckout('ps_1');
+    const paid = await client.payX402Challenge(checkout.challenge.nonce, 'signed-xdr');
+
+    expect(checkout.checkoutResource).toBe('/power-totem/pt_1/session');
+    expect(paid.paymentHeader).toBe('x402 pay_1');
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
   it('sends gateway events with the gateway token header', async () => {

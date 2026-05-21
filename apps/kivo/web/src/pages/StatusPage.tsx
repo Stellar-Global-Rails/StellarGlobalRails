@@ -67,30 +67,40 @@ export default function StatusPage() {
       label: 'Power Gateway heartbeat',
       description: 'Sinal do Gateway local instalado que marca a operacao online.',
       status: gatewaySignal ?? 'degraded',
-      detail: gatewaySignal ? `Health reportou ${gatewaySignal}.` : 'Sem heartbeat agregado no status; instale o pacote Docker do Power Totem.',
+      detail: gatewaySignal ? `Health reportou ${gatewaySignal}.` : 'Sem heartbeat agregado no status; instale o pacote Docker do Kivo EV Charge.',
       icon: 'solar:radio-minimalistic-bold-duotone',
+    },
+    {
+      id: 'mcp',
+      label: 'MCP console',
+      description: system?.mcp === 'ok'
+        ? 'Ferramentas MCP disponiveis para operadores avancados.'
+        : 'Console MCP opcional; EV Charge, x402, Stellar e Gateway nao dependem dele.',
+      status: system?.mcp ?? 'degraded',
+      detail: typeof system?.mcp_reason === 'string' ? system.mcp_reason : 'Opcional para o caminho principal de palco.',
+      icon: 'solar:programming-bold-duotone',
     },
   ];
 
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Power Totem"
-        title="Status do Power Totem"
+        eyebrow="Kivo EV Charge"
+        title="Status da recarga EV"
         icon="solar:pulse-2-bold-duotone"
-        description="Quatro sinais para decidir se o caminho Power Totem esta pronto para palco."
+        description="Quatro sinais para decidir se o caminho EV Charge esta pronto para palco."
         action={<Link to="/health" className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/5">Ver readiness</Link>}
       />
 
       <WorkspaceContextBanner
         eyebrow="Go/No-Go"
-        title={powerPathReady ? 'Power Totem pronto para teste' : 'Power Totem precisa de atencao'}
+        title={powerPathReady ? 'EV Charge pronto para teste' : 'EV Charge precisa de atencao'}
         icon="solar:shield-check-bold-duotone"
         tone={powerPathReady ? 'ready' : 'warning'}
-        description="Use esta tela para conferir API, Stellar, Etherfuse e o sinal honesto do gateway antes de iniciar checkout e autorizacao fisica."
-        checkpoints={['Kivo API', 'Stellar', 'Etherfuse', 'Gateway']}
+        description="Use esta tela para conferir API, Stellar, Etherfuse, gateway e dependencias opcionais antes de iniciar checkout e autorizacao fisica."
+        checkpoints={['Kivo API', 'Stellar', 'Etherfuse', 'Gateway', 'MCP opcional']}
         primaryAction={{ to: '/checkout', label: 'Abrir checkout' }}
-        secondaryAction={{ to: '/library/power-totem', label: 'Abrir Power Totem' }}
+        secondaryAction={{ to: '/library/power-totem', label: 'Abrir EV Charge' }}
       />
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -125,7 +135,7 @@ export default function StatusPage() {
       </div>
 
       <Card>
-        <h2 className="font-bricolage text-xl font-bold text-white">Checks Power Totem</h2>
+        <h2 className="font-bricolage text-xl font-bold text-white">Checks EV Charge</h2>
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
           {readinessChecks.map((check) => {
             const tone = healthTone(check.status);

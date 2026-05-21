@@ -23,7 +23,7 @@ export default function MarketplacePage() {
         eyebrow="Marketplace"
         title="Templates Kivo"
         icon="solar:widget-linear"
-        description="Templates sao produtos reutilizaveis. Hoje o Power Totem e o unico template funcional; os demais ficam visiveis como roadmap ate terem runtime validado."
+        description="Templates sao produtos reutilizaveis. Hoje o Kivo EV Charge e o template funcional: recarga eletrica pay-per-use com gateway local, x402, Stellar e Etherfuse."
         action={
           <Link to="/library" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
             <Icon icon="solar:folder-with-files-linear" />
@@ -36,9 +36,9 @@ export default function MarketplacePage() {
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <Badge tone="ready">disponivel agora</Badge>
-            <h2 className="mt-4 font-bricolage text-2xl font-bold text-white">Template funcional</h2>
+            <h2 className="mt-4 font-bricolage text-2xl font-bold text-white">Recarga EV funcional</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-300">
-              Um template pronto para adquirir, configurar e conectar a um Gateway real dentro do fluxo correto.
+              Um kit pronto para apresentar ao cliente final: tela com QR, checkout x402 e gateway local autorizando a sessao de recarga.
             </p>
           </div>
           <Link to="/studio" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">

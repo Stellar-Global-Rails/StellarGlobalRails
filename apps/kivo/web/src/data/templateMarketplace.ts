@@ -1,4 +1,5 @@
 export type TemplateAvailability = 'available' | 'soon';
+export type TemplateStatus = 'functional' | 'planned' | 'research';
 export type TemplateSurface = 'physical' | 'digital' | 'hybrid';
 
 export interface KivoTemplateCatalogItem {
@@ -6,6 +7,8 @@ export interface KivoTemplateCatalogItem {
   name: string;
   shortName: string;
   availability: TemplateAvailability;
+  status: TemplateStatus;
+  isFunctionalHackathonTemplate: boolean;
   category: string;
   surface: TemplateSurface;
   badge: string;
@@ -29,66 +32,69 @@ export interface KivoTemplateCatalogItem {
 export const templateCatalog: KivoTemplateCatalogItem[] = [
   {
     id: 'power-totem',
-    name: 'Power Totem',
-    shortName: 'Power Totem',
+    name: 'Kivo EV Charge',
+    shortName: 'EV Charge',
     availability: 'available',
-    category: 'Template funcional',
+    status: 'functional',
+    isFunctionalHackathonTemplate: true,
+    category: 'Recarga EV funcional',
     surface: 'hybrid',
-    badge: 'Hackathon ready',
-    tagline: 'Venda acesso fisico ou digital com checkout x402 e release via Kivo Gateway.',
+    badge: 'EV ready',
+    tagline: 'Venda sessoes de recarga eletrica com checkout x402 e autorizacao via Kivo Gateway.',
     description:
-      'Um template completo para criar um ponto de energia, bancada, demo presencial, API guard ou recurso pago. No hackathon, a versao funcional foca no totem fisico com Raspberry Pi, tela local e Gateway Docker.',
+      'Um template completo para transformar uma estacao AC, wallbox ou bancada EVSE em um ponto de recarga pay-per-use. A versao funcional usa Raspberry Pi ou mini PC com tela local, Gateway Docker e autorizacao Kivo antes de liberar a sessao no controlador seguro.',
     outcome:
-      'O usuario adquire o template, configura preco e sessao, provisiona um Gateway real e baixa um bundle Docker pronto para rodar perto do recurso.',
-    primaryRuntime: 'Raspberry Pi, mini PC ou gateway digital equivalente',
-    acquisitionLabel: 'Adquirir template',
+      'O operador configura preco e duracao, provisiona um gateway local e baixa um bundle Docker pronto para rodar perto da estacao de recarga.',
+    primaryRuntime: 'Raspberry Pi, mini PC ou edge gateway junto ao EVSE',
+    acquisitionLabel: 'Adquirir EV Charge',
     heroPoints: [
-      'Checkout x402 com fluxo visivel',
-      'Etherfuse/Stellar testnet na validacao',
-      'Gateway local com heartbeat, eventos e fila curta',
+      'QR checkout na tela da estacao',
+      'x402 + Stellar/Etherfuse antes da sessao',
+      'Gateway local com heartbeat, autorizacao e eventos',
     ],
     idealFor: [
-      'Demos presenciais no Stellar Village',
-      'Totens, bancadas, relays e recursos locais',
-      'Primeiro produto de cliente final para validar monetizacao M2M/H2M',
+      'Operadores de estacionamentos, condominios e hospitality',
+      'Prototipos com OpenEVSE, OCPP wallbox ou controlador EVSE',
+      'Demos presenciais com Raspberry Pi, tela e case de produto',
     ],
     includes: [
-      'Modelo de flow do Power Totem',
-      'Config de preco, unidade e duracao da sessao',
+      'Modelo de flow Kivo EV Charge',
+      'Config de preco, duracao e regra de autorizacao da recarga',
       'Download do Gateway Docker depois da configuracao',
-      'UI local do totem para Raspberry Pi',
-      'Checklist de validacao com x402, Etherfuse e release',
+      'UI local para tela da estacao ou quiosque',
+      'Checklist de validacao com x402, Stellar, Etherfuse e gateway',
     ],
     requirements: [
       'Conta Kivo autenticada',
       'Supabase Edge Function kivo-api configurada',
       'X402 platform key e Etherfuse Devnet configurados',
       'Docker no Raspberry Pi, mini PC ou ambiente local',
+      'EVSE, OCPP wallbox ou controlador seguro para a parte eletrica',
     ],
     architecture: [
       {
-        label: 'Template',
-        detail: 'Define o produto, preco, unidade, tempo de sessao e regra de liberacao.',
+        label: 'Estacao',
+        detail: 'Tela local mostra QR, preco, duracao e estado da sessao de recarga.',
       },
       {
         label: 'Gateway',
-        detail: 'Runtime local ou digital que consulta autorizacao, envia heartbeat e publica eventos.',
+        detail: 'Runtime local consulta autorizacao, envia heartbeat e conversa com EVSE/OCPP/controlador.',
       },
       {
         label: 'Checkout',
-        detail: 'Cria sessao, recebe desafio x402 e registra pagamento antes da liberacao.',
+        detail: 'Cria sessao, recebe desafio x402 e registra pagamento Stellar antes da autorizacao.',
       },
       {
-        label: 'Release',
-        detail: 'Gateway libera o recurso fisico ou digital e salva evento operacional.',
+        label: 'Recarga',
+        detail: 'Kivo autoriza a sessao; o controlador eletrico seguro decide a energizacao fisica.',
       },
     ],
     validation: [
-      'Criar Power Totem real na API',
+      'Criar estacao EV Charge real na API',
       'Gerar bundle Docker com gatewayId e gatewayToken',
       'Rodar runtime local',
       'Executar checkout x402',
-      'Confirmar autorizacao e evento de release',
+      'Confirmar autorizacao e evento de sessao de recarga',
     ],
   },
   {
@@ -96,6 +102,8 @@ export const templateCatalog: KivoTemplateCatalogItem[] = [
     name: 'API Toll',
     shortName: 'API Toll',
     availability: 'soon',
+    status: 'planned',
+    isFunctionalHackathonTemplate: false,
     category: 'Gateway digital',
     surface: 'digital',
     badge: 'Em breve',
@@ -121,6 +129,8 @@ export const templateCatalog: KivoTemplateCatalogItem[] = [
     name: 'Agent Tool Paywall',
     shortName: 'Agent Tools',
     availability: 'soon',
+    status: 'research',
+    isFunctionalHackathonTemplate: false,
     category: 'AI agents',
     surface: 'digital',
     badge: 'Em breve',
@@ -146,6 +156,8 @@ export const templateCatalog: KivoTemplateCatalogItem[] = [
     name: 'IoT Data Marketplace',
     shortName: 'IoT Data',
     availability: 'soon',
+    status: 'planned',
+    isFunctionalHackathonTemplate: false,
     category: 'Dados IoT',
     surface: 'hybrid',
     badge: 'Em breve',
@@ -164,13 +176,15 @@ export const templateCatalog: KivoTemplateCatalogItem[] = [
       { label: 'Feed API', detail: 'Entrega dados somente apos autorizacao.' },
     ],
     validation: ['Coletar leitura real', 'Cobrar acesso', 'Registrar entrega'],
-    roadmapReason: 'Mantido como futuro para nao abrir escopo antes do Power Totem fechar.',
+    roadmapReason: 'Mantido como futuro para nao abrir escopo antes do EV Charge fechar.',
   },
   {
     id: 'compute-meter',
     name: 'Compute Meter',
     shortName: 'Compute',
     availability: 'soon',
+    status: 'planned',
+    isFunctionalHackathonTemplate: false,
     category: 'Edge compute',
     surface: 'hybrid',
     badge: 'Em breve',
@@ -199,7 +213,7 @@ export const getTemplateById = (templateId: string) =>
   templateCatalog.find((template) => template.id === templateId) ?? null;
 
 export const getAvailableTemplates = () =>
-  templateCatalog.filter((template) => template.availability === 'available');
+  templateCatalog.filter((template) => template.isFunctionalHackathonTemplate);
 
 export const getComingSoonTemplates = () =>
   templateCatalog.filter((template) => template.availability === 'soon');

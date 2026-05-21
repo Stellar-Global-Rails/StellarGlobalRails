@@ -2,6 +2,7 @@ import { assertEquals, assertThrows } from "@std/assert";
 import {
   buildPowerTotemResource,
   ensureValidDuration,
+  isGatewaySessionAuthorized,
   nextSessionStatus,
   type PowerSessionAction,
   type PowerSessionStatus,
@@ -44,6 +45,23 @@ Deno.test("ensureValidDuration rejects unsafe durations", () => {
     Error,
     "Session duration must be between 5 and 3600 seconds.",
   );
+});
+
+Deno.test("Power Totem lifecycle requires payment before gateway authorization", () => {
+  const unpaid = {
+    id: "session_1",
+    status: "payment_required",
+    authorized_at: null,
+  };
+
+  const paid = {
+    id: "session_1",
+    status: "authorized",
+    authorized_at: new Date().toISOString(),
+  };
+
+  assertEquals(isGatewaySessionAuthorized(unpaid), false);
+  assertEquals(isGatewaySessionAuthorized(paid), true);
 });
 
 Deno.test("nextSessionStatus allows every valid transition", () => {

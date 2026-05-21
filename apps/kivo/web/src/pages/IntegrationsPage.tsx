@@ -9,12 +9,12 @@ import { kivoClient } from '@/services/kivoClient';
 const sdkSteps = [
   {
     title: 'Baixe o Gateway SDK',
-    description: 'Um pacote pequeno com cliente TypeScript e exemplo de gateway Power Totem para Raspberry.',
+    description: 'Um pacote pequeno com cliente TypeScript e exemplo de gateway EV Charge para Raspberry.',
     icon: 'solar:download-bold-duotone',
   },
   {
     title: 'Instale o runtime',
-    description: 'Use o bundle Docker para receber gatewayId, token, banco local e UI do totem.',
+    description: 'Use o bundle Docker para receber gatewayId, token, banco local e UI da estacao.',
     icon: 'solar:key-minimalistic-bold-duotone',
   },
   {
@@ -51,7 +51,7 @@ const flowCards = [
   },
   {
     title: 'Agent Tool Paywall',
-    description: 'Roadmap para cobrar chamadas de ferramentas de agentes depois do totem.',
+    description: 'Roadmap para cobrar chamadas de ferramentas de agentes depois do EV Charge.',
     icon: 'solar:magic-stick-3-bold-duotone',
   },
 ];
@@ -64,8 +64,8 @@ export default function IntegrationsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Power Totem Gateway SDK"
-        title="Conecte o gateway do Power Totem"
+        eyebrow="Kivo EV Charge SDK"
+        title="Conecte o gateway de recarga EV"
         icon="solar:code-square-bold-duotone"
         description="Baixe o pacote Docker do Gateway, rode no Raspberry e envie heartbeat, autorizacao e eventos para liberar o recurso fisico."
         action={
@@ -84,7 +84,7 @@ export default function IntegrationsPage() {
         <div className="flex items-start gap-3">
           <Icon icon="solar:electric-refueling-bold-duotone" className="mt-0.5 text-2xl text-emerald-300" />
           <p className="text-sm leading-6 text-neutral-200">
-            No hackathon, o SDK operacional foca no Power Totem. Depois, os mesmos contratos suportam API Toll, Data Gate, Agent Tool Paywall e outros templates.
+            No hackathon, o SDK operacional foca no Kivo EV Charge. Depois, os mesmos contratos suportam API Toll, Data Gate, Agent Tool Paywall e outros templates.
           </p>
         </div>
       </Card>
@@ -110,7 +110,7 @@ export default function IntegrationsPage() {
             <div>
               <h2 className="font-bricolage text-xl font-bold text-white">Starter do Gateway SDK</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">
-                O bundle Docker e o caminho recomendado: baixar, rodar no Raspberry e adaptar os comandos locais do Power Totem.
+                O bundle Docker e o caminho recomendado: baixar, rodar no Raspberry e adaptar os comandos locais da estacao EV Charge.
               </p>
             </div>
             <a
@@ -153,14 +153,14 @@ await runOnce({
 
         <div className="space-y-6">
           <Card>
-            <h2 className="font-bricolage text-xl font-bold text-white">Pronto para operar o totem?</h2>
+            <h2 className="font-bricolage text-xl font-bold text-white">Pronto para operar a estacao?</h2>
             <div className="mt-5 space-y-3">
               <Link to="/studio" className="flex items-center justify-between rounded-xl bg-black/30 p-3 text-sm font-bold text-neutral-200 hover:bg-white/5">
                 Abrir Kivo Studio
                 <Icon icon="solar:arrow-right-linear" />
               </Link>
               <Link to="/library/power-totem" className="flex items-center justify-between rounded-xl bg-black/30 p-3 text-sm font-bold text-neutral-200 hover:bg-white/5">
-                Abrir Power Totem na biblioteca
+                Abrir EV Charge na biblioteca
                 <Icon icon="solar:arrow-right-linear" />
               </Link>
               <Link to="/checkout" className="flex items-center justify-between rounded-xl bg-emerald-500/10 p-3 text-sm font-bold text-emerald-300 hover:bg-emerald-500/15">
@@ -195,7 +195,7 @@ await runOnce({
           <div>
             <h2 className="font-bricolage text-xl font-bold text-white">Roadmap de templates</h2>
             <p className="mt-2 text-sm leading-6 text-neutral-500">
-              Estes templates nao sao o caminho primario do hackathon; eles reaproveitam os contratos depois que o Power Totem estiver fechado.
+              Estes templates nao sao o caminho primario do hackathon; eles reaproveitam os contratos depois que o EV Charge estiver fechado.
             </p>
           </div>
           <Badge tone="paused">Depois do MVP</Badge>

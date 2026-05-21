@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { gatewayModes, studioAgents, studioSteps, studioTemplates } from './studioExperience';
 
 describe('studioExperience', () => {
-  it('marks only Power Totem as the functional hackathon template', () => {
+  it('marks only EV Charge as the functional hackathon template', () => {
     const functionalTemplates = studioTemplates.filter((template) => template.status === 'functional');
 
     expect(functionalTemplates).toHaveLength(1);
     expect(functionalTemplates[0]).toMatchObject({
       id: 'power-totem',
+      name: 'Kivo EV Charge',
       isFunctionalHackathonTemplate: true,
     });
   });

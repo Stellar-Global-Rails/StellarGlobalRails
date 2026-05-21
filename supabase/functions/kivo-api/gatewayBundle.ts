@@ -448,41 +448,176 @@ function totemUiHtml(options: GatewayBundleOptions): string {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Kivo Power Totem</title>
     <style>
-      body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #020617; color: #f8fafc; }
-      main { min-height: 100vh; display: grid; place-items: center; padding: 32px; }
-      section { width: min(760px, 100%); border: 1px solid rgba(255,255,255,.1); border-radius: 28px; background: radial-gradient(circle at top left, rgba(16,185,129,.18), transparent 36%), rgba(15,23,42,.92); padding: 28px; box-shadow: 0 24px 80px rgba(0,0,0,.35); }
-      .badge { display: inline-flex; border: 1px solid rgba(16,185,129,.3); color: #6ee7b7; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-      h1 { margin: 18px 0 8px; font-size: clamp(34px, 8vw, 76px); line-height: .95; letter-spacing: 0; }
-      p { color: #94a3b8; line-height: 1.7; }
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 18% 18%, rgba(16, 185, 129, .2), transparent 28%),
+          radial-gradient(circle at 82% 78%, rgba(14, 165, 233, .14), transparent 30%),
+          #030712;
+        color: #f8fafc;
+      }
+      main { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr); gap: 28px; padding: 32px; }
+      .hero, .panel { border: 1px solid rgba(255,255,255,.1); background: rgba(2, 6, 23, .72); box-shadow: 0 24px 80px rgba(0,0,0,.35); }
+      .hero { display: flex; min-height: calc(100vh - 64px); flex-direction: column; justify-content: space-between; border-radius: 28px; padding: clamp(24px, 4vw, 44px); }
+      .panel { border-radius: 24px; padding: 24px; }
+      .eyebrow { margin: 0 0 12px; color: #34d399; font-size: 12px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
+      h1 { margin: 0; max-width: 780px; font-size: clamp(42px, 7vw, 92px); line-height: .96; letter-spacing: 0; }
+      h2 { margin: 0; font-size: clamp(28px, 4vw, 48px); line-height: 1.05; letter-spacing: 0; }
+      p { color: #94a3b8; line-height: 1.65; }
       code { color: #a7f3d0; word-break: break-all; }
-      button { border: 0; border-radius: 16px; padding: 14px 18px; margin: 6px; font-weight: 800; background: #10b981; color: #020617; cursor: pointer; }
-      button.secondary { background: rgba(255,255,255,.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,.1); }
-      pre { overflow: auto; max-height: 280px; border: 1px solid rgba(255,255,255,.08); border-radius: 18px; background: rgba(0,0,0,.3); padding: 16px; color: #cbd5e1; }
+      .status { display: inline-flex; align-items: center; gap: 10px; width: fit-content; border: 1px solid rgba(245, 158, 11, .28); border-radius: 999px; background: rgba(245, 158, 11, .12); padding: 10px 14px; color: #fde68a; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+      .status::before { content: ""; width: 10px; height: 10px; border-radius: 999px; background: currentColor; box-shadow: 0 0 18px currentColor; }
+      .status.ready { border-color: rgba(52, 211, 153, .32); background: rgba(16, 185, 129, .12); color: #6ee7b7; }
+      .status.active { border-color: rgba(34, 211, 238, .34); background: rgba(14, 165, 233, .14); color: #67e8f9; }
+      .status.offline { border-color: rgba(248, 113, 113, .34); background: rgba(239, 68, 68, .12); color: #fca5a5; }
+      .checkout { display: grid; grid-template-columns: minmax(190px, 280px) 1fr; gap: 24px; align-items: center; margin-top: 32px; }
+      .qr { display: grid; aspect-ratio: 1; grid-template-columns: repeat(9, 1fr); gap: 6px; border-radius: 28px; background: #fff; padding: 18px; }
+      .qr span { border-radius: 4px; background: #030712; }
+      .qr span.empty { background: #fff; }
+      .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 32px; }
+      .metric { border: 1px solid rgba(255,255,255,.08); border-radius: 18px; background: rgba(15, 23, 42, .65); padding: 16px; }
+      .metric small { display: block; color: #64748b; font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+      .metric strong { display: block; margin-top: 6px; color: #f8fafc; font-size: 18px; overflow-wrap: anywhere; }
+      .side { display: flex; min-height: calc(100vh - 64px); flex-direction: column; gap: 16px; }
+      .output { border-color: rgba(16, 185, 129, .2); background: linear-gradient(180deg, rgba(16, 185, 129, .12), rgba(2, 6, 23, .72)); }
+      .lock { display: grid; width: 76px; height: 76px; place-items: center; border-radius: 22px; background: rgba(16, 185, 129, .12); color: #6ee7b7; font-size: 42px; }
+      .resource { margin-top: 14px; border: 1px solid rgba(255,255,255,.08); border-radius: 18px; background: rgba(0,0,0,.28); padding: 14px; }
+      details { margin-top: auto; color: #94a3b8; }
+      summary { cursor: pointer; color: #cbd5e1; font-weight: 800; }
+      .diag { margin-top: 12px; display: grid; gap: 8px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; color: #94a3b8; }
+      @media (max-width: 920px) {
+        main { grid-template-columns: 1fr; padding: 18px; }
+        .hero, .side { min-height: auto; }
+        .checkout { grid-template-columns: 1fr; }
+        .qr { max-width: 280px; }
+        .metrics { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
     <main>
-      <section>
-        <span class="badge">Kivo local runtime</span>
-        <h1>${escapeHtml(options.totemName)}</h1>
-        <p>Este totem libera o recurso protegido somente depois de uma autorizacao Kivo gerada por x402/Stellar.</p>
-        <p><strong>Recurso:</strong> <code>${escapeHtml(options.totemResource)}</code></p>
-        <p><strong>Preco:</strong> ${escapeHtml(options.price)} ${escapeHtml(options.asset)} por ${options.durationSeconds}s</p>
-        <button onclick="start()">Iniciar runtime</button>
-        <button class="secondary" onclick="poll()">Executar poll agora</button>
-        <button class="secondary" onclick="refresh()">Atualizar status</button>
-        <pre id="status">Carregando...</pre>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Kivo Power Totem</p>
+          <h1>${escapeHtml(options.totemName)}</h1>
+          <p>Aproxime a camera ou siga o checkout Kivo para liberar este recurso por ${options.durationSeconds}s com autorizacao x402/Stellar.</p>
+          <span id="stateBadge" class="status">Aguardando pagamento</span>
+        </div>
+
+        <div class="checkout" aria-label="Checkout Kivo">
+          <div class="qr" id="qr" aria-hidden="true"></div>
+          <div>
+            <h2 id="stateTitle">Escaneie para energizar</h2>
+            <p id="stateCopy">Quando a Kivo confirmar a autorizacao, a saida local abre automaticamente e esta tela muda para sessao ativa.</p>
+            <div class="resource">
+              <p class="eyebrow">Recurso protegido</p>
+              <code>${escapeHtml(options.totemResource)}</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric"><small>Preco</small><strong>${escapeHtml(options.price)} ${escapeHtml(options.asset)}</strong></div>
+          <div class="metric"><small>Duracao</small><strong>${options.durationSeconds}s</strong></div>
+          <div class="metric"><small>Gateway</small><strong id="gatewayLabel">Conectando</strong></div>
+        </div>
       </section>
+
+      <aside class="side">
+        <section class="panel output">
+          <div class="lock" id="outputIcon">ON</div>
+          <h2 id="outputTitle" style="margin-top: 22px;">Saida protegida</h2>
+          <p id="outputCopy">O totem esta pronto para liberar o recurso quando uma sessao paga chegar da Kivo API.</p>
+        </section>
+
+        <section class="panel">
+          <p class="eyebrow">Como usar</p>
+          <p>Abra o checkout Kivo no celular, conclua a autorizacao em USDC/Stellar e mantenha esta tela aberta no equipamento local.</p>
+          <p>O gateway inicia sozinho dentro do Docker e consulta a Kivo API continuamente.</p>
+        </section>
+
+        <details class="panel">
+          <summary>Diagnostico do gateway</summary>
+          <div class="diag">
+            <span>Runtime: <strong id="runtimeLabel">carregando</strong></span>
+            <span>Ultima atualizacao: <strong id="updatedAtLabel">-</strong></span>
+            <span id="errorLabel"></span>
+          </div>
+        </details>
+      </aside>
     </main>
     <script>
       const api = 'http://localhost:8787';
-      async function call(path, method = 'GET') {
-        const response = await fetch(api + path, { method });
-        document.getElementById('status').textContent = JSON.stringify(await response.json(), null, 2);
+      const qr = document.getElementById('qr');
+      for (let index = 0; index < 81; index += 1) {
+        const row = Math.floor(index / 9);
+        const col = index % 9;
+        const finder = (row < 3 && col < 3) || (row < 3 && col > 5) || (row > 5 && col < 3);
+        const filled = finder || ((row * 7 + col * 5 + index) % 4 !== 0);
+        const cell = document.createElement('span');
+        if (!filled) cell.className = 'empty';
+        qr.appendChild(cell);
       }
-      const refresh = () => call('/status');
-      const poll = () => call('/poll', 'POST');
-      const start = () => call('/start', 'POST');
+
+      function setText(id, value) {
+        document.getElementById(id).textContent = value;
+      }
+
+      function applyState(status) {
+        const runtime = status.runtime || {};
+        const gateway = status.gateway || {};
+        const auth = status.authorization || {};
+        const runtimeStatus = runtime.status || 'idle';
+        const badge = document.getElementById('stateBadge');
+        badge.className = 'status';
+        setText('gatewayLabel', gateway.status === 'online' ? 'Online' : gateway.updatedAt ? 'Sincronizado' : 'Conectando');
+        setText('runtimeLabel', runtimeStatus);
+        setText('updatedAtLabel', runtime.updatedAt || gateway.updatedAt || '-');
+        setText('errorLabel', runtime.error ? 'Atencao: ' + runtime.error : '');
+
+        if (runtimeStatus === 'running' || auth.hasAuthorization) {
+          badge.classList.add('active');
+          setText('stateBadge', 'Sessao ativa');
+          setText('stateTitle', 'Energia liberada');
+          setText('stateCopy', 'A autorizacao foi confirmada. A saida local esta ativa pelo tempo contratado.');
+          setText('outputIcon', 'ON');
+          setText('outputTitle', 'Saida ativa');
+          setText('outputCopy', 'O gateway executou a liberacao local e vai encerrar a sessao automaticamente.');
+          return;
+        }
+
+        if (runtimeStatus === 'degraded') {
+          badge.classList.add('offline');
+          setText('stateBadge', 'Gateway precisa de atencao');
+          setText('stateTitle', 'Conexao local instavel');
+          setText('stateCopy', 'O checkout continua protegido, mas o gateway local precisa voltar a sincronizar para liberar a saida.');
+          setText('outputIcon', 'OFF');
+          setText('outputTitle', 'Saida bloqueada');
+          setText('outputCopy', 'Verifique internet, variaveis do bundle e status do container gateway.');
+          return;
+        }
+
+        badge.classList.add('ready');
+        setText('stateBadge', 'Aguardando pagamento');
+        setText('stateTitle', 'Escaneie para energizar');
+        setText('stateCopy', 'Quando a Kivo confirmar a autorizacao, a saida local abre automaticamente e esta tela muda para sessao ativa.');
+        setText('outputIcon', 'ON');
+        setText('outputTitle', 'Saida protegida');
+        setText('outputCopy', 'O totem esta pronto para liberar o recurso quando uma sessao paga chegar da Kivo API.');
+      }
+
+      async function refresh() {
+        try {
+          const response = await fetch(api + '/status');
+          applyState(await response.json());
+        } catch (_error) {
+          applyState({ runtime: { status: 'degraded', error: 'runtime local indisponivel' } });
+        }
+      }
+
       refresh();
       setInterval(refresh, 3000);
     </script>

@@ -404,10 +404,10 @@ const kivoPay: Product = {
   templates: [
     {
       id: "power-totem",
-      name: "Power Totem",
-      description: "Template funcional do hackathon para liberar um recurso fisico via gateway",
+      name: "Kivo EV Charge",
+      description: "Template funcional do hackathon para vender sessoes de recarga EV via gateway",
       icon: "solar:bolt-circle-linear",
-      useCase: "Raspberry Pi exibe QR, valida x402/Stellar/Etherfuse e libera uma carga segura"
+      useCase: "Raspberry Pi exibe QR, valida x402/Stellar/Etherfuse e autoriza EVSE/OCPP"
     },
     {
       id: "api-toll",
@@ -522,9 +522,9 @@ const kivoPay: Product = {
     },
     {
       id: "power-totem-template",
-      name: "Power Totem",
+      name: "Kivo EV Charge",
       description:
-        "Template funcional do hackathon: QR em um totem, pagamento x402, validacao Stellar/Etherfuse e gateway liberando uma carga segura.",
+        "Template funcional do hackathon: QR na estacao, pagamento x402, validacao Stellar/Etherfuse e gateway autorizando recarga EV.",
       icon: "solar:bolt-circle-linear",
       originModule: "Template"
     }
@@ -534,7 +534,7 @@ const kivoPay: Product = {
     "Studio com AI agents para criar solucoes customizadas",
     "SDK TypeScript completo para integrar em sistemas reais",
     "x402 + Stellar + Etherfuse visiveis no fluxo de validacao",
-    "Power Totem como template funcional do hackathon",
+    "EV Charge como template funcional do hackathon",
     "Private mainnet billing para flows validados e privados"
   ],
   steps: [
@@ -602,7 +602,7 @@ const kivoPay: Product = {
     {
       question: "O que existe funcional para o hackathon?",
       answer:
-        "O template funcional e o Power Totem: QR checkout, pagamento x402, validacao Stellar/Etherfuse e gateway liberando um recurso fisico seguro."
+        "O template funcional e o Kivo EV Charge: QR checkout, pagamento x402, validacao Stellar/Etherfuse e gateway autorizando uma sessao de recarga."
     },
     {
       question: "Como Kivo ganha dinheiro?",
@@ -613,9 +613,9 @@ const kivoPay: Product = {
   finalCta: "Explorar Kivo",
   apiSnippet: {
     method: "POST",
-    endpoint: "/v1/resources/power-totem/access",
+    endpoint: "/v1/resources/ev-charge/access",
     body:
-      '{"resource_id":"power-totem-rj-01","price":"1.00","asset":"USDC","condition":"session_60_seconds"}'
+      '{"resource_id":"ev-charge-rj-01","price":"0.25","asset":"USDC","condition":"charge_session_120_seconds"}'
   }
 };
 

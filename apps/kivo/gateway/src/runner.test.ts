@@ -58,14 +58,18 @@ describe("runOnce", () => {
       { action: "disable", sessionId: "session_1" },
     ]);
     expect(client.events.map((event) => event.eventType)).toEqual([
-      "session.started",
-      "session.completed",
+      "authorized",
+      "output_enabled",
+      "output_disabled",
+      "completed",
     ]);
     expect(client.calls).toEqual([
       "heartbeat",
       "getAuthorization",
-      "event:session.started",
-      "event:session.completed",
+      "event:authorized",
+      "event:output_enabled",
+      "event:output_disabled",
+      "event:completed",
     ]);
   });
 
@@ -104,41 +108,45 @@ describe("runOnce", () => {
     expect(waited).toEqual([7000]);
   });
 
-  it("does not enable output if reporting the start event fails", async () => {
+  it("does not enable output if reporting the authorization event fails", async () => {
     const adapter = new SimulatorPowerAdapter();
     const client = new FakeGatewayClient({
       id: "session_1",
       durationSeconds: 30,
-    }, "session.started");
+    }, "authorized");
 
     await expect(runOnce({
       client,
       adapter,
       sleep: async () => undefined,
       shouldWaitForDuration: false,
-    })).rejects.toThrow("Failed to send session.started");
+    })).rejects.toThrow("Failed to send authorized");
 
     expect(adapter.enabled).toBe(false);
     expect(adapter.history).toEqual([]);
+    expect(client.events.map((event) => event.eventType)).toEqual(["failed"]);
   });
 
-  it("disables output if reporting the completed event fails", async () => {
+  it("disables output and reports failed if reporting the completed event fails", async () => {
     const adapter = new SimulatorPowerAdapter();
     const client = new FakeGatewayClient({
       id: "session_1",
       durationSeconds: 30,
-    }, "session.completed");
+    }, "completed");
 
     await expect(runOnce({
       client,
       adapter,
       sleep: async () => undefined,
       shouldWaitForDuration: false,
-    })).rejects.toThrow("Failed to send session.completed");
+    })).rejects.toThrow("Failed to send completed");
 
     expect(adapter.enabled).toBe(false);
     expect(client.events.map((event) => event.eventType)).toEqual([
-      "session.started",
+      "authorized",
+      "output_enabled",
+      "output_disabled",
+      "failed",
     ]);
   });
 
@@ -152,12 +160,12 @@ describe("runOnce", () => {
     };
 
     await expect(runOnce({
-      client: new FakeGatewayClient(authorization, "session.completed"),
+      client: new FakeGatewayClient(authorization, "completed"),
       adapter: firstAdapter,
       processedSessionIds,
       sleep: async () => undefined,
       shouldWaitForDuration: false,
-    })).rejects.toThrow("Failed to send session.completed");
+    })).rejects.toThrow("Failed to send completed");
 
     const secondResult = await runOnce({
       client: new FakeGatewayClient(authorization),

@@ -20,14 +20,14 @@ const tools: MCPTool[] = [
     icon: 'solar:wallet-2-linear',
     example: {
       input: {
-        resource_id: 'power-totem-rj-01',
+        resource_id: 'ev-charge-rj-01',
         gateway_mode: 'physical',
-        price: '1.00',
+        price: '0.25',
         asset: 'USDC',
-        condition: 'session_60_seconds'
+        condition: 'charge_session_120_seconds'
       },
       output: {
-        flow_id: 'flow_power_totem_01',
+        flow_id: 'flow_ev_charge_01',
         status: 'ready_for_testnet',
         created_at: '2026-05-15T11:04:00Z'
       }
@@ -40,9 +40,9 @@ const tools: MCPTool[] = [
     icon: 'solar:document-text-linear',
     example: {
       input: {
-        flow_id: 'flow_power_totem_01',
+        flow_id: 'flow_ev_charge_01',
         runtime: 'raspberry-pi',
-        output: { type: 'gpio', pin: 17 }
+        output: { type: 'ocpp_or_evse_controller', mode: 'authorize_session' }
       },
       output: {
         sdk_package: '@kivo/sdk',
@@ -58,7 +58,7 @@ const tools: MCPTool[] = [
     icon: 'solar:eye-linear',
     example: {
       input: {
-        flow_id: 'flow_power_totem_01',
+        flow_id: 'flow_ev_charge_01',
         authorization_id: 'auth_7a4f2c8b'
       },
       output: {
@@ -196,14 +196,14 @@ export default function KivoMCPDemo() {
           className="p-8 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20"
         >
           <h3 className="text-2xl font-bricolage font-bold text-white mb-6">
-            Real-World Example: Power Totem Agent
+            Real-World Example: EV Charge Agent
           </h3>
           <div className="space-y-4">
             {[
-              { num: 1, title: 'Builder describes the resource', desc: 'Studio captures the Power Totem device, price, session length, and gateway mode.' },
+              { num: 1, title: 'Builder describes the station', desc: 'Studio captures the EV charger, price, session length, gateway mode, and controller boundary.' },
               { num: 2, title: 'Agent generates SDK setup', desc: 'Kivo returns TypeScript snippets for x402 requirements, pairing, and gateway authorization.' },
               { num: 3, title: 'Testnet validation runs', desc: 'The flow checks Stellar proof, Etherfuse context, webhook signatures, and gateway health.' },
-              { num: 4, title: 'Gateway release is recorded', desc: 'A short-lived authorization releases the physical resource and stores the receipt.' }
+              { num: 4, title: 'Charge authorization is recorded', desc: 'A short-lived authorization lets the EVSE/OCPP controller start the session and stores the receipt.' }
             ].map((step) => (
               <motion.div
                 key={step.num}

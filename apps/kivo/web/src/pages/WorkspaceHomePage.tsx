@@ -495,7 +495,7 @@ function getNextStep({
   if (!hasTemplate) {
     return {
       title: 'Escolha um template',
-      description: 'Adquira o Power Totem ou acompanhe os proximos templates no Marketplace.',
+      description: 'Adquira o Kivo EV Charge ou acompanhe os proximos templates no Marketplace.',
       action: 'Abrir Marketplace',
       route: '/marketplace',
     };

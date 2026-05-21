@@ -44,14 +44,14 @@ export default function PowerTotemDetailPage() {
   };
 
   if (totemResult.loading) {
-    return <Card>Carregando Power Totem...</Card>;
+    return <Card>Carregando estacao EV Charge...</Card>;
   }
 
   if (totemResult.error || !totemResult.data) {
     return (
       <Card className="border-red-500/20 bg-red-500/[0.06]">
-        <p className="font-bold text-red-100">Nao foi possivel carregar o Power Totem.</p>
-        <p className="mt-2 text-sm text-red-200/80">{totemResult.error ?? 'Totem nao encontrado.'}</p>
+        <p className="font-bold text-red-100">Nao foi possivel carregar a estacao EV Charge.</p>
+        <p className="mt-2 text-sm text-red-200/80">{totemResult.error ?? 'Estacao nao encontrada.'}</p>
       </Card>
     );
   }
@@ -61,10 +61,10 @@ export default function PowerTotemDetailPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Power Totem"
+        eyebrow="Kivo EV Charge"
         title={totem.name}
         icon="solar:bolt-circle-bold-duotone"
-        description="Superficie operacional para acompanhar recurso x402, checkout, autorizacao curta e sessoes do gateway."
+        description="Superficie operacional para acompanhar checkout x402, autorizacao curta e sessoes de recarga no gateway."
         action={<Badge tone={totem.status}>{statusLabel(totem.status)}</Badge>}
       />
 
@@ -80,8 +80,8 @@ export default function PowerTotemDetailPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Resource protegido</p>
-              <h2 className="mt-2 font-bricolage text-xl font-bold text-white">x402 na frente do totem</h2>
-              <p className="mt-2 text-sm leading-6 text-neutral-400">O recurso abaixo e a ancora do checkout. A sessao nasce solicitada, passa por pagamento x402 e depois fica autorizada para o gateway acionar a saida por uma janela curta.</p>
+              <h2 className="mt-2 font-bricolage text-xl font-bold text-white">x402 na frente da estacao</h2>
+              <p className="mt-2 text-sm leading-6 text-neutral-400">O recurso abaixo e a ancora do checkout. A sessao nasce solicitada, passa por pagamento x402 e depois fica autorizada para o gateway sinalizar o EVSE/OCPP/controlador por uma janela curta.</p>
             </div>
             <CopyButton value={totem.resource} />
           </div>
@@ -118,7 +118,7 @@ export default function PowerTotemDetailPage() {
           </button>
           <Link to="/checkout" className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-100 hover:bg-emerald-500/15">
             <Icon icon="solar:card-transfer-bold-duotone" />
-            Abrir Checkout do Power Totem
+            Abrir Checkout EV Charge
           </Link>
         </Card>
       </div>
@@ -126,16 +126,16 @@ export default function PowerTotemDetailPage() {
       <Card>
         <h2 className="font-bricolage text-xl font-bold text-white">Caminho de autorizacao</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-4">
-          <StatusMeaning title="Solicitada" detail="Sessao criada para este totem, ainda sem challenge ativo." tone="neutral" />
+          <StatusMeaning title="Solicitada" detail="Sessao criada para esta estacao, ainda sem challenge ativo." tone="neutral" />
           <StatusMeaning title="Pagamento" detail="Checkout emitiu o x402 challenge e amarrou o nonce a sessao." tone="pending" />
           <StatusMeaning title="Paga" detail="Pagamento Stellar confirmado; a sessao pode gerar autorizacao." tone="processing" />
-          <StatusMeaning title="Autorizada" detail="Gateway pode consultar e acionar a saida fisica." tone="ready" />
+          <StatusMeaning title="Autorizada" detail="Gateway pode consultar e sinalizar o controlador seguro da recarga." tone="ready" />
         </div>
       </Card>
 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-bricolage text-xl font-bold text-white">Sessoes do totem</h2>
+          <h2 className="font-bricolage text-xl font-bold text-white">Sessoes da estacao</h2>
           <Badge tone={sessionsResult.loading ? 'processing' : 'neutral'}>{sessionsResult.loading ? 'carregando' : `${sessions.length} registros`}</Badge>
         </div>
         <div className="mt-4 overflow-x-auto">
@@ -156,7 +156,7 @@ export default function PowerTotemDetailPage() {
               ))}
             </tbody>
           </table>
-          {!sessionsResult.loading && sessions.length === 0 && <p className="rounded-xl border border-white/5 bg-black/25 p-4 text-sm text-neutral-400">Nenhuma sessao registrada para este totem.</p>}
+          {!sessionsResult.loading && sessions.length === 0 && <p className="rounded-xl border border-white/5 bg-black/25 p-4 text-sm text-neutral-400">Nenhuma sessao registrada para esta estacao.</p>}
         </div>
       </Card>
     </div>
