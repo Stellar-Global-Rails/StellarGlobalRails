@@ -19,7 +19,7 @@ const contract = [
 const modeCopy = {
   physical: {
     title: 'Modos fisicos',
-    description: 'Raspberry Pi, edge device e totem rodam perto do recurso real para acionar relay, tela, sensor ou controlador local.',
+    description: 'Raspberry Pi, edge device e tela local rodam perto do recurso real para conversar com EVSE, OCPP, sensor ou controlador local.',
     tone: 'ready',
   },
   digital: {
@@ -85,7 +85,7 @@ export default function GatewayPage() {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <GatewayMetric label="Gateways" value={gatewayList.length} detail="persistidos" />
             <GatewayMetric label="Online" value={onlineGateways.length} detail="com heartbeat" tone={onlineGateways.length ? 'ready' : 'warning'} />
-            <GatewayMetric label="Totens" value={totemList.length} detail="recursos criados" />
+            <GatewayMetric label="Estacoes" value={totemList.length} detail="recursos criados" />
             <GatewayMetric label="Autorizar" value={pendingAuthorizations.length} detail="sessoes prontas" tone={pendingAuthorizations.length ? 'processing' : 'neutral'} />
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function GatewayPage() {
           </div>
           <Link to="/library/power-totem" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
             <Icon icon="solar:folder-with-files-linear" />
-            Abrir Power Totem
+            Abrir EV Charge
           </Link>
         </div>
 
@@ -116,7 +116,7 @@ export default function GatewayPage() {
                       <Badge tone="neutral">{gateway.adapter}</Badge>
                     </div>
                     <p className="mt-2 break-all font-mono text-xs text-neutral-500">{gateway.id}</p>
-                    <p className="mt-2 text-sm text-neutral-400">{totem ? `Pareado com ${totem.name}` : 'Gateway ainda sem Power Totem associado.'}</p>
+                    <p className="mt-2 text-sm text-neutral-400">{totem ? `Pareado com ${totem.name}` : 'Gateway ainda sem estacao EV associada.'}</p>
                   </div>
                   <div className="grid gap-2 text-right text-xs text-neutral-500">
                     <span>Token {gateway.tokenPreview}</span>
@@ -133,7 +133,7 @@ export default function GatewayPage() {
               <Badge tone="warning">acao necessaria</Badge>
               <h3 className="mt-3 font-bricolage text-xl font-bold text-white">Nenhum Gateway real foi pareado</h3>
               <p className="mt-2 text-sm leading-6 text-amber-50/80">
-                Adquira o Power Totem no Marketplace, abra a Biblioteca e gere o pacote Docker. O gatewayId e o token ficam dentro do bundle gerado uma unica vez.
+                Adquira o Kivo EV Charge no Marketplace, abra a Biblioteca e gere o pacote Docker. O gatewayId e o token ficam dentro do bundle gerado uma unica vez.
               </p>
               <Link to="/marketplace" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
                 <Icon icon="solar:widget-linear" />

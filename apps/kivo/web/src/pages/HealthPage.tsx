@@ -39,9 +39,9 @@ export default function HealthPage() {
   const readiness = [
     {
       id: 'totem',
-      label: 'Power Totem criado',
+      label: 'Estacao EV criada',
       complete: activeTotems.length > 0,
-      detail: activeTotems.length ? `${activeTotems.length} totem ativo/teste` : 'Configure o template na Biblioteca antes do checkout.',
+      detail: activeTotems.length ? `${activeTotems.length} estacao ativa/teste` : 'Configure o template na Biblioteca antes do checkout.',
     },
     {
       id: 'x402',
@@ -63,7 +63,7 @@ export default function HealthPage() {
     },
     {
       id: 'gateway',
-      label: 'Gateway fisico',
+      label: 'Gateway local',
       complete: gatewayReady,
       detail: 'Instale o pacote Docker no Raspberry ou mini PC para reportar eventos.',
     },
@@ -72,10 +72,10 @@ export default function HealthPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Power Totem"
-        title="Saude do Power Totem"
+        eyebrow="Kivo EV Charge"
+        title="Saude da recarga EV"
         icon="solar:electric-refueling-bold-duotone"
-        description="Power Totem: flow, gateway, x402, Stellar, Etherfuse e autorizacao fisica."
+        description="EV Charge: flow, gateway, x402, Stellar, Etherfuse e autorizacao de sessao."
         action={<Link to="/studio" className="rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">Abrir Studio</Link>}
       />
 
@@ -84,14 +84,14 @@ export default function HealthPage() {
         title={overallLabel}
         icon="solar:shield-check-bold-duotone"
         tone={overallTone}
-        description="Esta pagina acompanha se o caminho de palco esta pronto: criar Totem, cobrar por x402/Stellar, autorizar uma sessao curta e receber evento do gateway."
-        checkpoints={['Power Totem', 'x402', 'Stellar', 'Etherfuse', 'Gateway']}
+        description="Esta pagina acompanha se o caminho de palco esta pronto: criar estacao, cobrar por x402/Stellar, autorizar uma sessao curta e receber evento do gateway."
+        checkpoints={['EV Charge', 'x402', 'Stellar', 'Etherfuse', 'Gateway']}
         primaryAction={{ to: '/checkout', label: 'Testar checkout' }}
         secondaryAction={{ to: '/library/power-totem', label: 'Abrir template' }}
       />
 
       <div className="grid gap-4 md:grid-cols-4">
-        <StatCard title="Totems" value={activeTotems.length.toString()} detail={`${totems.length} cadastrados`} icon="solar:electric-refueling-bold-duotone" tone={activeTotems.length ? 'emerald' : 'amber'} />
+        <StatCard title="Estacoes" value={activeTotems.length.toString()} detail={`${totems.length} cadastradas`} icon="solar:electric-refueling-bold-duotone" tone={activeTotems.length ? 'emerald' : 'amber'} />
         <StatCard title="Sessoes" value={readySessions.length.toString()} detail={`${sessions.length} no total`} icon="solar:bolt-circle-bold-duotone" tone={readySessions.length ? 'emerald' : 'blue'} />
         <StatCard title="Stellar" value={health.data?.stellar === 'ok' ? 'OK' : 'Pendente'} detail={health.error ?? 'health do backend'} icon="solar:star-fall-bold-duotone" tone={health.data?.stellar === 'ok' ? 'emerald' : 'amber'} />
         <StatCard title="Gateway" value={readiness[4].complete ? 'Eventos' : 'Aguardando'} detail={readiness[4].detail} icon="solar:radio-minimalistic-bold-duotone" tone={readiness[4].complete ? 'emerald' : 'amber'} />
@@ -100,8 +100,8 @@ export default function HealthPage() {
       <Card>
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-bricolage text-xl font-bold text-white">Checklist Power Totem</h2>
-            <p className="mt-1 text-sm text-neutral-500">O que precisa estar verde antes de operar o Power Totem.</p>
+            <h2 className="font-bricolage text-xl font-bold text-white">Checklist EV Charge</h2>
+            <p className="mt-1 text-sm text-neutral-500">O que precisa estar verde antes de operar a recarga EV.</p>
           </div>
           <Badge tone={overallTone}>{overallLabel}</Badge>
         </div>
@@ -124,7 +124,7 @@ export default function HealthPage() {
       <Card>
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="font-bricolage text-xl font-bold text-white">Ultimo Power Totem</h2>
+            <h2 className="font-bricolage text-xl font-bold text-white">Ultima estacao EV</h2>
             <p className="mt-1 text-sm text-neutral-500">Resumo operacional para conferir QR, duracao e recurso protegido.</p>
           </div>
           {latestTotem && <Badge tone={latestTotem.status}>{latestTotem.status}</Badge>}
@@ -146,9 +146,9 @@ export default function HealthPage() {
         ) : (
           <div className="mt-5 rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-center">
             <Icon icon="solar:electric-refueling-bold-duotone" className="mx-auto text-4xl text-emerald-300" />
-            <h3 className="mt-3 font-bricolage text-xl font-bold text-white">Nenhum Power Totem criado ainda</h3>
+            <h3 className="mt-3 font-bricolage text-xl font-bold text-white">Nenhuma estacao EV criada ainda</h3>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-neutral-500">
-              Adquira o Power Totem no Marketplace e configure o template pela Biblioteca.
+              Adquira o Kivo EV Charge no Marketplace e configure o template pela Biblioteca.
             </p>
             <Link to="/marketplace" className="mt-5 inline-flex rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
               Abrir Marketplace

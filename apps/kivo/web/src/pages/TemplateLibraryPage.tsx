@@ -61,7 +61,7 @@ export default function TemplateLibraryPage() {
           <Icon icon="solar:folder-with-files-linear" className="mx-auto text-4xl text-neutral-600" />
           <h2 className="mt-4 font-bricolage text-2xl font-bold text-white">Sua biblioteca ainda esta vazia</h2>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-neutral-500">
-            Adquira o Power Totem no Marketplace para configurar o template, criar o recurso real e baixar o Gateway Docker.
+            Adquira o Kivo EV Charge no Marketplace para configurar a estacao, criar o recurso real e baixar o Gateway Docker.
           </p>
           <Link to="/marketplace" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400">
             <Icon icon="solar:add-circle-linear" />

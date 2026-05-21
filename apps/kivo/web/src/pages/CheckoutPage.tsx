@@ -311,7 +311,7 @@ export default function CheckoutPage() {
 
   const startPowerTotemCheckout = async () => {
     if (!selectedPowerTotem) {
-      setError('Crie ou selecione um Power Totem antes de iniciar o checkout fisico.');
+      setError('Crie ou selecione uma estacao EV Charge antes de iniciar o checkout.');
       return;
     }
     setLoading(true);
@@ -329,7 +329,7 @@ export default function CheckoutPage() {
         setAnchorWallet(checkout.challenge.payTo);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel iniciar o checkout do Power Totem.');
+      setError(err instanceof Error ? err.message : 'Nao foi possivel iniciar o checkout da estacao EV Charge.');
     } finally {
       setLoading(false);
     }
@@ -498,15 +498,15 @@ export default function CheckoutPage() {
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Power Totem session</p>
-                <h2 className="mt-2 font-bricolage text-xl font-bold text-white">Checkout para sessao fisica</h2>
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">EV Charge session</p>
+                <h2 className="mt-2 font-bricolage text-xl font-bold text-white">Checkout para recarga EV</h2>
               </div>
               <Badge tone={authorizedPowerSession ? 'ready' : powerSession ? powerSession.status : 'neutral'}>
                 {authorizedPowerSession ? 'autorizada' : powerSession ? sessionStatusLabel(powerSession.status) : 'sem sessao'}
               </Badge>
             </div>
             <p className="mt-3 text-sm leading-6 text-neutral-300">
-              Este pagamento libera uma sessao fisica no Power Totem. Depois da confirmacao, o Gateway recebe uma autorizacao curta para acionar a saida.
+              Este pagamento libera uma sessao de recarga. Depois da confirmacao, o Gateway recebe uma autorizacao curta para sinalizar o EVSE, OCPP wallbox ou controlador local.
             </p>
             <div className="mt-4 grid gap-3">
               <label className="block">
@@ -537,7 +537,7 @@ export default function CheckoutPage() {
               {!powerTotems.loading && !selectedPowerTotem && (
                 <Link to="/library/power-totem" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-neutral-200 hover:bg-white/10">
                   <Icon icon="solar:add-circle-bold-duotone" />
-                  Configurar Power Totem
+                  Configurar EV Charge
                 </Link>
               )}
               <button
@@ -612,10 +612,10 @@ export default function CheckoutPage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Recurso protegido</p>
-              <h2 className="mt-2 font-bricolage text-3xl font-bold text-white">{powerSession ? 'Sessao fisica Power Totem' : selectedResource.label}</h2>
+              <h2 className="mt-2 font-bricolage text-3xl font-bold text-white">{powerSession ? 'Sessao Kivo EV Charge' : selectedResource.label}</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-400">
                 {powerSession
-                  ? 'Pagamento x402 vinculado a uma sessao fisica. Quando confirmado, a sessao fica pronta para autorizacao do gateway.'
+                  ? 'Pagamento x402 vinculado a uma sessao de recarga. Quando confirmado, a sessao fica pronta para autorizacao do gateway.'
                   : selectedResource.outcome}
               </p>
             </div>

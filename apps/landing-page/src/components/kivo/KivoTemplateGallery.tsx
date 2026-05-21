@@ -18,22 +18,22 @@ interface Template {
 const templates: Template[] = [
   {
     id: 'power-totem',
-    name: 'Power Totem',
+    name: 'Kivo EV Charge',
     status: 'functional',
-    description: 'Template funcional do hackathon para liberar um recurso fisico com pagamento x402.',
+    description: 'Template funcional do hackathon para vender sessoes de recarga EV com pagamento x402.',
     icon: 'solar:bolt-circle-linear',
-    useCase: 'Raspberry Pi + tela + QR + carga segura',
+    useCase: 'Raspberry Pi + tela + QR + EVSE/OCPP',
     fullDescription:
-      'Power Totem mostra o Kivo Gateway no mundo fisico: uma tela exibe o QR, o checkout exige pagamento x402, Kivo valida Stellar/Etherfuse e o gateway libera uma carga segura por uma sessao curta.',
+      'Kivo EV Charge mostra o Gateway no mundo fisico: uma tela na estacao exibe o QR, o checkout exige pagamento x402, Kivo valida Stellar/Etherfuse e o gateway autoriza uma sessao curta de recarga no controlador seguro.',
     steps: [
-      'Operador cria o flow Power Totem no Kivo',
+      'Operador cria a estacao EV Charge no Kivo',
       'Gateway no Raspberry Pi pareia com o flow',
-      'Visitante escaneia o QR do totem',
+      'Motorista escaneia o QR na tela da estacao',
       'Checkout x402 solicita pagamento',
       'Kivo valida Stellar e mostra contexto Etherfuse',
-      'Gateway libera a carga segura e registra health/recibo'
+      'Gateway autoriza a sessao EVSE/OCPP e registra health/recibo'
     ],
-    actors: 'Visitante -> Checkout Kivo -> Stellar/Etherfuse -> Raspberry Gateway',
+    actors: 'Motorista -> Checkout Kivo -> Stellar/Etherfuse -> Raspberry Gateway -> EVSE',
     codeExample: `import { KivoGateway } from '@kivo/gateway';
 
 const gateway = new KivoGateway({
@@ -43,7 +43,7 @@ const gateway = new KivoGateway({
 });
 
 await gateway.start();`,
-    impact: 'Demo fisica e online pronta para hackathon'
+    impact: 'Caso de uso real para estacionamento, condominio e hospitality'
   },
   {
     id: 'api-toll',
@@ -116,10 +116,10 @@ export default function KivoTemplateGallery() {
           className="mb-16"
         >
           <h2 className="text-5xl lg:text-6xl font-bricolage font-bold text-white mb-6">
-            Power Totem e roadmap de templates
+            EV Charge e roadmap de templates
           </h2>
           <p className="text-xl text-white/60 max-w-3xl">
-            O produto e Kivo Gateway + Kivo Studio. Templates sao aceleradores: Power Totem funciona no hackathon; os demais entram depois como blueprints reutilizaveis.
+            O produto e Kivo Gateway + Kivo Studio. Templates sao aceleradores: EV Charge funciona no hackathon; os demais entram depois como blueprints reutilizaveis.
           </p>
         </motion.div>
 

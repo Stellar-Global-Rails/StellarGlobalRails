@@ -22,8 +22,8 @@ export default function TotemDisplayPage() {
                 <Icon icon="solar:bolt-circle-bold-duotone" className="text-3xl" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-400">Kivo Power Totem</p>
-                <h1 className="font-bricolage text-2xl font-bold text-white">{totemResult.data?.name ?? 'Totem de energia'}</h1>
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-400">Kivo EV Charge</p>
+                <h1 className="font-bricolage text-2xl font-bold text-white">{totemResult.data?.name ?? 'EV Charger Demo'}</h1>
               </div>
             </div>
             <Badge tone="warning">aguardando gateway</Badge>
@@ -35,7 +35,7 @@ export default function TotemDisplayPage() {
               <p className="mt-5 text-center text-sm font-bold uppercase tracking-[0.2em] text-neutral-400">Preview do recurso</p>
               <p className="mt-2 break-all text-center font-mono text-xs text-emerald-200">{resource}</p>
               <p className="mt-3 text-center text-xs leading-5 text-neutral-500">
-                O QR real entra na UI local gerada pelo bundle Docker do Power Totem.
+                O QR real entra na UI local gerada pelo bundle Docker da estacao EV Charge.
               </p>
             </div>
           </div>
@@ -49,7 +49,7 @@ export default function TotemDisplayPage() {
 
         <aside className="flex flex-col justify-between rounded-[2rem] border border-white/10 bg-neutral-900/80 p-6 premium-shadow lg:p-8">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Estado da saida</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Estado da recarga</p>
             <div className="mt-5 rounded-[2rem] border border-amber-500/25 bg-amber-500/10 p-6">
               <Icon icon="solar:lock-keyhole-bold-duotone" className="text-6xl text-amber-300" />
               <h2 className="mt-5 font-bricolage text-4xl font-bold text-white">Aguardando runtime local</h2>
@@ -67,7 +67,7 @@ export default function TotemDisplayPage() {
               <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
                 <p className="text-sm font-bold text-amber-100">UI local fica no bundle</p>
                 <p className="mt-1 text-xs leading-5 text-amber-100/75">
-                  O pacote Docker inclui a tela local do totem e o Gateway que consulta heartbeat, autorizacao e eventos.
+                  O pacote Docker inclui a tela local da estacao e o Gateway que consulta heartbeat, autorizacao e eventos.
                 </p>
               </div>
             </div>

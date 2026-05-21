@@ -8,7 +8,7 @@ const sdkParts = [
   { label: 'Client', description: 'Chamadas tipadas para challenge x402, pagamento e heartbeat de Gateway.' },
   { label: 'x402 helpers', description: 'Headers e utilitarios para enviar prova de pagamento Stellar sem expor segredo.' },
   { label: 'Adapters', description: 'Raspberry e serverless agora; fisico e digital como familias de runtime.' },
-  { label: 'Examples', description: 'Power Totem como primeiro exemplo testavel e adaptavel.' },
+  { label: 'Examples', description: 'EV Charge como primeiro exemplo testavel e adaptavel.' },
   { label: 'Tests', description: 'Vitest cobrindo cliente, headers e contratos publicos do pacote.' },
   { label: 'Studio export', description: 'O Studio prepara um bundle local para baixar, testar e versionar junto do flow.' },
 ];

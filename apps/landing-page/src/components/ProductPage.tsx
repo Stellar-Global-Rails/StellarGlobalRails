@@ -480,10 +480,10 @@ export default function ProductPage({ slug }: Props) {
                 className="mb-16"
               >
                 <h2 className="text-5xl lg:text-6xl font-bricolage font-bold text-white mb-6">
-                  Power Totem agora. Outros templates depois.
+                  EV Charge agora. Outros templates depois.
                 </h2>
                 <p className="text-xl text-white/60 max-w-3xl">
-                  O template funcional do hackathon prova o gateway fisico com Raspberry Pi, QR checkout, x402, Stellar e Etherfuse. Os demais aparecem como roadmap, nao como features prontas.
+                  O template funcional do hackathon prova recarga EV pay-per-use com Raspberry Pi, tela QR, x402, Stellar, Etherfuse e gateway autorizando um controlador seguro. Os demais aparecem como roadmap, nao como features prontas.
                 </p>
               </motion.div>
               <KivoTemplateGallery />

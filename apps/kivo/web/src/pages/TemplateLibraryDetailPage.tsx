@@ -109,10 +109,10 @@ export default function TemplateLibraryDetailPage() {
 function PowerTotemLibraryExperience({ templateName }: { templateName: string }) {
   const totems = useAsyncData(() => kivoClient.listPowerTotems(), []);
   const [selectedTotemId, setSelectedTotemId] = useState('');
-  const [totemName, setTotemName] = useState('Power Totem Demo');
+  const [totemName, setTotemName] = useState('EV Charger Demo');
   const [totemPrice, setTotemPrice] = useState('0.2500000');
-  const [sessionDuration, setSessionDuration] = useState('30');
-  const [gatewayName, setGatewayName] = useState('Power Totem Gateway');
+  const [sessionDuration, setSessionDuration] = useState('120');
+  const [gatewayName, setGatewayName] = useState('Kivo EV Charge Gateway');
   const [isCreatingTotem, setIsCreatingTotem] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
@@ -130,7 +130,7 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
     setSuccess('');
     try {
       const totem = await kivoClient.createPowerTotem({
-        name: totemName.trim() || 'Power Totem Demo',
+        name: totemName.trim() || 'EV Charger Demo',
         price: totemPrice.trim() || '0.2500000',
         unit: 'session',
         sessionDurationSeconds: Number(sessionDuration) || 30,
@@ -141,9 +141,9 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
       });
       totems.setData([totem, ...totemList.filter((item) => item.id !== totem.id)]);
       setSelectedTotemId(totem.id);
-      setSuccess('Power Totem criado na API. Agora voce pode baixar o Gateway Docker.');
+      setSuccess('Estacao EV Charge criada na API. Agora voce pode baixar o Gateway Docker.');
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Nao foi possivel criar o Power Totem.');
+      setError(caught instanceof Error ? caught.message : 'Nao foi possivel criar a estacao EV Charge.');
     } finally {
       setIsCreatingTotem(false);
     }
@@ -151,7 +151,7 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
 
   const downloadBundle = async () => {
     if (!selectedTotem) {
-      setError('Crie ou selecione um Power Totem antes de baixar o Gateway Docker.');
+      setError('Crie ou selecione uma estacao EV Charge antes de baixar o Gateway Docker.');
       return;
     }
     setDownloading(true);
@@ -215,9 +215,9 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <Badge tone="ready">template adquirido</Badge>
-              <h2 className="mt-3 font-bricolage text-2xl font-bold text-white">1. Criar recurso do Power Totem</h2>
+              <h2 className="mt-3 font-bricolage text-2xl font-bold text-white">1. Criar estacao EV Charge</h2>
               <p className="mt-2 text-sm leading-6 text-neutral-400">
-                Esta etapa grava um Power Totem real na API. O Studio nao faz isso; a Biblioteca faz porque aqui voce ja escolheu o template.
+                Esta etapa grava uma estacao real na API. O Kivo autoriza a sessao; a energizacao deve ficar com EVSE, OCPP wallbox ou controlador eletrico seguro.
               </p>
             </div>
             <Icon icon="solar:tuning-square-linear" className="text-4xl text-emerald-300" />
@@ -240,7 +240,7 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
 
           <button type="button" onClick={handleCreatePowerTotem} disabled={isCreatingTotem} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-black hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50">
             <Icon icon={isCreatingTotem ? 'solar:refresh-linear' : 'solar:add-circle-linear'} />
-            {isCreatingTotem ? 'Criando Power Totem' : 'Criar Power Totem'}
+            {isCreatingTotem ? 'Criando estacao' : 'Criar estacao EV'}
           </button>
         </Card>
 
@@ -252,7 +252,7 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
               </Badge>
               <h2 className="mt-3 font-bricolage text-2xl font-bold text-white">2. Baixar Gateway Docker</h2>
               <p className="mt-2 text-sm leading-6 text-neutral-400">
-                O bundle provisiona Gateway, token de runtime, banco local, UI local e comandos para rodar perto do recurso.
+                O bundle provisiona Gateway, token de runtime, banco local, UI local e comandos para rodar perto da estacao.
               </p>
             </div>
             <Icon icon="solar:download-minimalistic-bold-duotone" className="text-4xl text-emerald-300" />
@@ -260,13 +260,13 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
 
           <div className="mt-5 grid gap-4">
             <label className="block">
-              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">Power Totem</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">Estacao EV</span>
               <select
                 value={selectedTotem?.id ?? ''}
                 onChange={(event) => setSelectedTotemId(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-3 text-sm text-white outline-none focus:border-emerald-500"
               >
-                {!totemList.length && <option value="">Nenhum Power Totem criado</option>}
+                {!totemList.length && <option value="">Nenhuma estacao criada</option>}
                 {totemList.map((totem) => (
                   <option key={totem.id} value={totem.id}>{totem.name}</option>
                 ))}
@@ -285,7 +285,7 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
             <div className="rounded-2xl border border-white/5 bg-black/25 p-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">Conteudo do bundle</p>
               <p className="mt-2 text-sm leading-6 text-neutral-300">
-                docker-compose.yml, .env.example, README.md, gatewayId, gatewayToken, KIVO_API_URL, runtime local, banco local e UI local do totem.
+                docker-compose.yml, .env.example, README.md, gatewayId, gatewayToken, KIVO_API_URL, runtime local, banco local e UI local da estacao.
               </p>
             </div>
           </div>
@@ -311,7 +311,7 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
             <h2 className="font-bricolage text-xl font-bold text-white">Recursos criados neste template</h2>
             <p className="mt-1 text-sm text-neutral-500">Lista real vinda da API Kivo.</p>
           </div>
-          <Badge tone={totemList.length ? 'ready' : 'warning'}>{totemList.length} Power Totems</Badge>
+          <Badge tone={totemList.length ? 'ready' : 'warning'}>{totemList.length} estacoes</Badge>
         </div>
         <div className="mt-5 grid gap-3">
           {totemList.map((totem) => (
@@ -319,7 +319,7 @@ function PowerTotemLibraryExperience({ templateName }: { templateName: string })
           ))}
           {!totems.loading && !totemList.length && (
             <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-5 text-sm leading-6 text-neutral-500">
-              Nenhum Power Totem criado ainda. Crie o primeiro recurso acima para habilitar o download do Gateway.
+              Nenhuma estacao criada ainda. Crie o primeiro recurso acima para habilitar o download do Gateway.
             </div>
           )}
         </div>

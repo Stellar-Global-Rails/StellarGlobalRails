@@ -5,11 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '@/stores';
 
 const commands = [
-  { label: 'Home', path: '/dashboard', icon: 'solar:home-2-bold-duotone', keywords: 'home power totem workspace' },
+  { label: 'Home', path: '/dashboard', icon: 'solar:home-2-bold-duotone', keywords: 'home ev charge workspace' },
   { label: 'Kivo Studio', path: '/studio', icon: 'solar:stars-line-duotone', keywords: 'flow solucao arquitetura sdk ai agents' },
-  { label: 'Marketplace', path: '/marketplace', icon: 'solar:widget-linear', keywords: 'templates power totem adquirir comunidade roadmap' },
-  { label: 'Biblioteca', path: '/library', icon: 'solar:folder-with-files-linear', keywords: 'templates adquiridos instalar docker power totem' },
-  { label: 'Power Totem', path: '/templates/power-totem', icon: 'solar:bolt-circle-bold-duotone', keywords: 'template totem raspberry x402 etherfuse' },
+  { label: 'Marketplace', path: '/marketplace', icon: 'solar:widget-linear', keywords: 'templates ev charge adquirir comunidade roadmap' },
+  { label: 'Biblioteca', path: '/library', icon: 'solar:folder-with-files-linear', keywords: 'templates adquiridos instalar docker ev charge' },
+  { label: 'Kivo EV Charge', path: '/templates/power-totem', icon: 'solar:electric-refueling-bold-duotone', keywords: 'template recarga ev raspberry x402 etherfuse' },
   { label: 'Kivo Gateway', path: '/gateway', icon: 'solar:server-square-cloud-linear', keywords: 'runtime fisico digital raspberry proxy' },
   { label: 'SDK TypeScript', path: '/sdk', icon: 'solar:code-square-linear', keywords: 'download adapter x402 gateway' },
   { label: 'Validacao testnet', path: '/validation', icon: 'solar:shield-check-linear', keywords: 'x402 etherfuse stellar gateway' },

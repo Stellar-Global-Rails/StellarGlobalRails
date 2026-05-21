@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { futurePowerTotemTemplates, powerTotemTemplate } from './powerTotemExperience';
 
 describe('powerTotemExperience', () => {
-  it('marks Power Totem as the only functional hackathon template', () => {
+  it('marks EV Charge as the only functional hackathon template', () => {
+    expect(powerTotemTemplate.name).toBe('Kivo EV Charge');
     expect(powerTotemTemplate.status).toBe('functional');
     expect(powerTotemTemplate.resourcePattern).toBe('/power-totem/{totemId}/session');
   });
