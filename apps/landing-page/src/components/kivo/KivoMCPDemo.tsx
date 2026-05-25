@@ -14,68 +14,70 @@ interface MCPTool {
 
 const tools: MCPTool[] = [
   {
-    id: 'create-payment',
-    title: 'Create Payment',
-    description: 'Initiate M2M payment with conditions and timeout',
+    id: 'create-access-flow',
+    title: 'Create Access Flow',
+    description: 'Define a protected physical or digital resource with x402 requirements',
     icon: 'solar:wallet-2-linear',
     example: {
       input: {
-        from_device: 'EV-001',
-        to_device: 'charger-05',
-        amount: 2.5,
-        condition: 'energy_delivered_kwh:10',
-        timeout: 3600
+        resource_id: 'ev-charge-rj-01',
+        gateway_mode: 'physical',
+        price: '0.25',
+        asset: 'USDC',
+        condition: 'charge_session_120_seconds'
       },
       output: {
-        tx_id: '0x7a4f2c8b9d1e6f3a5c2b8e1d4f6a9c2e',
-        status: 'pending',
+        flow_id: 'flow_ev_charge_01',
+        status: 'ready_for_testnet',
         created_at: '2026-05-15T11:04:00Z'
       }
     }
   },
   {
-    id: 'execute-contract',
-    title: 'Execute Contract',
-    description: 'Execute pre-defined smart contracts automatically',
+    id: 'generate-sdk-snippet',
+    title: 'Generate SDK Snippet',
+    description: 'Generate TypeScript setup code for gateway pairing and authorization',
     icon: 'solar:document-text-linear',
     example: {
       input: {
-        contract_id: 'contract-energy-trading-v2',
-        parameters: { energy_kwh: 50, price_per_kwh: 0.30 }
+        flow_id: 'flow_ev_charge_01',
+        runtime: 'raspberry-pi',
+        output: { type: 'ocpp_or_evse_controller', mode: 'authorize_session' }
       },
       output: {
-        execution_id: 'exec-a1b2c3d4e5f6',
-        status: 'executed',
-        result: { total_cost: 15.0, timestamp: '2026-05-15T11:04:05Z' }
+        sdk_package: '@kivo/sdk',
+        gateway_package: '@kivo/gateway',
+        status: 'snippet_ready'
       }
     }
   },
   {
-    id: 'check-status',
-    title: 'Check Status',
-    description: 'Monitor payment status in real-time',
+    id: 'validate-testnet',
+    title: 'Validate Testnet',
+    description: 'Check x402, Stellar proof, Etherfuse context, and gateway health',
     icon: 'solar:eye-linear',
     example: {
       input: {
-        tx_id: '0x7a4f2c8b9d1e6f3a5c2b8e1d4f6a9c2e'
+        flow_id: 'flow_ev_charge_01',
+        authorization_id: 'auth_7a4f2c8b'
       },
       output: {
-        status: 'confirmed',
-        confirmations: 1,
-        ledger: 45821903,
-        timestamp: '2026-05-15T11:04:03Z'
+        x402: 'valid',
+        stellar: 'confirmed',
+        etherfuse: 'visible',
+        gateway: 'healthy'
       }
     }
   },
   {
-    id: 'subscribe-webhook',
-    title: 'Subscribe Webhooks',
-    description: 'Receive event notifications for payments',
+    id: 'subscribe-events',
+    title: 'Subscribe Events',
+    description: 'Receive gateway release, health, receipt, and payment events',
     icon: 'solar:widget-2-linear',
     example: {
       input: {
-        webhook_url: 'https://api.myapp.com/kivo-webhooks',
-        events: ['payment.created', 'payment.confirmed', 'payment.failed']
+        webhook_url: 'https://api.myapp.com/kivo-events',
+        events: ['authorization.created', 'gateway.released', 'receipt.created']
       },
       output: {
         webhook_id: 'hook-xyz789',
@@ -100,11 +102,11 @@ export default function KivoMCPDemo() {
           className="mb-16"
         >
           <h2 className="text-5xl lg:text-6xl font-bricolage font-bold text-white mb-6">
-            MCP for Autonomous Agents
+            Kivo Studio Agent Tools
           </h2>
           <p className="text-xl text-white/60 max-w-3xl leading-relaxed">
-            Connect your AI agents to Kivo Pay. Control payments, execute contracts, and monitor transactions
-            in real-time through our MCP tools.
+            Connect AI agents to Kivo Studio so they can model resources, generate TypeScript SDK setup,
+            validate x402/Stellar/Etherfuse flows, and monitor gateway events.
           </p>
         </motion.div>
 
@@ -194,14 +196,14 @@ export default function KivoMCPDemo() {
           className="p-8 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20"
         >
           <h3 className="text-2xl font-bricolage font-bold text-white mb-6">
-            Real-World Example: EV Charging Agent
+            Real-World Example: EV Charge Agent
           </h3>
           <div className="space-y-4">
             {[
-              { num: 1, title: 'Agent detects low battery (10%)', desc: 'Autonomous EV agent identifies need for charge.' },
-              { num: 2, title: 'Agent calls kivo_create_payment', desc: 'Creates conditional payment: "Pay when 10 kWh delivered"' },
-              { num: 3, title: 'Payment executes automatically', desc: 'Charging station confirms delivery, payment triggered instantly.' },
-              { num: 4, title: 'Agent receives webhook notification', desc: 'Real-time confirmation of payment settlement on Stellar.' }
+              { num: 1, title: 'Builder describes the station', desc: 'Studio captures the EV charger, price, session length, gateway mode, and controller boundary.' },
+              { num: 2, title: 'Agent generates SDK setup', desc: 'Kivo returns TypeScript snippets for x402 requirements, pairing, and gateway authorization.' },
+              { num: 3, title: 'Testnet validation runs', desc: 'The flow checks Stellar proof, Etherfuse context, webhook signatures, and gateway health.' },
+              { num: 4, title: 'Charge authorization is recorded', desc: 'A short-lived authorization lets the EVSE/OCPP controller start the session and stores the receipt.' }
             ].map((step) => (
               <motion.div
                 key={step.num}
@@ -223,7 +225,7 @@ export default function KivoMCPDemo() {
 
           <div className="flex gap-4 mt-8">
             <motion.a
-              href="/doc/ai/kivopay#mcp"
+              href="/doc/ai/kivo/mcp-tools#mcp"
               whileHover={{ scale: 1.05 }}
               className="px-6 py-3 rounded-lg bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition-colors"
             >

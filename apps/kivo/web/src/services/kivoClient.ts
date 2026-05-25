@@ -4,7 +4,9 @@ import type {
   ApiKeyResult,
   ConditionProofInput,
   ConditionProofResult,
+  CreateGatewayEventInput,
   CreatePaymentInput,
+  CreatePowerTotemInput,
   DashboardSummary,
   DeployCheck,
   DeployServiceStatus,
@@ -18,11 +20,24 @@ import type {
   EtherfuseQuoteInput,
   EtherfuseQuoteResponse,
   EtherfuseStatus,
+  Gateway,
+  GatewayBundleInput,
+  GatewayEvent,
+  GatewayPairingResult,
   McpAgentConfig,
   McpTool,
   McpToolCallResult,
   Payment,
+  PowerSession,
+  PowerTotem,
   RegisterDeviceInput,
+  StudioFlow,
+  StudioFlowInput,
+  StudioIntent,
+  StudioIntentInput,
+  StudioLaunchOption,
+  StudioTemplateSummary,
+  StudioValidationRun,
   SystemHealth,
   Webhook,
   WebhookDelivery,
@@ -64,6 +79,22 @@ export interface KivoApiClient {
   unlockX402Resource(resource: string, paymentHeader: string): Promise<X402UnlockedResponse>;
   listX402PricingRules(): Promise<X402PricingRule[]>;
   upsertX402PricingRule(input: X402PricingRuleInput): Promise<X402PricingRule>;
+  listPowerTotems(): Promise<PowerTotem[]>;
+  createPowerTotem(input: CreatePowerTotemInput): Promise<PowerTotem>;
+  getPowerTotem(id: string): Promise<PowerTotem>;
+  createPowerTotemPairingToken(totemId: string): Promise<GatewayPairingResult>;
+  downloadPowerTotemGatewayBundle(totemId: string, input?: GatewayBundleInput): Promise<Blob>;
+  listGateways(): Promise<Gateway[]>;
+  listPowerSessions(): Promise<PowerSession[]>;
+  createPowerSession(totemId: string): Promise<PowerSession>;
+  startPowerSessionCheckout(
+    sessionId: string,
+  ): Promise<{ session: PowerSession; checkoutResource: string; challenge: X402Challenge }>;
+  authorizePowerSession(sessionId: string): Promise<{ session: PowerSession }>;
+  completePowerSession(sessionId: string): Promise<PowerSession>;
+  sendGatewayHeartbeat(gatewayId: string, gatewayToken: string): Promise<Gateway>;
+  getGatewayAuthorization(gatewayId: string, gatewayToken: string): Promise<{ authorization: PowerSession | null }>;
+  createGatewayEvent(gatewayId: string, gatewayToken: string, input: CreateGatewayEventInput): Promise<GatewayEvent>;
   listWorkflows(): Promise<Workflow[]>;
   listDeployChecks(): Promise<DeployCheck[]>;
   listDeployServices(): Promise<DeployServiceStatus[]>;
@@ -74,6 +105,11 @@ export interface KivoApiClient {
   createEtherfuseOrder(input: EtherfuseOrderInput): Promise<EtherfuseOrderResponse>;
   getEtherfuseOrder(orderId: string): Promise<EtherfuseOrderResponse>;
   signalEtherfuseFiatReceived(orderId: string): Promise<EtherfuseOrderResponse>;
+  createStudioIntent(input: StudioIntentInput): Promise<StudioIntent>;
+  createStudioFlow(input: StudioIntent | StudioFlowInput): Promise<StudioFlow>;
+  startStudioValidation(flowId: string): Promise<StudioValidationRun>;
+  listStudioLaunchOptions(flowId: string): Promise<StudioLaunchOption[]>;
+  listStudioTemplates(): Promise<StudioTemplateSummary[]>;
 }
 
 type Fetcher = typeof fetch;
@@ -227,6 +263,76 @@ export class HttpKivoApiClient implements KivoApiClient {
     return this.request('/v1/x402/pricing-rules', { method: 'PUT', body: JSON.stringify(input) });
   }
 
+  async listPowerTotems(): Promise<PowerTotem[]> {
+    return this.request('/v1/power-totems');
+  }
+
+  async createPowerTotem(input: CreatePowerTotemInput): Promise<PowerTotem> {
+    return this.request('/v1/power-totems', { method: 'POST', body: JSON.stringify(input) });
+  }
+
+  async getPowerTotem(id: string): Promise<PowerTotem> {
+    return this.request(`/v1/power-totems/${encodeURIComponent(id)}`);
+  }
+
+  async createPowerTotemPairingToken(totemId: string): Promise<GatewayPairingResult> {
+    return this.request(`/v1/power-totems/${encodeURIComponent(totemId)}/pairing-token`, { method: 'POST' });
+  }
+
+  async downloadPowerTotemGatewayBundle(totemId: string, input: GatewayBundleInput = {}): Promise<Blob> {
+    return this.requestBlob(`/v1/power-totems/${encodeURIComponent(totemId)}/gateway-bundle`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  }
+
+  async listGateways(): Promise<Gateway[]> {
+    return this.request('/v1/gateways');
+  }
+
+  async listPowerSessions(): Promise<PowerSession[]> {
+    return this.request('/v1/power-sessions');
+  }
+
+  async createPowerSession(totemId: string): Promise<PowerSession> {
+    return this.request('/v1/power-sessions', { method: 'POST', body: JSON.stringify({ totemId }) });
+  }
+
+  async startPowerSessionCheckout(
+    sessionId: string,
+  ): Promise<{ session: PowerSession; checkoutResource: string; challenge: X402Challenge }> {
+    return this.request(`/v1/power-sessions/${encodeURIComponent(sessionId)}/start-checkout`, { method: 'POST' });
+  }
+
+  async authorizePowerSession(sessionId: string): Promise<{ session: PowerSession }> {
+    return this.request(`/v1/power-sessions/${encodeURIComponent(sessionId)}/authorize`, { method: 'POST' });
+  }
+
+  async completePowerSession(sessionId: string): Promise<PowerSession> {
+    return this.request(`/v1/power-sessions/${encodeURIComponent(sessionId)}/complete`, { method: 'POST' });
+  }
+
+  async sendGatewayHeartbeat(gatewayId: string, gatewayToken: string): Promise<Gateway> {
+    return this.request(`/v1/gateways/${encodeURIComponent(gatewayId)}/heartbeat`, {
+      method: 'POST',
+      headers: { 'x-gateway-token': gatewayToken },
+    });
+  }
+
+  async getGatewayAuthorization(gatewayId: string, gatewayToken: string): Promise<{ authorization: PowerSession | null }> {
+    return this.request(`/v1/gateways/${encodeURIComponent(gatewayId)}/authorization`, {
+      headers: { 'x-gateway-token': gatewayToken },
+    });
+  }
+
+  async createGatewayEvent(gatewayId: string, gatewayToken: string, input: CreateGatewayEventInput): Promise<GatewayEvent> {
+    return this.request(`/v1/gateways/${encodeURIComponent(gatewayId)}/events`, {
+      method: 'POST',
+      headers: { 'x-gateway-token': gatewayToken },
+      body: JSON.stringify(input),
+    });
+  }
+
   async listWorkflows(): Promise<Workflow[]> {
     return this.request('/v1/workflows');
   }
@@ -268,6 +374,35 @@ export class HttpKivoApiClient implements KivoApiClient {
     return this.request(`/v1/etherfuse/orders/${encodeURIComponent(orderId)}/fiat-received`, { method: 'POST' });
   }
 
+  async createStudioIntent(input: StudioIntentInput): Promise<StudioIntent> {
+    return this.request('/v1/studio/intents', { method: 'POST', body: JSON.stringify(input) });
+  }
+
+  async createStudioFlow(input: StudioIntent | StudioFlowInput): Promise<StudioFlow> {
+    const payload = 'recommendedGatewayMode' in input
+      ? {
+          intentId: input.id,
+          prompt: input.prompt,
+          surface: input.surface,
+          interactionModel: input.interactionModel,
+          gatewayMode: input.recommendedGatewayMode,
+        }
+      : input;
+    return this.request('/v1/studio/flows', { method: 'POST', body: JSON.stringify(payload) });
+  }
+
+  async startStudioValidation(flowId: string): Promise<StudioValidationRun> {
+    return this.request(`/v1/studio/flows/${encodeURIComponent(flowId)}/validation-runs`, { method: 'POST' });
+  }
+
+  async listStudioLaunchOptions(flowId: string): Promise<StudioLaunchOption[]> {
+    return this.request(`/v1/studio/flows/${encodeURIComponent(flowId)}/launch-options`);
+  }
+
+  async listStudioTemplates(): Promise<StudioTemplateSummary[]> {
+    return this.request('/v1/studio/templates');
+  }
+
   private async request<T>(path: string, init: RequestInit = {}): Promise<T> {
     const token = await this.getToken?.();
     const headers = new Headers(init.headers);
@@ -286,6 +421,23 @@ export class HttpKivoApiClient implements KivoApiClient {
       return undefined as T;
     }
     return (await response.json()) as T;
+  }
+
+  private async requestBlob(path: string, init: RequestInit = {}): Promise<Blob> {
+    const token = await this.getToken?.();
+    const headers = new Headers(init.headers);
+    if (!headers.has('Content-Type') && init.body) {
+      headers.set('Content-Type', 'application/json');
+    }
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    const response = await this.fetcher(this.resolveUrl(path), { ...init, headers });
+    if (!response.ok) {
+      throw new Error(await readApiErrorMessage(response));
+    }
+    return response.blob();
   }
 
   private resolveUrl(path: string): string {

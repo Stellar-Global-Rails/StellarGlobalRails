@@ -121,15 +121,15 @@ export default function KivoShowcase() {
           {/* Item 30: Blurhash Simulated */}
           <BlurImage 
             src="/fake-terminal.png" 
-            alt="Kivo Terminal Device" 
+            alt="Kivo physical gateway device"
             blurColor="#1e3a8a"
             className="absolute inset-0 w-full h-full opacity-20 pointer-events-none"
           />
 
           <div className="relative z-10">
-            <h3 className="text-2xl font-bricolage text-white mb-3">Kivo Terminal</h3>
+            <h3 className="text-2xl font-bricolage text-white mb-3">EV Charge gateway</h3>
             <p className="text-white/50 mb-8 max-w-[280px]">
-              Offline? Sem internet? O hardware dedicado de baixo custo foi feito para as bordas do mundo.
+              Um gateway físico com tela local autoriza sessoes de recarga somente apos pagamento validado.
             </p>
             <ul className="space-y-3 mb-12">
               <motion.li 
@@ -140,7 +140,7 @@ export default function KivoShowcase() {
                 className="flex items-center gap-3 text-sm text-white/70"
               >
                 {/* @ts-ignore */}
-                <iconify-icon icon="solar:check-read-linear" width="18" class="text-emerald-400"></iconify-icon> Chip 4G global embutido
+                <iconify-icon icon="solar:check-read-linear" width="18" class="text-emerald-400"></iconify-icon> Raspberry Pi ou mini PC local
               </motion.li>
               <motion.li 
                 initial={{ opacity: 0, x: -10 }}
@@ -150,7 +150,7 @@ export default function KivoShowcase() {
                 className="flex items-center gap-3 text-sm text-white/70"
               >
                 {/* @ts-ignore */}
-                <iconify-icon icon="solar:check-read-linear" width="18" class="text-emerald-400"></iconify-icon> Bateria para 7 dias em uso
+                <iconify-icon icon="solar:check-read-linear" width="18" class="text-emerald-400"></iconify-icon> EVSE, OCPP ou controlador seguro
               </motion.li>
               <motion.li 
                 initial={{ opacity: 0, x: -10 }}
@@ -160,7 +160,7 @@ export default function KivoShowcase() {
                 className="flex items-center gap-3 text-sm text-white/70"
               >
                 {/* @ts-ignore */}
-                <iconify-icon icon="solar:check-read-linear" width="18" class="text-emerald-400"></iconify-icon> Visor e-ink ultra-resistente
+                <iconify-icon icon="solar:check-read-linear" width="18" class="text-emerald-400"></iconify-icon> Tela QR para motorista
               </motion.li>
             </ul>
           </div>

@@ -1,172 +1,87 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo Pay — Product Overview"
-description: "Kivo Pay is the M2M payment SDK for autonomous device-to-device transactions on Stellar. Machines need a network. Kivo is the network."
+title: "Kivo"
+description: "Kivo is a physical and digital gateway for monetizing access to resources."
 ---
 
-# Kivo Pay — Product Overview
+# Kivo
 
-> **Machines need a network. Kivo is the network.**
+Kivo is a Gateway-core + Studio-led platform for monetizing and controlling physical or digital resources with x402, Stellar, Etherfuse, a programmable Gateway runtime, and a TypeScript SDK.
 
-Kivo Pay is an M2M (machine-to-machine) payment SDK that gives autonomous devices, IoT sensors, AI agents, and embedded systems the ability to transact with each other — without human intervention, without bank accounts, and without KYC.
+Kivo Gateway is the runtime. Kivo Studio is the AI-agent creation environment. Kivo SDK is the downloadable integration layer. Power Totem is the functional hackathon template. Other templates are roadmap or marketplace candidates.
 
----
+It combines:
 
-## Why M2M Payments Are Hard Today
+- Kivo Gateway for runtime enforcement near a device, API, automation, worker, proxy, sidecar, or agent tool;
+- Kivo Studio for AI-agent-assisted solution building;
+- Kivo SDK for TypeScript integration;
+- x402 for paid access requirements;
+- Stellar for settlement proof;
+- Etherfuse for visible anchor/funding context;
+- private mainnet billing for validated flows that must remain private.
 
-Modern infrastructure is filled with machines that need to exchange value: EV chargers billing cars, smart meters settling with energy grids, AI agents paying for API access, drones paying landing fees. Yet every existing payment rail was designed for humans.
-
-| Problem | Why it blocks machines |
-|---|---|
-| Bank accounts require identity | Machines cannot complete KYC/AML processes |
-| IBAN/SWIFT require legal entities | A Raspberry Pi cannot be a legal person |
-| Card networks require a human cardholder | No machine can hold a Visa card |
-| ACH/SEPA settle in days | A charging session needs settlement in seconds |
-| OAuth flows require browser redirects | An embedded device has no browser |
-| Traditional APIs use API keys + billing | No machine-native micropayment primitive |
-
-The result: developers building M2M payment flows today must either (a) route through a human-controlled account, creating a bottleneck and liability, or (b) build complex off-chain accounting that introduces trust and reconciliation problems.
+Power Totem is the only implemented hackathon template today. API Toll, Data Gate, Agent Tool Paywall, Compute Gate, Automation Gate, IoT Device Access, EV Charging, and P2P Energy are roadmap or marketplace candidates until implemented.
 
 ---
 
-## How Stellar Solves This
+## Product Shape
 
-Stellar was designed as a global payment network, and it happens to be a near-perfect substrate for M2M payments:
+Kivo treats every paid thing as a protected resource. A resource can be physical, such as a Raspberry Pi, power totem, kiosk, edge box, or local controller. A resource can also be digital, such as an API, worker, automation, proxy, sidecar, queue consumer, or agent tool.
 
-| Stellar Property | M2M Benefit |
-|---|---|
-| Wallet per keypair (no KYC) | Any device gets a wallet in milliseconds |
-| $0.00001 per transaction | Micropayments are economically viable |
-| 3–5 second settlement | Real-time device interactions |
-| USDC / XLM native assets | Stable-value payments without volatility risk |
-| Claimable Balances | Escrow-style conditional payments |
-| Path Payments / DEX | Cross-asset payments automatically routed |
-| Soroban smart contracts | Complex programmable payment logic |
-| Open source, no permission | No vendor lock-in for device manufacturers |
+The core flow is:
 
-A device gets a Stellar keypair. Its public key is its wallet address. It can send and receive payments, hold balances, and participate in the network without any human in the loop.
-
----
-
-## Three Product Layers
-
-Kivo Pay is not a single library — it is a three-layer stack, each layer building on the one below.
-
-```
-┌─────────────────────────────────────────────────────┐
-│  Layer 3 — MCP Server                               │
-│  AI agents (Claude, GPT-4) call Kivo tools natively │
-│  Standard Model Context Protocol interface          │
-└─────────────────────────────┬───────────────────────┘
-                              │
-┌─────────────────────────────▼───────────────────────┐
-│  Layer 2 — Programmable Gateway (REST API)          │
-│  Supabase Edge Function API                        │
-│  x402 middleware, webhooks, conditional payments    │
-└─────────────────────────────┬───────────────────────┘
-                              │
-┌─────────────────────────────▼───────────────────────┐
-│  Layer 1 — M2M SDK                                  │
-│  Developer library for device integration           │
-│  TypeScript client + embedded SDK                   │
-└─────────────────────────────────────────────────────┘
+```txt
+resource -> policy -> x402 requirement -> Stellar proof -> Etherfuse context -> Kivo authorization -> Gateway release -> receipt and health
 ```
 
-### Layer 1: M2M SDK
-
-The developer-facing library that device firmware or edge software embeds. It handles wallet generation, payment signing, condition evaluation, and communication with the Gateway. The MVP SDK target is TypeScript first so it can share contracts with the Supabase Edge runtime.
-
-### Layer 2: Programmable Gateway
-
-The Supabase Edge Function API that orchestrates payments. It registers devices, manages API keys, stores payment records in Supabase PostgreSQL, submits transactions to Stellar Horizon, proxies Etherfuse server-side, and fires webhooks on payment events. This is the core of the MVP runtime. The previous Go implementation is kept only as a temporary local fallback until TypeScript route parity is complete.
-
-### Layer 3: MCP Server
-
-A Model Context Protocol server that exposes Kivo tools to AI agents. Claude, GPT-4, and any MCP-compatible agent can call `kivo_create_payment`, `kivo_execute_contract`, and `kivo_check_status` natively, without any custom integration. This is the gateway to the AI Agent Economy.
+Kivo Gateway enforces the authorization. Kivo Studio helps users design the flow with AI agents. The current Kivo SDK gives developers a TypeScript client for x402 challenge/payment/unlock, Gateway heartbeat, adapters, examples, and tests. Broader resource-policy, authorization, webhook, and pairing helpers are planned after the hackathon MVP.
 
 ---
 
-## x402 Protocol
+## Functional Template
 
-The x402 protocol repurposes the HTTP 402 Payment Required status code as a machine-native payment primitive. When a device requests a protected resource, the server responds with `402` and a `X-PAYMENT-REQUIRED` header describing what to pay. The device signs a Stellar payment, encodes it in an `X-PAYMENT` header, and retries the request. The server verifies and settles.
+Power Totem is the hackathon functional template.
 
-This requires no OAuth, no redirect, no session — just HTTP headers. Any HTTP client, from a Python script to a C firmware library, can implement x402.
+It demonstrates a physical gateway flow:
 
----
+1. A totem displays a QR checkout.
+2. The user pays through an x402 requirement.
+3. Kivo validates Stellar settlement proof.
+4. Kivo shows Etherfuse anchor/funding context.
+5. Kivo issues a short-lived authorization.
+6. The physical gateway releases a safe load.
+7. Kivo records status, health, receipt, and completion events.
 
-## Etherfuse Anchor
-
-Kivo uses Etherfuse as the anchor/ramp layer around Stellar wallets: onboarding, fiat funding, rampable asset discovery, quotes, orders, sandbox fiat simulation, and signed webhooks. The M2M/x402 flow still settles on Stellar; Etherfuse gives the demo and future product a credible way to fund or exit the Stellar side of the system.
-
-For the MVP, this runs against the Etherfuse sandbox at `https://api.sand.etherfuse.com` and targets Stellar testnet. See [Etherfuse Integration](/doc/ai/kivo/etherfuse-integration) for the full contract.
-
----
-
-## Use Case Overview
-
-| Use Case | Devices Involved | Payment Flow | Asset |
-|---|---|---|---|
-| EV Charging | Car ↔ Charger | Car pays per kWh as energy flows | USDC |
-| P2P Energy Trading | Solar Panel ↔ Grid | Panel sells excess energy in real time | USDC |
-| AI Agent Economy | Agent ↔ API Provider | Agent pays per API call via x402 | USDC |
-| Drone Logistics | Drone ↔ Landing Pad | Drone pays landing fee autonomously | XLM |
-| IoT Data Marketplace | Sensor ↔ Data Buyer | Sensor streams data, buyer pays per record | USDC |
-| Edge Compute | Client ↔ GPU Node | Client pays per compute unit | USDC |
-
-### EV Charging
-
-An EV connects to a charger. The charger's firmware runs the Kivo SDK. A payment is created with a condition: `energy_kwh = 10`. As the car draws energy, the kWh counter increments. When the condition is met, the Stellar transaction is submitted automatically. The car's wallet is debited; the charger's wallet is credited. No human touched the transaction.
-
-### P2P Energy Trading
-
-A rooftop solar panel is generating more than its household needs. The Kivo SDK on its edge controller creates a payment channel with the local grid. As excess watts flow, micropaymentssettle in real time on Stellar. The panel owner earns USDC per kWh, not once a month but second by second.
-
-### AI Agent Economy
-
-An AI agent (Claude, running autonomously) needs to call a premium weather data API. The API is protected by x402. The agent uses the `kivo_create_payment` MCP tool to authorize a payment, encodes it in the request header, and receives the data. The entire flow — payment negotiation, signing, and verification — happens inside a single agent tool call.
+Other templates, including API Toll, Data Gate, Agent Tool Paywall, Compute Gate, Automation Gate, IoT Device Access, EV Charging, and P2P Energy, are roadmap or marketplace candidates rather than hackathon-ready features.
 
 ---
 
-## Target Audience
+## Templates
 
-| Audience | What they build with Kivo |
-|---|---|
-| IoT / Embedded Developers | Device firmware that pays and gets paid autonomously |
-| AI Agent Builders | Agents that consume paid APIs and services without human approval |
-| Energy Companies | Real-time settlement for P2P energy grids |
-| Mobility / EV Companies | Per-kWh charging billing without payment processors |
-| API Providers | Monetize endpoints with machine-native x402 pricing |
-| DeFi / Web3 Developers | Stellar-native payment flows with programmable conditions |
+<a id="template-power-totem"></a>
 
----
+### Template Power Totem
 
-## How Kivo Fits in the SGR Platform
+Power Totem is the first functional Kivo template. It represents a physical gateway that releases a safe load only after Kivo validates the x402 payment requirement, settlement proof, Etherfuse funding context, and short-lived authorization.
 
-Stellar Global Rails (SGR) is a platform of three complementary products. All three share infrastructure while serving distinct use cases:
+<a id="template-api-toll"></a>
 
-| Product | Layer | Stellar Role |
-|---|---|---|
-| ContractEase | Smart contracts | Deploy + interact with Soroban contracts |
-| SocialPay | Consumer payments | Human-to-human Stellar transfers |
-| Kivo Pay | M2M payments | Device-to-device autonomous payments |
+### Template API Toll
 
-All three products share the same Supabase PostgreSQL cluster. Kivo reuses the Supabase Auth system for dashboard users (device owners) while extending it with device API keys for M2M authentication. The same Stellar network (testnet for dev, mainnet for production) underlies all three products, which means Kivo devices can pay ContractEase-deployed contracts and SocialPay users in the same transaction graph.
+API Toll is a roadmap or marketplace candidate for applying the same resource-policy-authorization model to an HTTP route. A protected endpoint returns an x402 requirement, Kivo verifies payment state, and the digital gateway lets the request continue only while the authorization is valid.
 
----
+<a id="template-agent-tool-paywall"></a>
 
-## Status
+### Template Agent Tool Paywall
 
-Kivo Pay is in MVP delivery phase. The frontend is deployed on Vercel, the backend runtime is moving to Supabase Edge Functions, and the current focus is closing route parity for x402, Stellar settlement, Etherfuse Devnet, and product workflows.
-
-See [Roadmap](/doc/ai/kivo/roadmap) for the full implementation plan.
+Agent Tool Paywall is a roadmap or marketplace candidate for AI tool calls. An agent requests a paid tool, satisfies the x402 requirement, and receives a scoped authorization for that tool invocation without relying on a standing API key or monthly billing account.
 
 ---
 
 ## Next Steps
 
-- [Architecture & ADRs](/doc/ai/kivo/architecture) — how the system is built and why
-- [Data Models](/doc/ai/kivo/data-models) — PostgreSQL schema and Go types
-- [API Reference](/doc/ai/kivo/api-reference) — REST endpoints and MCP tools
-- [Etherfuse Integration](/doc/ai/kivo/etherfuse-integration) — sandbox/testnet anchor, quotes, orders, webhooks, and ramp runbook
-- [x402 Protocol](/doc/ai/kivo/x402-protocol) — deep dive into machine payment headers
-- [Deployment Guide](/doc/ai/kivo/deployment) — run Kivo with Vercel and Supabase Edge Functions
+- [Architecture](/doc/ai/kivo/architecture) - how the gateway model is organized
+- [API Reference](/doc/ai/kivo/api-reference) - resource, policy, authorization, and gateway event APIs
+- [Etherfuse Integration](/doc/ai/kivo/etherfuse-integration) - visible anchor/funding context
+- [x402 Protocol](/doc/ai/kivo/x402-protocol) - paid access requirement layer
+- [Roadmap](/doc/ai/kivo/roadmap) - hackathon scope and post-hackathon plan

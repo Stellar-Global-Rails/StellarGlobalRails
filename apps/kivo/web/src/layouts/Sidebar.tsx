@@ -5,23 +5,29 @@ import { useAuthStore, useUIStore } from '@/stores';
 
 const navGroups = [
   {
-    title: 'Produto',
+    title: 'Criar',
     items: [
-      { to: '/dashboard', icon: 'solar:home-angle-bold-duotone', label: 'Home' },
-      { to: '/create-flow', icon: 'solar:add-circle-bold-duotone', label: 'Criar flow' },
-      { to: '/flows', icon: 'solar:bolt-circle-bold-duotone', label: 'Flows' },
-      { to: '/payments', icon: 'solar:wallet-money-bold-duotone', label: 'Pagamentos' },
-      { to: '/advanced', icon: 'solar:settings-bold-duotone', label: 'Integracoes' },
+      { to: '/dashboard', icon: 'solar:home-2-bold-duotone', label: 'Home' },
+      { to: '/studio', icon: 'solar:stars-line-duotone', label: 'Studio' },
+      { to: '/marketplace', icon: 'solar:widget-linear', label: 'Marketplace' },
+      { to: '/library', icon: 'solar:folder-with-files-linear', label: 'Biblioteca' },
     ],
   },
   {
-    title: 'Atalhos',
+    title: 'Operar',
     items: [
-      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Checkout' },
-      { to: '/operations', icon: 'solar:devices-bold-duotone', label: 'Operacao' },
-      { to: '/finance', icon: 'solar:chart-square-bold-duotone', label: 'Financeiro' },
-      { to: '/health', icon: 'solar:heart-pulse-bold-duotone', label: 'Saude' },
+      { to: '/gateway', icon: 'solar:server-square-cloud-linear', label: 'Gateway' },
+      { to: '/sdk', icon: 'solar:code-square-linear', label: 'SDK' },
+      { to: '/validation', icon: 'solar:shield-check-linear', label: 'Validacao' },
+      { to: '/checkout', icon: 'solar:card-transfer-bold-duotone', label: 'Pagamento' },
+      { to: '/launch', icon: 'solar:rocket-linear', label: 'Launch' },
+    ],
+  },
+  {
+    title: 'Conta',
+    items: [
       { to: '/status', icon: 'solar:pulse-2-bold-duotone', label: 'Status' },
+      { to: '/settings', icon: 'solar:settings-bold-duotone', label: 'Ajustes' },
     ],
   },
 ];
@@ -41,7 +47,7 @@ export default function Sidebar() {
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 font-bricolage text-sm font-bold text-black">KV</div>
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <p className="font-bricolage text-lg font-bold leading-none text-white">Kivo Pay</p>
+            <p className="font-bricolage text-lg font-bold leading-none text-white">Kivo</p>
             <p className="mt-1 text-[10px] uppercase tracking-wider text-emerald-400">Workspace</p>
           </motion.div>
         )}

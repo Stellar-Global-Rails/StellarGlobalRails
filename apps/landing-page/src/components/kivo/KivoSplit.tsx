@@ -81,7 +81,7 @@ export default function KivoSplit() {
               className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 w-40 text-center relative z-20 backdrop-blur-sm group hover:border-emerald-400 transition-colors cursor-pointer"
             >
               <div className="text-lg font-bricolage text-emerald-400">US$ 90</div>
-              <div className="text-white/50 text-xs">Kivo Pay Vendedor</div>
+              <div className="text-white/50 text-xs">Kivo settlement engine</div>
               <div className="bg-emerald-400/10 text-emerald-400 text-[10px] uppercase mt-2 rounded py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Liquidado</div>
             </motion.div>
 

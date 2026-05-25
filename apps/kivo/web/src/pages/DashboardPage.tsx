@@ -28,7 +28,7 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          eyebrow="Kivo Pay"
+          eyebrow="Kivo"
           title="Dashboard indisponivel"
           icon="solar:danger-triangle-bold-duotone"
           description="O shell carregou, mas a API nao retornou o resumo operacional."
@@ -80,7 +80,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Kivo Pay"
+        eyebrow="Kivo"
         title="Operação M2M em tempo real"
         icon="solar:widget-5-bold-duotone"
         description="Controle devices, pagamentos condicionais, x402 e MCP a partir de um console operacional conectado ao contrato de API futuro."

@@ -38,7 +38,7 @@ export default function KivoInvoiceSimulator() {
     <section className="px-6 max-w-5xl mx-auto mb-32 gs-fade-up">
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-5xl font-bricolage text-white mb-6">Simulador Kivo Invoicing</h2>
-        <p className="text-white/50 text-lg">Veja como o Kivo Pay transforma uma cobrança global num link mágico liquidado em segundos.</p>
+        <p className="text-white/50 text-lg">Veja como o Kivo settlement engine transforma uma cobrança global num link mágico liquidado em segundos.</p>
       </div>
 
       <div className="bg-neutral-900 border border-white/10 rounded-3xl p-8 relative overflow-hidden shadow-2xl">

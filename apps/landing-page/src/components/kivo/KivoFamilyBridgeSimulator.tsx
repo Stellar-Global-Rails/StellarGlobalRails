@@ -59,7 +59,7 @@ export default function KivoFamilyBridgeSimulator() {
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-5xl font-bricolage text-white mb-6">Simulador FamilyBridge</h2>
         <p className="text-white/50 text-lg max-w-2xl mx-auto">
-          Remessas globais ultrarrápidas sem passar por bancos correspondentes, utilizando as rampas de liquidação do Kivo Payouts.
+          Remessas globais ultrarrápidas sem passar por bancos correspondentes, utilizando as rampas de liquidação do Kivo Gateway.
         </p>
       </div>
 
@@ -121,7 +121,7 @@ export default function KivoFamilyBridgeSimulator() {
           {/* KIVO ENGINE (Stellar) */}
           <div className="flex flex-col items-center justify-center w-full md:w-1/3 relative">
              <div className="text-xs font-mono text-orange-400 uppercase tracking-widest mb-6 flex items-center gap-2 drop-shadow-[0_0_10px_rgba(249,115,22,0.5)]">
-               Kivo Payment Engine
+               Kivo payment engine
              </div>
              
              <div className="w-48 h-48 rounded-full border border-orange-500/20 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm relative shadow-[0_0_60px_rgba(249,115,22,0.15)]">

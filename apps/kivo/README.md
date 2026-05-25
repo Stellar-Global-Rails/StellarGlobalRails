@@ -1,10 +1,24 @@
-# Kivo MVP
+# Kivo
 
-Kivo is the M2M payment product for solo operators who want to monetize a device, paid API, or IoT data feed with Stellar/x402 and Etherfuse rails.
+Kivo is a Gateway-core + Studio-led platform for monetizing and controlling physical or digital resources with x402, Stellar, Etherfuse, a programmable Gateway runtime, and a TypeScript SDK.
+
+The product has three primary surfaces:
+
+- Kivo Gateway: runtime that protects and releases the resource.
+- Kivo Studio: AI-agent guided workspace for creating, validating, and publishing flows.
+- Kivo SDK: downloadable TypeScript package with client, adapters, examples, and tests.
+
+Power Totem is the only functional hackathon template. Other templates are roadmap or marketplace candidates until implemented.
 
 ```txt
-operator creates flow -> Etherfuse Devnet funding -> x402 challenge -> signed Stellar tx -> protected resource unlock -> dashboard status
+operator creates Power Totem -> gateway pairs once -> x402 challenge -> signed Stellar tx -> gateway authorization -> physical session event -> dashboard status
 ```
+
+## Hackathon Path: Power Totem
+
+The active hackathon path is Power Totem first. The operator creates a Power Totem in Studio, opens Gateway Install, downloads the Docker bundle with the one-time gateway credentials, runs it on a Raspberry Pi or mini PC, starts checkout for `/power-totem/{id}/session`, signs the Stellar payment, and lets the local gateway fetch a short authorization before reporting session events.
+
+Other templates remain useful product context, but demo readiness is judged by the Power Totem path: Studio creation, one-time gateway token, x402 checkout, Stellar settlement, Etherfuse funding, gateway heartbeat, and safe physical authorization.
 
 ## Runtime Decision
 
@@ -76,7 +90,7 @@ supabase functions list --project-ref <project-ref>
 supabase functions deploy kivo-api --project-ref <project-ref> --use-api --no-verify-jwt
 ```
 
-The Edge Function owns deployment health, Etherfuse proxy/webhook routes, dashboard, devices, payments, x402, webhooks, API keys, MCP config, and workflows.
+The Edge Function owns deployment health, Etherfuse proxy/webhook routes, dashboard, Power Totems, Power Sessions, gateway heartbeat/authorization/events, devices, payments, x402, webhooks, API keys, MCP config, and workflows.
 
 ## Frontend
 
@@ -126,7 +140,57 @@ Solo MVP routes now served by Supabase Edge:
 - `GET /v1/mcp/config`
 - `POST /mcp`
 
+Power Totem routes active now:
+
+- `GET|POST /v1/power-totems`
+- `POST /v1/power-totems/:id/pairing-token` (legacy pairing)
+- `POST /v1/power-totems/:id/gateway-bundle`
+- `GET|POST /v1/power-sessions`
+- `POST /v1/power-sessions/:id/start-checkout`
+- `POST /v1/gateways/:id/heartbeat`
+- `GET /v1/gateways/:id/authorization`
+- `POST /v1/gateways/:id/events`
+- `GET /power-totem/{id}/session`
+
 Known external step: `POST /v1/x402/pay` requires a valid signed Stellar `txXDR` from a wallet or SDK. The Edge API validates the nonce memo, destination, amount, and asset before submitting to Horizon.
+
+## Power Totem Gateway
+
+The primary install path is the generated Docker bundle from `POST /v1/power-totems/:id/gateway-bundle`. It includes:
+
+- Docker Compose
+- Gateway local runtime
+- Postgres local database for state, events, retry queue, and offline recovery window
+- UI local for the totem
+- `.env` with `KIVO_API_URL`, `KIVO_GATEWAY_ID`, and `KIVO_GATEWAY_TOKEN`
+
+The source gateway package lives in `apps/kivo/gateway` and can also run against the Supabase Edge API:
+
+```bash
+cd apps/kivo/gateway
+npm install
+npm run dev -- once
+npm run dev -- start
+```
+
+Required environment:
+
+```txt
+KIVO_API_URL=https://<project-ref>.supabase.co/functions/v1/kivo-api
+KIVO_GATEWAY_ID=gw_...
+KIVO_GATEWAY_TOKEN=kgw_...
+KIVO_GATEWAY_ADAPTER=raspberry
+```
+
+Raspberry mode is available with:
+
+```txt
+KIVO_GATEWAY_ADAPTER=raspberry
+KIVO_GATEWAY_ENABLE_COMMAND="node ./scripts/relay-on.js"
+KIVO_GATEWAY_DISABLE_COMMAND="node ./scripts/relay-off.js"
+```
+
+The Raspberry demo must use only low-voltage relay/controller output with proper isolation. The gateway package does not control mains power directly.
 
 ## Delivery Preflight
 

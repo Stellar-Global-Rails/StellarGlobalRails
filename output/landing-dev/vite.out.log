@@ -1,0 +1,496 @@
+
+> landing-page-astro@0.0.1 dev
+> astro dev --host 127.0.0.1 --port 5188
+
+[2m02:38:36[22m [34m[types][39m Generated [2m1ms[22m
+[2m02:38:36[22m [34m[content][39m Syncing content
+[2m02:38:36[22m [34m[content][39m Synced content
+
+[42m[1m astro [22m[49m [32mv5.18.1[39m [2mready in[22m 734 [2mms[22m
+
+[2m┃[22m Local    [36mhttp://127.0.0.1:5188/[39m
+
+[2m02:38:36[22m [32mwatching for file changes...[39m
+[2m02:39:51[22m [34m[200][39m / [2m351ms[22m
+[2m02:40:31[22m [34m[200][39m / [2m221ms[22m
+[2m02:40:34[22m [34m[200][39m /products/kivo [2m75ms[22m
+[2m02:40:36[22m [34m[200][39m /doc/ai/kivo [2m19ms[22m
+[2m02:40:39[22m [34m[200][39m /doc/ai/kivo/api-reference [2m38ms[22m
+[2m02:41:09[22m [34m[200][39m /products/kivo [2m87ms[22m
+[2m02:41:10[22m [34m[200][39m / [2m239ms[22m
+[2m02:41:27[22m [34m[200][39m / [2m319ms[22m
+[2m02:41:55[22m [34m[200][39m /products/kivo [2m114ms[22m
+[2m02:47:12[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\Hero.tsx, /src/styles/global.css
+[2m02:47:12[22m [34m[watch][39m src/components/Hero.tsx
+[2m02:47:31[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx, /src/styles/global.css
+[2m02:47:31[22m [34m[watch][39m src/components/ProductPage.tsx
+[2m02:53:25[22m [34m[watch][39m src/i18n/ui.ts
+[2m02:53:25[22m [34m[watch][39m src/i18n/ui.ts
+[2m02:53:25[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m02:53:25[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m02:53:25[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m02:53:25[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m02:53:25[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\WhySGR.tsx, /src/styles/global.css
+[2m02:53:25[22m [34m[watch][39m src/components/WhySGR.tsx
+[2m02:53:25[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m02:53:25[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m02:53:25[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m02:53:25[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m02:53:25[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m02:53:25[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m02:53:25[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m02:53:25[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m02:56:56[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m02:56:56[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m09:28:02[22m [34m[watch][39m src/components/Ecosystem.tsx
+[2m09:28:02[22m [34m[watch][39m src/components/Ecosystem.tsx
+[2m09:28:02[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\Hero.tsx, /src/styles/global.css
+[2m09:28:02[22m [34m[watch][39m src/components/Hero.tsx
+[2m09:28:02[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:02[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:02[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx, /src/styles/global.css
+[2m09:28:02[22m [34m[watch][39m src/components/ProductPage.tsx
+[2m09:28:02[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:02[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:02[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:28:02[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:28:03[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\CoreSimulator.tsx, /src/styles/global.css
+[2m09:28:03[22m [34m[watch][39m src/components/simulators/CoreSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\WhySGR.tsx, /src/styles/global.css
+[2m09:28:03[22m [34m[watch][39m src/components/WhySGR.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoInvoiceSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoInvoiceSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\kivo\KivoMCPDemo.tsx, /src/styles/global.css
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoMCPDemo.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoQuiloVoltSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoQuiloVoltSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoSandbox.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoSandbox.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoSaude360Simulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoSaude360Simulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoSplit.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoSplit.tsx
+[2m09:28:03[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\kivo\KivoTemplateGallery.tsx, /src/styles/global.css
+[2m09:28:03[22m [34m[watch][39m src/components/kivo/KivoTemplateGallery.tsx
+[2m09:28:03[22m [34m[watch][39m /src/styles/global.css, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductSuite.tsx, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx
+[2m09:28:03[22m [34m[watch][39m src/data/content.ts
+[2m09:28:03[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:03[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:03[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:03[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:03[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:03[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:03[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:03[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\CoreSimulator.tsx, /src/styles/global.css
+[2m09:28:03[22m [34m[watch][39m src/components/simulators/CoreSimulator.tsx
+[2m09:28:03[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\FeatureVisualizer.tsx, /src/styles/global.css
+[2m09:28:03[22m [34m[watch][39m src/components/simulators/FeatureVisualizer.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:03[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:03[22m [34m[watch][39m src/layouts/DocLayout.astro
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/contractease/roadmap.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/contractease/roadmap.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m09:28:03[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m09:28:13[22m [34m[watch][39m src/components/Ecosystem.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/Ecosystem.tsx
+[2m09:28:13[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\Hero.tsx, /src/styles/global.css
+[2m09:28:13[22m [34m[watch][39m src/components/Hero.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:28:13[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx, /src/styles/global.css
+[2m09:28:13[22m [34m[watch][39m src/components/ProductPage.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:13[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\WhySGR.tsx, /src/styles/global.css
+[2m09:28:13[22m [34m[watch][39m src/components/WhySGR.tsx
+[2m09:28:13[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\CoreSimulator.tsx, /src/styles/global.css
+[2m09:28:13[22m [34m[watch][39m src/components/simulators/CoreSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:13[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:13[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:13[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:13[22m [34m[watch][39m /src/styles/global.css, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductSuite.tsx, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx
+[2m09:28:13[22m [34m[watch][39m src/data/content.ts
+[2m09:28:13[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:13[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoInvoiceSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoInvoiceSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\kivo\KivoMCPDemo.tsx, /src/styles/global.css
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoMCPDemo.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoQuiloVoltSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoQuiloVoltSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoSandbox.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoSandbox.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoSaude360Simulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoSaude360Simulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoSimulator.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoSplit.tsx
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoSplit.tsx
+[2m09:28:13[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\kivo\KivoTemplateGallery.tsx, /src/styles/global.css
+[2m09:28:13[22m [34m[watch][39m src/components/kivo/KivoTemplateGallery.tsx
+[2m09:28:13[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\FeatureVisualizer.tsx, /src/styles/global.css
+[2m09:28:13[22m [34m[watch][39m src/components/simulators/FeatureVisualizer.tsx
+[2m09:28:13[22m [34m[watch][39m /src/styles/global.css, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductSuite.tsx, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx
+[2m09:28:13[22m [34m[watch][39m src/data/content.ts
+[2m09:28:13[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:13[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:13[22m [34m[watch][39m src/layouts/DocLayout.astro
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/layouts/DocLayout.astro
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/contractease/roadmap.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/contractease/roadmap.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m09:28:13[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m09:28:49[22m [34m[watch][39m src/components/Ecosystem.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/Ecosystem.tsx
+[2m09:28:49[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\Hero.tsx, /src/styles/global.css
+[2m09:28:49[22m [34m[watch][39m src/components/Hero.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:28:49[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx, /src/styles/global.css
+[2m09:28:49[22m [34m[watch][39m src/components/ProductPage.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:28:49[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\WhySGR.tsx, /src/styles/global.css
+[2m09:28:49[22m [34m[watch][39m src/components/WhySGR.tsx
+[2m09:28:49[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:49[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:49[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:49[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:49[22m [34m[watch][39m public/i18n-engine.js
+[2m09:28:49[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\CoreSimulator.tsx, /src/styles/global.css
+[2m09:28:49[22m [34m[watch][39m src/components/simulators/CoreSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m /src/styles/global.css, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductSuite.tsx, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx
+[2m09:28:49[22m [34m[watch][39m src/data/content.ts
+[2m09:28:49[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:49[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoInvoiceSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoInvoiceSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\kivo\KivoMCPDemo.tsx, /src/styles/global.css
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoMCPDemo.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoQuiloVoltSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoQuiloVoltSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoSandbox.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoSandbox.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoSaude360Simulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoSaude360Simulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoSplit.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoSplit.tsx
+[2m09:28:49[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\kivo\KivoTemplateGallery.tsx, /src/styles/global.css
+[2m09:28:49[22m [34m[watch][39m src/components/kivo/KivoTemplateGallery.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:49[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:28:49[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\CoreSimulator.tsx, /src/styles/global.css
+[2m09:28:49[22m [34m[watch][39m src/components/simulators/CoreSimulator.tsx
+[2m09:28:49[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\FeatureVisualizer.tsx, /src/styles/global.css
+[2m09:28:49[22m [34m[watch][39m src/components/simulators/FeatureVisualizer.tsx
+[2m09:28:49[22m [34m[watch][39m /src/styles/global.css, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductSuite.tsx, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx
+[2m09:28:49[22m [34m[watch][39m src/data/content.ts
+[2m09:28:49[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:49[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:28:50[22m [34m[watch][39m src/layouts/DocLayout.astro
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/layouts/DocLayout.astro
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/contractease/roadmap.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/contractease/roadmap.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:28:50[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:36:49[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:36:49[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:36:49[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:36:49[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:36:49[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:36:49[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:38:04[22m [34m[watch][39m src/components/Ecosystem.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/Ecosystem.tsx
+[2m09:38:04[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\Hero.tsx, /src/styles/global.css
+[2m09:38:04[22m [34m[watch][39m src/components/Hero.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/OnyxPage.tsx
+[2m09:38:04[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx, /src/styles/global.css
+[2m09:38:04[22m [34m[watch][39m src/components/ProductPage.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoCommandPalette.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/ProductPageOld.tsx
+[2m09:38:04[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\WhySGR.tsx, /src/styles/global.css
+[2m09:38:04[22m [34m[watch][39m src/components/WhySGR.tsx
+[2m09:38:04[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\CoreSimulator.tsx, /src/styles/global.css
+[2m09:38:04[22m [34m[watch][39m src/components/simulators/CoreSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m /src/styles/global.css, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductSuite.tsx, /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\ProductPage.tsx
+[2m09:38:04[22m [34m[watch][39m src/data/content.ts
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoEcosystem.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoFamilyBridgeSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoInvoiceSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoInvoiceSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\kivo\KivoMCPDemo.tsx, /src/styles/global.css
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoMCPDemo.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoPayoutsSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoQuiloVoltSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoQuiloVoltSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoSandbox.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoSandbox.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoSaude360Simulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoSaude360Simulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoShowcase.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoSimulator.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoSplit.tsx
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoSplit.tsx
+[2m09:38:04[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\kivo\KivoTemplateGallery.tsx, /src/styles/global.css
+[2m09:38:04[22m [34m[watch][39m src/components/kivo/KivoTemplateGallery.tsx
+[2m09:38:04[22m [34m[watch][39m public/i18n-engine.js
+[2m09:38:04[22m [34m[watch][39m public/i18n-engine.js
+[2m09:38:04[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:38:04[22m [34m[watch][39m src/i18n/ui.ts
+[2m09:38:04[22m [34m[watch][39m public/i18n-engine.js
+[2m09:38:04[22m [34m[watch][39m public/i18n-engine.js
+[2m09:38:04[22m [34m[watch][39m /@fs/C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\landing-page\src\components\simulators\FeatureVisualizer.tsx, /src/styles/global.css
+[2m09:38:04[22m [34m[watch][39m src/components/simulators/FeatureVisualizer.tsx
+[2m09:38:04[22m [34m[watch][39m src/layouts/DocLayout.astro
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/contractease/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/contractease/roadmap.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/contractease/roadmap.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m09:38:04[22m [34m[watch][39m src/pages/doc/ai/socialpay/index.mdx
+[2m12:08:18[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m12:08:18[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m12:08:18[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m12:08:18[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m12:08:18[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m12:08:18[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m12:08:18[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:08:18[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:09:01[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:09:01[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:09:07[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:09:07[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:10:25[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:10:25[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:10:48[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:10:48[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:11:04[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:11:04[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:11:10[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:11:10[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:17:49[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:17:49[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:18:04[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:18:04[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:18:34[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:18:34[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:18:44[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:18:44[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:18:57[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:18:57[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:19:11[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:19:11[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:19:29[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:19:29[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:19:39[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:19:39[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:20:17[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:20:17[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:20:21[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:20:21[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:20:29[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:20:29[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:20:50[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:20:50[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:20:55[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:20:55[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:21:19[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:21:19[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:21:27[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:21:27[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:27:28[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:27:28[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:27:42[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:27:42[22m [34m[watch][39m src/pages/doc/ai/kivo/api-reference.mdx
+[2m12:27:56[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m12:27:56[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m12:35:01[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m12:35:01[22m [34m[watch][39m src/pages/doc/ai/kivo/auth-security.mdx
+[2m12:35:01[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m12:35:01[22m [34m[watch][39m src/pages/doc/ai/kivo/etherfuse-integration.mdx
+[2m12:35:01[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m12:35:02[22m [34m[watch][39m src/pages/doc/ai/kivo/x402-protocol.mdx
+[2m12:35:02[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m12:35:02[22m [34m[watch][39m src/pages/doc/ai/kivo/mcp-tools.mdx
+[2m12:40:39[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m12:40:39[22m [34m[watch][39m src/pages/doc/ai/kivo/stellar-integration.mdx
+[2m12:40:39[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m12:40:39[22m [34m[watch][39m src/pages/doc/ai/kivo/deployment.mdx
+[2m12:40:39[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m12:40:39[22m [34m[watch][39m src/pages/doc/ai/kivo/data-models.mdx
+[2m12:45:50[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m12:45:50[22m [34m[watch][39m src/pages/doc/ai/kivo/roadmap.mdx
+[2m13:13:08[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m13:13:08[22m [34m[watch][39m src/pages/doc/ai/kivo/architecture.mdx
+[2m13:13:08[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx
+[2m13:13:08[22m [34m[watch][39m src/pages/doc/ai/kivo/index.mdx

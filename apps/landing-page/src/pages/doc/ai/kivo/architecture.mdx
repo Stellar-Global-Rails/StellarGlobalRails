@@ -1,147 +1,70 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo Pay — Architecture"
-description: "Current Kivo Pay MVP architecture after removing Fly.io from the delivery path and moving the backend runtime to Supabase Edge Functions."
+title: "Kivo Architecture"
+description: "Kivo architecture for physical and digital gateways, x402 requirements, Stellar proof, Etherfuse context, authorization, and gateway release."
 ---
 
-# Architecture
+# Kivo Architecture
 
-Kivo's MVP architecture is now centered on Supabase and Vercel. Fly.io was removed from the delivery path so the product can ship without an extra paid runtime.
+Kivo Gateway is the runtime. Kivo Studio is the AI-agent creation environment. Kivo SDK is the downloadable integration layer. Power Totem is the functional hackathon template. Other templates are roadmap or marketplace candidates.
 
-```mermaid
-flowchart TD
-  UI["Kivo Web App<br/>Vercel + React"]
-  Auth["Supabase Auth"]
-  API["kivo-api<br/>Supabase Edge Function"]
-  DB[("Supabase Postgres<br/>public.kivo_*")]
-  RT["Supabase Realtime"]
-  Storage["Supabase Storage"]
-  Horizon["Stellar Horizon<br/>testnet"]
-  Etherfuse["Etherfuse Devnet<br/>anchor/ramp"]
-  Device["IoT device / SDK"]
-  Resource["Protected x402 resource"]
+Kivo is organized around one primitive:
 
-  UI --> Auth
-  UI --> API
-  Device --> API
-  API --> DB
-  API --> RT
-  API --> Storage
-  API --> Horizon
-  API --> Etherfuse
-  API --> Resource
+```txt
+resource -> policy -> x402 requirement -> Stellar proof -> Etherfuse context -> Kivo authorization -> Gateway release -> receipt and health
 ```
 
-## Runtime Roles
+The gateway can be physical or digital. Physical gateways run near hardware such as Raspberry Pi, totems, kiosks, or edge boxes. Digital gateways run as middleware, serverless functions, workers, reverse proxies, sidecars, queue consumers, or agent tool guards.
 
-| Runtime | Responsibility |
+---
+
+## Runtime Layers
+
+| Layer | Role |
 |---|---|
-| Vercel | Serves the Kivo frontend. Contains only public Vite env vars. |
-| Supabase Edge Function | Owns REST endpoints, x402, Stellar submission, Etherfuse proxy/webhook, and server-side secrets. |
-| Supabase Postgres | Stores devices, payments, x402 nonces, pricing rules, API keys, webhooks, Etherfuse orders, and audit events. |
-| Supabase Auth | Authenticates dashboard users. Edge Functions validate the user token before private routes. |
-| Supabase Realtime | Pushes operational updates to the dashboard. |
-| Supabase Storage | Stores proofs and device assets with private bucket policies. |
-| Stellar Horizon | Receives signed Stellar transactions and provides settlement status. |
-| Etherfuse Devnet | Provides anchor/ramp flows around Stellar testnet liquidity. |
+| Resource | The physical or digital thing being protected. |
+| Policy | Price, asset, duration, scope, and release conditions. |
+| x402 requirement | The payment challenge returned before access is granted. |
+| Stellar proof | The settlement proof Kivo validates before authorization. |
+| Etherfuse context | Visible anchor/funding context around the asset used in the flow. |
+| Kivo authorization | A short-lived permission the gateway can enforce. |
+| Gateway release | The physical or digital action performed after authorization. |
+| Receipt and health | Events that prove release, completion, status, and operational health. |
 
-## Backend Decision
+---
 
-The previous Go backend remains in the repository as a temporary local fallback. It should not be treated as the production runtime for the MVP anymore.
+## Physical Gateways
 
-The MVP backend target is TypeScript on Supabase Edge Functions because:
+Physical gateways run close to hardware. The hackathon example is Power Totem: a Raspberry Pi or similar controller shows a QR checkout, waits for Kivo authorization, then releases a safe load for a short session.
 
-- The team already uses Supabase Auth, Postgres, Realtime, Storage, and Edge Function secrets.
-- It removes Fly.io billing and deployment friction.
-- Frontend and backend can share TypeScript contracts faster during the two-week delivery window.
-- Etherfuse webhooks and x402 routes can live close to the database and secrets.
+Physical gateways should never release a resource because Etherfuse exists or because a client claims payment. They release only after Kivo validates the x402 payment state, Stellar proof, and policy conditions.
 
-Go can return later if Kivo needs a high-throughput dedicated gateway, but not before the MVP proves the customer-facing product flow.
+---
 
-## Request Flow
+## Digital Gateways
 
-### Human Operator
+Digital gateways protect APIs, workers, automations, proxies, sidecars, queue consumers, and agent tools. They enforce the same authorization model as physical gateways, but the release action is digital: forward a request, return data, trigger a workflow, execute a tool, or start a compute job.
 
-```mermaid
-sequenceDiagram
-  participant User as Operator
-  participant Web as Kivo Web
-  participant Auth as Supabase Auth
-  participant API as kivo-api Edge Function
-  participant DB as Supabase Postgres
+Digital gateway adapters are part of the post-hackathon roadmap.
 
-  User->>Web: Login
-  Web->>Auth: Supabase session
-  Web->>API: Authorization: Bearer user JWT
-  API->>Auth: Validate user
-  API->>DB: Read/write owner-scoped Kivo data
-  API-->>Web: Dashboard, flows, payments
-```
+---
 
-### x402 Payment
+## Product Components
 
-```mermaid
-sequenceDiagram
-  participant Client as Device/SDK
-  participant API as kivo-api Edge Function
-  participant DB as Supabase Postgres
-  participant Horizon as Stellar Horizon
+| Component | Responsibility |
+|---|---|
+| Kivo Gateway | Enforces authorization and emits gateway events. |
+| Kivo Studio | Uses AI agents to help users design, configure, test, and publish flows. |
+| Kivo SDK | Provides the current TypeScript client, x402 payment/unlock helpers, Gateway heartbeat support, adapters, examples, and tests. Resource policies, authorization helpers, webhooks, and automated gateway pairing helpers are roadmap items. |
+| x402 | Describes the paid access requirement. |
+| Stellar | Provides settlement proof. |
+| Etherfuse | Gives visible anchor/funding context. |
+| Private mainnet billing | Lets validated flows stay private in production. |
 
-  Client->>API: GET protected resource
-  API->>DB: Persist nonce
-  API-->>Client: 402 challenge
-  Client->>Client: Sign Stellar transaction
-  Client->>API: POST /v1/x402/pay txXDR
-  API->>Horizon: Submit transaction
-  API->>DB: Consume nonce + record payment
-  API-->>Client: X-PAYMENT header
-  Client->>API: Retry resource with X-PAYMENT
-  API-->>Client: Protected data
-```
+---
 
-### Etherfuse Anchor
+## Studio-Led Build Path
 
-```mermaid
-sequenceDiagram
-  participant Web as Kivo Web
-  participant API as kivo-api Edge Function
-  participant EF as Etherfuse Devnet
-  participant DB as Supabase Postgres
+Studio turns user intent into a flow, validation run, launch checklist, and SDK/config guidance. Gateway remains the runtime for physical or digital release, while SDK gives technical users a direct integration path through the local TypeScript package, adapters, examples, and tests. Automated SDK export/download routes are future work rather than current Edge API surface.
 
-  Web->>API: Request assets/quote/order
-  API->>EF: Server-side Etherfuse API call
-  EF-->>API: Anchor response
-  API->>DB: Persist order/event state
-  API-->>Web: Safe response
-  EF->>API: Signed webhook
-  API->>DB: Persist verified event
-```
-
-## Security Boundaries
-
-- Browser receives only `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_KIVO_API_URL`.
-- Supabase service role, Etherfuse API key, Etherfuse webhook secret, and Stellar secret keys stay only in server-side runtime secrets.
-- `verify_jwt` is disabled on the unified Edge Function because public x402 and Etherfuse webhook routes need to reach the handler. The handler must enforce route-level auth.
-- RLS remains enabled on all dashboard-facing `public.kivo_*` tables.
-- x402 nonces must be persisted and consumed once.
-- Webhook signature verification must use the base64-decoded Etherfuse webhook secret.
-
-## Migration Boundary
-
-Active Edge Function routes:
-
-- deploy readiness
-- health
-- Etherfuse status/proxy/webhook
-
-Routes still moving from the temporary Go fallback:
-
-- dashboard summary
-- devices
-- payments
-- x402 pay/unlock
-- webhooks
-- API keys
-- MCP tools
-
-Once those are complete and verified, the Go backend can be deleted from `apps/kivo`.
+Validated testnet flows must show real x402 and Etherfuse states. Private mainnet publication is a paid path; public templates remain the fallback for users who do not pay for private mainnet usage.

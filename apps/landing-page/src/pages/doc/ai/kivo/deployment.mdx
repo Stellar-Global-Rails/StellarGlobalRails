@@ -1,25 +1,27 @@
 ---
 layout: '../../../../layouts/DocLayout.astro'
-title: "Kivo Pay — Deployment"
-description: "Current MVP deployment plan for Kivo Pay using Vercel, Supabase Edge Functions, Supabase Auth/Postgres/Realtime/Storage, Stellar testnet, and Etherfuse Devnet."
+title: "Kivo - Deployment"
+description: "Current MVP deployment plan for Kivo using Vercel, Supabase Edge Functions, Supabase Auth/Postgres/Storage, Stellar testnet, and Etherfuse Devnet."
 ---
 
 # Deployment
 
-Kivo no longer uses Fly.io for the MVP backend. The deployment target is:
+Kivo's MVP deployment path is Vercel + Supabase. Fly.io and the old Go backend are retired from the MVP path.
 
 | Layer | Provider | Path |
 |---|---|---|
 | Frontend | Vercel | `apps/kivo/web` |
 | API runtime | Supabase Edge Functions | `supabase/functions/kivo-api` |
-| Auth | Supabase Auth | same Supabase project |
+| Auth | Supabase Auth | Same Supabase project |
 | Data | Supabase Postgres | `public.kivo_*` tables |
-| Realtime | Supabase Realtime | payment/order/delivery updates |
-| Storage | Supabase Storage | proofs and device assets |
+| Storage | Supabase Storage | Proofs and device assets when needed |
+| Secrets | Supabase Edge Function secrets | Server-only API keys and provider credentials |
 | Settlement | Stellar testnet | Horizon |
-| Anchor/ramp | Etherfuse Devnet | server-side proxy |
+| Anchor/ramp | Etherfuse Devnet/Sandbox | Server-side proxy |
 
-The Go backend remains in the repository only as a temporary local fallback until the TypeScript Edge Function reaches route parity.
+Any remaining Go/Fly references are historical or future-worker context, not active deployment guidance.
+
+---
 
 ## Frontend
 
@@ -39,31 +41,35 @@ npm install
 npm run build
 ```
 
+Never expose service-role, Etherfuse, webhook, or Stellar secret material through Vercel environment variables.
+
+---
+
 ## Supabase Edge Function
 
-Deploy without Docker:
+Deploy:
 
 ```bash
 supabase functions deploy kivo-api --project-ref <project-ref> --use-api --no-verify-jwt
 ```
 
-The API base URL is:
+API base URL:
 
 ```txt
 https://<project-ref>.supabase.co/functions/v1/kivo-api
 ```
 
-The Etherfuse webhook URL is:
+Etherfuse webhook URL:
 
 ```txt
 https://<project-ref>.supabase.co/functions/v1/kivo-api/v1/etherfuse/webhook
 ```
 
-`verify_jwt` is disabled for the function because the same runtime receives public x402 challenges and third-party Etherfuse webhooks. The function must enforce auth route-by-route and keep all service credentials server-side.
+`verify_jwt` is disabled at the function gateway because the same Edge runtime handles public health checks, x402 challenges, and third-party webhooks. The function enforces auth route-by-route.
+
+---
 
 ## Edge Function Secrets
-
-Set these in Supabase:
 
 ```txt
 SUPABASE_URL=https://<project-ref>.supabase.co
@@ -83,15 +89,45 @@ ETHERFUSE_DEFAULT_FIAT=MXN
 ETHERFUSE_ALLOWED_ASSETS=USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
 ```
 
-Never expose `SUPABASE_SERVICE_ROLE_KEY`, `ETHERFUSE_API_KEY`, `ETHERFUSE_WEBHOOK_SECRET`, or any Stellar secret key in Vercel.
+---
 
-## Route Parity
+## Active API Routes
 
-Active in `kivo-api` now:
+Core:
 
 - `GET /v1/health`
 - `GET /v1/deploy/checks`
 - `GET /v1/deploy/services`
+- `GET /v1/dashboard`
+
+Studio:
+
+- `POST /v1/studio/intents`
+- `POST /v1/studio/flows`
+- `POST /v1/studio/flows/:flowId/validation-runs`
+- `GET /v1/studio/flows/:flowId/launch-options`
+- `GET /v1/studio/templates`
+
+Power Totem and Gateway:
+
+- `GET|POST /v1/power-totems`
+- `GET /v1/power-totems/:id`
+- `POST /v1/power-totems/:id/pairing-token`
+- `GET|POST /v1/power-sessions`
+- `POST /v1/power-sessions/:id/start-checkout`
+- `POST /v1/power-sessions/:id/authorize`
+- `POST /v1/power-sessions/:id/complete`
+- `POST /v1/gateways/:id/heartbeat`
+- `GET /v1/gateways/:id/authorization`
+- `POST /v1/gateways/:id/events`
+- `GET /power-totem/{id}/session`
+
+x402, Etherfuse, and tooling:
+
+- `GET /v1/x402/challenge?resource=/api/x402/data`
+- `POST /v1/x402/pay`
+- `GET|PUT /v1/x402/pricing-rules`
+- `GET /api/x402/data`
 - `GET /v1/etherfuse/status`
 - `GET /v1/etherfuse/assets`
 - `POST /v1/etherfuse/onboarding-url`
@@ -100,15 +136,11 @@ Active in `kivo-api` now:
 - `GET /v1/etherfuse/orders/:id`
 - `POST /v1/etherfuse/orders/:id/fiat-received`
 - `POST /v1/etherfuse/webhook`
+- `GET /v1/mcp/tools`
+- `GET /v1/mcp/config`
+- `POST /mcp`
 
-Pending migration from the temporary Go fallback:
-
-- dashboard summary
-- devices
-- payments and conditional payment proof
-- x402 challenge persistence and `X-PAYMENT` validation
-- webhooks and API keys
-- MCP tool calls
+---
 
 ## Preflight
 
@@ -119,9 +151,23 @@ powershell -ExecutionPolicy Bypass -File apps/kivo/scripts/preflight.ps1 -ApiUrl
 Go/no-go:
 
 - `GET /v1/health` returns `200`.
-- `GET /v1/etherfuse/status` returns `configured: true`.
-- `GET /v1/etherfuse/assets` returns a Stellar asset for the selected wallet.
-- Etherfuse webhook verifies `X-Signature` and persists the event.
-- x402 returns a persisted nonce, submits signed Stellar XDR to Horizon, and unlocks the protected resource.
+- `GET /v1/deploy/checks` reports no blocked production-critical checks.
+- `GET /v1/etherfuse/status` returns expected mode/configuration.
+- `POST /v1/studio/intents` and `POST /v1/studio/flows` work for an authenticated user.
+- Power Totem can be created and paired.
+- Gateway heartbeat marks the gateway online.
+- `POST /v1/power-sessions/:id/start-checkout` creates an x402 challenge.
+- `POST /v1/x402/pay` validates signed Stellar XDR.
+- Gateway authorization and events complete the demo loop.
 - Vercel frontend points to the Supabase Edge Function.
 - Supabase Auth login works in production.
+
+---
+
+## Retired Runtime
+
+The old Go backend and Fly.io deployment are not a temporary fallback for the MVP. They may remain in repository history or future architecture notes, but current deployment work should target:
+
+```txt
+Vercel frontend -> Supabase Edge Function kivo-api -> Supabase Postgres/Auth/Secrets -> Stellar/Etherfuse
+```

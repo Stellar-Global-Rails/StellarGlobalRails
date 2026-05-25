@@ -25,7 +25,7 @@ The platform ships three products that share Stellar as their settlement layer:
 |---------|-----------|
 | **ContractEase** | Digital B2B contract signing with blockchain-anchored document proofs |
 | **SocialPay** | Internal corporate payments via human-readable `@handles` |
-| **Kivo Pay** | Machine-to-machine (M2M) autonomous payment SDK using the x402 protocol |
+| **Kivo** | Physical and digital gateway for monetized access using Kivo Studio, TypeScript SDK, x402, Stellar, and Etherfuse |
 
 ### Core Value Proposition
 
@@ -53,7 +53,7 @@ StellarGlobalRails/
 ├── apps/
 │   ├── contract-ease/        # ContractEase — React/Vite + Supabase
 │   ├── social-pay/           # SocialPay — Next.js + Prisma
-│   └── kivo-pay/             # Kivo Pay — Go backend + React/Vite frontend
+│   └── kivo-pay/             # Kivo — gateway backend + React/Vite frontend
 ├── landing-page-astro/       # Marketing site — Astro + React islands
 │   ├── src/
 │   │   ├── components/       # Shared UI components per product
@@ -82,7 +82,7 @@ The architecture is Mainnet-ready: switching to production requires only a passp
 | Stellar Accounts (keypairs) | Identity for organizations and users |
 | USDC (Circle) on Stellar | Settlement currency for all B2B transactions |
 | Transaction Memos | On-chain anchoring of document hashes and event identifiers |
-| Soroban Smart Contracts | Programmable payment conditions (Kivo Pay) |
+| Soroban Smart Contracts | Programmable payment conditions (Kivo) |
 | SEP-0010 | Web authentication standard for wallet-based login |
 | SEP-0024 | Anchor protocol for fiat on/off-ramp (roadmap) |
 | Freighter API | Browser wallet for user-signed transactions |
@@ -102,7 +102,7 @@ The platform uses a **dual-auth model** depending on the product context:
 │  Email-based sessions   │  Wallet signature proves       │
 │  JWT for API access     │  ownership of keypair          │
 │                         │                                │
-│  ContractEase           │  Kivo Pay M2M flows            │
+│  ContractEase           │  Kivo gateway flows            │
 │  SocialPay              │  On-chain transaction signing  │
 └─────────────────────────┴───────────────────────────────┘
 ```
@@ -179,7 +179,7 @@ Use the **Stellar Network** as the primary settlement and anchoring layer for al
 
 #### Context
 
-Three distinct products (ContractEase, SocialPay, Kivo Pay) share:
+Three distinct products (ContractEase, SocialPay, Kivo) share:
 
 - Stellar integration patterns and utility functions
 - Brand design system (colors, typography, component patterns)
@@ -302,7 +302,7 @@ Use **Supabase** as the complete backend for ContractEase (PostgreSQL + Auth + S
 |---------|--------|----------|---------|----------|------------|
 | ContractEase | Beta | React + Vite | Supabase Edge Functions | PostgreSQL (Supabase) | Stellar (tx memos for SHA-256 anchoring) |
 | SocialPay | MVP | Next.js | Next.js API Routes | PostgreSQL (Prisma) | Stellar (USDC transfers) |
-| Kivo Pay | In Development | React + Vite | Go (REST + gRPC) | PostgreSQL | Stellar + Soroban (x402 protocol) |
+| Kivo | In Development | React + Vite | Supabase Edge Functions / Go fallback | PostgreSQL | x402 + Stellar + Etherfuse |
 
 ### 4.2 ContractEase
 
@@ -331,9 +331,9 @@ SocialPay enables internal corporate payments using human-readable `@handles` ra
 
 **Key differentiator:** Eliminates the friction of managing wallet addresses inside organizations. Finance teams see a feed, not a spreadsheet.
 
-### 4.4 Kivo Pay
+### 4.4 Kivo
 
-Kivo Pay is an **M2M (machine-to-machine) autonomous payment SDK** targeting developers building services that need to pay each other programmatically — without human intervention.
+Kivo is a **physical and digital gateway for monetized access**. It targets builders who want to protect devices, APIs, automations, workers, proxies, sidecars, and agent tools with x402 requirements, Stellar settlement proof, Etherfuse funding context, and TypeScript SDK integration.
 
 **Architecture:**
 - Go backend exposes a payment API compliant with the **x402 protocol** (HTTP 402 Payment Required)
@@ -361,7 +361,7 @@ NEVER store private keys in localStorage, sessionStorage, or cookies.
 ```
 
 - **User wallets:** Transactions that require a user's signature must be constructed in the frontend and signed via **Freighter** (`@stellar/freighter-api`). The private key never leaves the user's browser wallet.
-- **Custodial wallets:** When the application holds keys on behalf of users (Kivo Pay M2M agents), those keys are stored encrypted in a **secure backend environment** (Supabase Edge Functions, Go service with secret management). Never in client-accessible code.
+- **Custodial wallets:** When the application holds keys for Kivo gateway flows, those keys are stored encrypted in a **secure backend environment** (Supabase Edge Functions, Go service with secret management). Never in client-accessible code.
 
 ### 5.2 Transaction Construction
 
@@ -518,7 +518,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=   # Never expose to client
 
-# Kivo Pay Backend
+# Kivo Backend
 DATABASE_URL=postgresql://...
 STELLAR_CUSTODIAL_SEED=      # Encrypted at rest, never logged
 ```
@@ -531,10 +531,10 @@ STELLAR_CUSTODIAL_SEED=      # Encrypted at rest, never logged
 |-----------|--------|-------------|
 | ContractEase GA | Q3 2025 | Production deployment, e-signature legal compliance (Brazil MP 2.200-2) |
 | SocialPay Multi-currency | Q3 2025 | BRL anchor integration via SEP-0024 |
-| Kivo Pay Alpha | Q3 2025 | Developer SDK release, x402 reference implementation |
+| Kivo Alpha | Q3 2025 | Gateway access flow, developer SDK release, x402 reference implementation |
 | Mainnet Migration | Q4 2025 | All products migrate from Testnet to Stellar Mainnet |
 | SEP-0010 SSO | Q4 2025 | Cross-product wallet-based single sign-on |
-| Kivo Pay Soroban Contracts | Q1 2026 | On-chain spending policies and allowlists |
+| Kivo Soroban Contracts | Q1 2026 | On-chain spending policies and allowlists |
 
 ---
 

@@ -1,0 +1,295 @@
+
+> kivo-web@0.1.0 dev
+> vite --host 127.0.0.1 --port 5174
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m638[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5174[22m/[39m
+[2m09:28:01[22m [36m[1m[vite][22m[39m changed tsconfig file detected: C:\Users\charl\OneDrive\Documentos\GitHub\StellarGlobalRails\apps\kivo\web\public\sdk\kivo-sdk-starter\tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+[2m09:28:01[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/sdk/kivo-sdk-starter/package.json[22m
+[2m09:28:01[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/sdk/kivo-sdk-starter/README.md[22m
+[2m09:28:01[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/sdk/kivo-sdk-starter/tsconfig.json[22m
+[2m09:28:01[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/sdk/kivo-sdk-starter/examples/api-middleware.ts[22m
+[2m09:28:01[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/sdk/kivo-sdk-starter/examples/data-feed.ts[22m
+[2m09:28:01[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/sdk/kivo-sdk-starter/examples/device-gateway.ts[22m
+[2m09:28:01[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mpublic/sdk/kivo-sdk-starter/src/kivo.ts[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/FinancePage.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/FlowDetailPage.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/SettingsPage.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/CommandPalette.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/HealthPage.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemDetailPage.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/StatusPage.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemDisplayPage.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemSimulatorPage.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/config/productMode.test.ts[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css, /src/pages/SettingsPage.tsx, /src/pages/X402Page.tsx, /src/pages/DeployPage.tsx, /src/pages/CheckoutPage.tsx[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/soloMvp.test.ts[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CreateFlowPage.tsx, /src/pages/FlowsPage.tsx, /src/pages/TemplatesPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/FlowDetailPage.tsx[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/etherfuseExperience.test.ts[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CheckoutPage.tsx[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/WorkspaceContextBanner.tsx, /src/index.css[22m
+[2m09:28:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/CommandPalette.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/powerTotemExperience.test.ts[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/powerTotemExperience.ts[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CreateFlowPage.tsx, /src/App.tsx, /src/pages/TemplatesPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/FlowDetailPage.tsx[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/WorkspaceContextBanner.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BottomNav.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/etherfuseExperience.test.ts[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.tsx[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/soloMvp.test.ts[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BottomNav.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Sidebar.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/layouts/AuthGuard.tsx, /src/layouts/AppLayout.tsx, /src/pages/ApiKeysPage.tsx, /src/pages/TeamPage.tsx, /src/App.tsx, /src/pages/WebhooksPage.tsx, /src/pages/LoginPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/RegisterPage.tsx, /src/layouts/Topbar.tsx, /src/components/ToastStack.tsx, /src/components/CommandPalette.tsx, /src/layouts/Sidebar.tsx, /src/pages/PowerTotemDetailPage.tsx[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/types/kivo.ts[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/IntegrationsPage.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/OperationsPage.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkflowsPage.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CreateFlowPage.tsx, /src/App.tsx, /src/pages/TemplatesPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/FlowDetailPage.tsx[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/WorkspaceContextBanner.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/ApiKeysPage.tsx, /src/pages/FinancePage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/DashboardPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/PaymentDetailPage.tsx, /src/pages/McpConsolePage.tsx, /src/App.tsx, /src/pages/OperationsPage.tsx, /src/pages/WorkflowsPage.tsx, /src/pages/PaymentsPage.tsx, /src/pages/DeviceDetailPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/IntegrationsPage.tsx, /src/pages/FlowDetailPage.tsx, /src/pages/DevicesPage.tsx, /src/pages/HealthPage.tsx, /src/pages/TotemSimulatorPage.tsx, /src/pages/TotemDisplayPage.tsx, /src/pages/PowerTotemDetailPage.tsx[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkflowsPage.tsx, /src/index.css[22m
+[2m09:28:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkflowsPage.tsx, /src/index.css[22m
+[2m09:28:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:28:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/CommandPalette.tsx, /src/index.css[22m
+[2m09:28:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/WorkspaceContextBanner.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CheckoutPage.tsx[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/etherfuseExperience.test.ts[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CheckoutPage.tsx[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/soloMvp.test.ts[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/etherfuseExperience.test.ts[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BottomNav.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CheckoutPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CreateFlowPage.tsx, /src/pages/FlowsPage.tsx, /src/pages/TemplatesPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/FlowDetailPage.tsx[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CheckoutPage.tsx[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/powerTotemExperience.test.ts[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/powerTotemExperience.ts[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/soloMvp.test.ts[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/layouts/AuthGuard.tsx, /src/layouts/AppLayout.tsx, /src/pages/ApiKeysPage.tsx, /src/pages/TeamPage.tsx, /src/pages/SettingsPage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/LoginPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/RegisterPage.tsx, /src/pages/X402Page.tsx, /src/layouts/Topbar.tsx, /src/components/ToastStack.tsx, /src/components/CommandPalette.tsx, /src/layouts/Sidebar.tsx, /src/pages/PowerTotemDetailPage.tsx[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/types/kivo.ts[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BottomNav.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Sidebar.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CheckoutPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/DeployPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/IntegrationsPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/OperationsPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/SettingsPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkflowsPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/X402Page.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/HealthPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemDetailPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/pages/PowerTotemStudioPage.tsx[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/pages/StatusPage.tsx[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemDisplayPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemSimulatorPage.tsx, /src/index.css[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/ApiKeysPage.tsx, /src/pages/FinancePage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/DashboardPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/PaymentDetailPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/FlowsPage.tsx, /src/pages/OperationsPage.tsx, /src/pages/PaymentsPage.tsx, /src/pages/DeviceDetailPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/IntegrationsPage.tsx, /src/pages/FlowDetailPage.tsx, /src/pages/DevicesPage.tsx, /src/pages/X402Page.tsx, /src/pages/DeployPage.tsx, /src/pages/CheckoutPage.tsx, /src/pages/HealthPage.tsx, /src/pages/TotemSimulatorPage.tsx, /src/pages/TotemDisplayPage.tsx, /src/pages/PowerTotemDetailPage.tsx, /src/pages/WorkflowsPage.tsx[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/config/productMode.test.ts[22m
+[2m09:28:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/StatusPage.tsx, /src/pages/CheckoutPage.tsx[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/config/productMode.test.ts[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/StatusPage.tsx, /src/pages/CheckoutPage.tsx, /src/App.tsx, /src/pages/DeployPage.tsx, /src/pages/X402Page.tsx[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/powerTotemExperience.test.ts[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/HealthPage.tsx, /src/index.css[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/PowerTotemStudioPage.tsx[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemDetailPage.tsx, /src/index.css[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/StatusPage.tsx, /src/index.css[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemDisplayPage.tsx, /src/index.css[22m
+[2m09:28:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemSimulatorPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/CommandPalette.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/WorkspaceContextBanner.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/etherfuseExperience.test.ts[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BottomNav.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CheckoutPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CheckoutPage.tsx[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/soloMvp.test.ts[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CreateFlowPage.tsx, /src/pages/FlowsPage.tsx, /src/pages/TemplatesPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/FlowDetailPage.tsx[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/layouts/AuthGuard.tsx, /src/layouts/AppLayout.tsx, /src/pages/ApiKeysPage.tsx, /src/pages/TeamPage.tsx, /src/pages/SettingsPage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/LoginPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/RegisterPage.tsx, /src/pages/X402Page.tsx, /src/layouts/Topbar.tsx, /src/components/ToastStack.tsx, /src/components/CommandPalette.tsx, /src/layouts/Sidebar.tsx[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BottomNav.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Sidebar.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CheckoutPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/DeployPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/IntegrationsPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/OperationsPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/SettingsPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkflowsPage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/X402Page.tsx, /src/index.css[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/types/kivo.ts[22m
+[2m09:28:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/ApiKeysPage.tsx, /src/pages/FinancePage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/DashboardPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/PaymentDetailPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/FlowsPage.tsx, /src/pages/OperationsPage.tsx, /src/pages/PaymentsPage.tsx, /src/pages/DeviceDetailPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/IntegrationsPage.tsx, /src/pages/FlowDetailPage.tsx, /src/pages/DevicesPage.tsx, /src/pages/X402Page.tsx, /src/pages/DeployPage.tsx, /src/pages/CheckoutPage.tsx, /src/pages/WorkflowsPage.tsx[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/CommandPalette.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/WorkspaceContextBanner.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/etherfuseExperience.test.ts[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Sidebar.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CheckoutPage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CheckoutPage.tsx[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/soloMvp.test.ts[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CreateFlowPage.tsx, /src/pages/FlowsPage.tsx, /src/pages/TemplatesPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/FlowDetailPage.tsx[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/layouts/AuthGuard.tsx, /src/layouts/AppLayout.tsx, /src/pages/ApiKeysPage.tsx, /src/pages/TeamPage.tsx, /src/pages/SettingsPage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/LoginPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/RegisterPage.tsx, /src/pages/X402Page.tsx, /src/layouts/Topbar.tsx, /src/components/ToastStack.tsx, /src/components/CommandPalette.tsx, /src/layouts/Sidebar.tsx[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/types/kivo.ts[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/DeployPage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/OperationsPage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/SettingsPage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkflowsPage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/X402Page.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/WorkspaceContextBanner.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/HealthPage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/StatusPage.tsx, /src/index.css[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/ApiKeysPage.tsx, /src/pages/FinancePage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/DashboardPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/PaymentDetailPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/FlowsPage.tsx, /src/pages/OperationsPage.tsx, /src/pages/PaymentsPage.tsx, /src/pages/DeviceDetailPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/IntegrationsPage.tsx, /src/pages/FlowDetailPage.tsx, /src/pages/DevicesPage.tsx, /src/pages/X402Page.tsx, /src/pages/DeployPage.tsx, /src/pages/CheckoutPage.tsx, /src/pages/WorkflowsPage.tsx[22m
+[2m09:36:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/WorkspaceContextBanner.tsx, /src/index.css[22m
+[2m09:36:50[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/config/productMode.test.ts[22m
+[2m09:36:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/CheckoutPage.tsx, /src/pages/StatusPage.tsx, /src/pages/DeployPage.tsx, /src/pages/X402Page.tsx[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/CommandPalette.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BottomNav.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CheckoutPage.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/types/kivo.ts[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Sidebar.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/HealthPage.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/IntegrationsPage.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/StatusPage.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/powerTotemExperience.test.ts[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/powerTotemExperience.ts[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemDetailPage.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemDisplayPage.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemSimulatorPage.tsx, /src/index.css[22m
+[2m09:38:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/ApiKeysPage.tsx, /src/pages/FinancePage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/DashboardPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/PaymentDetailPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/FlowsPage.tsx, /src/pages/OperationsPage.tsx, /src/pages/PaymentsPage.tsx, /src/pages/DeviceDetailPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/IntegrationsPage.tsx, /src/pages/FlowDetailPage.tsx, /src/pages/DevicesPage.tsx, /src/pages/X402Page.tsx, /src/pages/DeployPage.tsx, /src/pages/CheckoutPage.tsx, /src/pages/WorkflowsPage.tsx, /src/pages/HealthPage.tsx, /src/pages/StatusPage.tsx[22m
+[2m10:32:23[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m10:32:52[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/types/kivo.ts[22m
+[2m10:33:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/ApiKeysPage.tsx, /src/pages/FinancePage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/DashboardPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/PaymentDetailPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/FlowsPage.tsx, /src/pages/OperationsPage.tsx, /src/pages/PaymentsPage.tsx, /src/pages/DeviceDetailPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/IntegrationsPage.tsx, /src/pages/FlowDetailPage.tsx, /src/pages/DevicesPage.tsx, /src/pages/X402Page.tsx, /src/pages/DeployPage.tsx, /src/pages/CheckoutPage.tsx, /src/pages/WorkflowsPage.tsx, /src/pages/HealthPage.tsx, /src/pages/StatusPage.tsx, /src/pages/PowerTotemDetailPage.tsx, /src/pages/TotemDisplayPage.tsx, /src/pages/TotemSimulatorPage.tsx, /src/pages/PowerTotemStudioPage.tsx[22m
+[2m10:51:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m10:53:45[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplatesPage.tsx, /src/index.css[22m
+[2m10:54:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m10:54:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Sidebar.tsx, /src/index.css[22m
+[2m10:54:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BottomNav.tsx, /src/index.css[22m
+[2m10:56:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m11:01:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m11:12:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m11:12:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/SdkPage.tsx, /src/index.css[22m
+[2m11:12:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m11:12:36[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m11:52:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m11:52:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ValidationPage.tsx, /src/index.css[22m
+[2m11:53:01[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LaunchPage.tsx, /src/index.css[22m
+[2m11:53:24[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplatesPage.tsx, /src/index.css[22m
+[2m11:54:00[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ValidationPage.tsx, /src/index.css[22m
+[2m12:00:11[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m12:00:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ValidationPage.tsx, /src/index.css[22m
+[2m12:00:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LaunchPage.tsx, /src/index.css[22m
+[2m12:00:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplatesPage.tsx, /src/index.css[22m
+[2m12:54:52[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m12:54:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m12:54:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/GatewayPage.tsx, /src/index.css[22m
+[2m12:54:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/SdkPage.tsx, /src/index.css[22m
+[2m12:54:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemSimulatorPage.tsx, /src/index.css[22m
+[2m12:54:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.tsx, /src/index.css[22m
+[2m12:54:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/RegisterPage.tsx, /src/index.css[22m
+[2m12:54:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/DashboardPage.tsx, /src/index.css[22m
+[2m13:08:58[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m13:12:07[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/types/kivo.ts[22m
+[2m13:12:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/ApiKeysPage.tsx, /src/pages/FinancePage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/DashboardPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/PaymentDetailPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/FlowsPage.tsx, /src/pages/OperationsPage.tsx, /src/pages/PaymentsPage.tsx, /src/pages/DeviceDetailPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/IntegrationsPage.tsx, /src/pages/FlowDetailPage.tsx, /src/pages/DevicesPage.tsx, /src/pages/X402Page.tsx, /src/pages/DeployPage.tsx, /src/pages/CheckoutPage.tsx, /src/pages/WorkflowsPage.tsx, /src/pages/HealthPage.tsx, /src/pages/StatusPage.tsx, /src/pages/PowerTotemDetailPage.tsx, /src/pages/TotemDisplayPage.tsx, /src/pages/TotemSimulatorPage.tsx, /src/pages/PowerTotemStudioPage.tsx, /src/pages/ValidationPage.tsx, /src/pages/LaunchPage.tsx, /src/pages/TemplatesPage.tsx[22m
+[2m13:12:07[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m13:12:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m13:13:08[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/SdkPage.tsx, /src/index.css[22m
+[2m13:15:43[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m20:58:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Sidebar.tsx, /src/index.css[22m
+[2m20:58:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/CommandPalette.tsx, /src/index.css[22m
+[2m20:58:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m20:58:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m21:00:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m21:00:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m21:04:47[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m21:04:47[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m21:05:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m21:08:11[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m21:23:00[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/ApiKeysPage.tsx, /src/pages/FinancePage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/DashboardPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/PaymentDetailPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/FlowsPage.tsx, /src/pages/OperationsPage.tsx, /src/pages/PaymentsPage.tsx, /src/pages/DeviceDetailPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/IntegrationsPage.tsx, /src/pages/FlowDetailPage.tsx, /src/pages/DevicesPage.tsx, /src/pages/X402Page.tsx, /src/pages/DeployPage.tsx, /src/pages/CheckoutPage.tsx, /src/pages/WorkflowsPage.tsx, /src/pages/HealthPage.tsx, /src/pages/StatusPage.tsx, /src/pages/PowerTotemDetailPage.tsx, /src/pages/TotemDisplayPage.tsx, /src/pages/TotemSimulatorPage.tsx, /src/pages/PowerTotemStudioPage.tsx, /src/pages/ValidationPage.tsx, /src/pages/LaunchPage.tsx, /src/pages/TemplatesPage.tsx[22m
+[2m21:23:00[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m21:24:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/GatewayPage.tsx, /src/index.css[22m
+[2m21:24:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemSimulatorPage.tsx, /src/index.css[22m
+[2m21:36:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemSimulatorPage.tsx, /src/index.css[22m
+[2m22:42:04[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/types/kivo.ts[22m
+[2m22:42:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/ApiKeysPage.tsx, /src/pages/FinancePage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/DashboardPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/PaymentDetailPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/FlowsPage.tsx, /src/pages/OperationsPage.tsx, /src/pages/PaymentsPage.tsx, /src/pages/DeviceDetailPage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/IntegrationsPage.tsx, /src/pages/FlowDetailPage.tsx, /src/pages/DevicesPage.tsx, /src/pages/X402Page.tsx, /src/pages/DeployPage.tsx, /src/pages/CheckoutPage.tsx, /src/pages/WorkflowsPage.tsx, /src/pages/HealthPage.tsx, /src/pages/StatusPage.tsx, /src/pages/PowerTotemDetailPage.tsx, /src/pages/TotemDisplayPage.tsx, /src/pages/TotemSimulatorPage.tsx, /src/pages/PowerTotemStudioPage.tsx, /src/pages/ValidationPage.tsx, /src/pages/LaunchPage.tsx, /src/pages/TemplatesPage.tsx, /src/pages/GatewayPage.tsx[22m
+[2m22:42:38[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/services/kivoClient.test.ts[22m
+[2m22:43:54[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m22:44:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m22:44:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Sidebar.tsx, /src/index.css[22m
+[2m22:44:51[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m22:45:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m22:45:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/GatewayPage.tsx, /src/index.css[22m
+[2m22:45:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemDetailPage.tsx, /src/index.css[22m
+[2m22:46:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/CommandPalette.tsx, /src/index.css[22m
+[2m22:46:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m22:46:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/StatusPage.tsx, /src/index.css[22m
+[2m22:46:43[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m22:47:04[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/powerTotemExperience.ts[22m
+[2m22:47:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/HealthPage.tsx, /src/index.css[22m
+[2m22:47:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/HealthPage.tsx, /src/index.css[22m
+[2m22:48:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemDisplayPage.tsx, /src/index.css[22m
+[2m22:51:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/GatewayInstallPage.tsx, /src/index.css[22m
+[2m22:51:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemSimulatorPage.tsx, /src/index.css[22m
+[2m22:51:57[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/IntegrationsPage.tsx, /src/index.css[22m
+[2m22:52:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplatesPage.tsx, /src/index.css[22m
+[2m22:54:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/GatewayInstallPage.tsx, /src/index.css[22m
+[2m23:27:12[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/layouts/AuthGuard.tsx, /src/layouts/AppLayout.tsx, /src/pages/ApiKeysPage.tsx, /src/pages/TeamPage.tsx, /src/pages/SettingsPage.tsx, /src/pages/WebhooksPage.tsx, /src/pages/LoginPage.tsx, /src/pages/CreateFlowPage.tsx, /src/pages/McpConsolePage.tsx, /src/pages/WorkspaceHomePage.tsx, /src/pages/RegisterPage.tsx, /src/pages/X402Page.tsx, /src/layouts/Topbar.tsx, /src/components/ToastStack.tsx, /src/components/CommandPalette.tsx, /src/layouts/Sidebar.tsx, /src/pages/PowerTotemDetailPage.tsx[22m
+[2m23:27:14[22m [36m[1m[vite][22m[39m [32m✨ new dependencies optimized: [33mzustand/middleware[32m[39m
+[2m23:27:14[22m [36m[1m[vite][22m[39m [32m✨ optimized dependencies changed. reloading[39m
+[2m23:32:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m23:33:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Sidebar.tsx, /src/index.css[22m
+[2m23:33:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/BottomNav.tsx, /src/index.css[22m
+[2m23:33:27[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m23:33:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/CommandPalette.tsx, /src/index.css[22m
+[2m23:34:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/GatewayPage.tsx, /src/index.css[22m
+[2m23:34:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/GatewayInstallPage.tsx, /src/index.css[22m
+[2m23:34:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemStudioPage.tsx, /src/index.css[22m
+[2m23:34:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplatesPage.tsx, /src/index.css[22m
+[2m23:36:54[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CheckoutPage.tsx, /src/index.css[22m
+[2m23:37:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/HealthPage.tsx, /src/index.css[22m
+[2m23:37:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/IntegrationsPage.tsx, /src/index.css[22m
+[2m23:37:22[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PowerTotemDetailPage.tsx, /src/index.css[22m
+[2m23:37:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/StatusPage.tsx, /src/index.css[22m
+[2m23:37:39[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TotemDisplayPage.tsx, /src/index.css[22m
+[2m23:38:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m23:38:11[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m23:38:19[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/powerTotemExperience.ts[22m
+[2m23:38:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/MarketplacePage.tsx, /src/index.css[22m
+[2m23:39:28[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/HealthPage.tsx, /src/index.css[22m
+[2m23:39:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m23:39:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TemplateLibraryDetailPage.tsx, /src/index.css[22m
+[2m00:45:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m00:47:45[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m00:48:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m00:48:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m
+[2m00:50:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/layouts/Topbar.tsx, /src/index.css[22m
+[2m00:50:22[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/WorkspaceHomePage.tsx, /src/index.css[22m

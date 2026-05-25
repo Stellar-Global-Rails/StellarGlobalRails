@@ -51,7 +51,7 @@ export default function Hero() {
   const pillars = [
     { icon: 'solar:users-group-rounded-linear', label: 'SocialPay', color: '#EC4899' },
     { icon: 'solar:document-text-linear', label: 'ContractEase', color: '#8B5CF6' },
-    { icon: 'solar:wallet-linear', label: 'Kivo Pay', color: '#10B981' },
+    { icon: 'solar:wallet-linear', label: 'Kivo', color: '#10B981' },
   ];
 
   return (
@@ -80,7 +80,7 @@ export default function Hero() {
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.5, ease: "easeOut", delay: 1.8 }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
         className="absolute top-32 right-6 md:right-12 z-20 flex flex-col items-end gap-2"
       >
         <div className="px-4 py-2 rounded-lg bg-black/40 backdrop-blur-md border border-white/10 flex items-center gap-3">
@@ -99,7 +99,7 @@ export default function Hero() {
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.8 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
             className="flex items-center gap-3 mb-6"
           >
             <span className="h-[1px] w-8 bg-white/60"></span>
@@ -111,7 +111,7 @@ export default function Hero() {
           <h1 className="font-bricolage text-white leading-[0.85] tracking-tight font-semibold">
             <span className="block text-[12vw] md:text-[6rem] lg:text-[7rem] mix-blend-normal text-white drop-shadow-2xl">
               <span className="inline-block overflow-hidden pb-2">
-                <motion.span initial={{ y: "120%", rotateZ: 2, opacity: 0 }} animate={{ y: 0, rotateZ: 0, opacity: 1 }} transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 1.0 }} className="inline-block">
+                <motion.span initial={{ y: "120%", rotateZ: 2, opacity: 0 }} animate={{ y: 0, rotateZ: 0, opacity: 1 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.35 }} className="inline-block">
                   {t('hero.rail')}
                 </motion.span>
               </span>
@@ -119,7 +119,7 @@ export default function Hero() {
             <div className="flex flex-col gap-2 mt-4 md:mt-2">
               <span className="text-[8vw] md:text-[4rem] lg:text-[4rem] font-serif italic font-thin text-emerald-400 mt-2">
                 <span className="inline-block overflow-hidden pb-2">
-                  <motion.span initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.5, ease: "easeOut", delay: 1.4 }} className="inline-block">
+                  <motion.span initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.9, ease: "easeOut", delay: 0.55 }} className="inline-block">
                     {t('hero.title')}
                   </motion.span>
                 </span>
@@ -131,7 +131,7 @@ export default function Hero() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 2.0 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.85 }}
             className="flex flex-wrap gap-3 mt-10"
           >
             {pillars.map((p, i) => (
@@ -140,7 +140,7 @@ export default function Hero() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' }}
-                transition={{ delay: 2.2 + i * 0.15, duration: 0.6, ease: "easeOut" }}
+                transition={{ delay: 0.95 + i * 0.1, duration: 0.5, ease: "easeOut" }}
                 className="flex items-center gap-3 px-5 py-2.5 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md cursor-default"
               >
                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }}></div>
@@ -156,7 +156,7 @@ export default function Hero() {
           <motion.div 
             initial={{ opacity: 0, x: 40, rotateY: 10 }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
-            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: 1.6 }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.75 }}
             className="overflow-hidden md:p-10 bg-neutral-950/60 border-white/10 border rounded-3xl ring-white/5 ring-1 p-8 relative shadow-[0_0_100px_rgba(0,0,0,0.8)] backdrop-blur-3xl"
           >
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent z-0 pointer-events-none animate-shimmer-effect"></div>
@@ -208,7 +208,7 @@ export default function Hero() {
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.5, ease: "easeOut", delay: 2.0 }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 1.0 }}
         className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
       >
         <span className="text-[10px] uppercase tracking-[0.4em] text-white/20 font-mono">

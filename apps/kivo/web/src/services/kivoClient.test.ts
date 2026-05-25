@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createKivoClient } from './kivoClient';
 
 describe('HttpKivoApiClient', () => {
@@ -79,6 +79,255 @@ describe('HttpKivoApiClient', () => {
 
     expect(JSON.parse(body)).toEqual({ nonce: 'nonce_real', txXDR: 'AAAA_REAL_XDR' });
     expect(paid.stellarHash).toBe('hash_real');
+  });
+
+  it('creates Power Totems through the documented API route', async () => {
+    let requestedUrl = '';
+    let body = '';
+    const input = {
+      name: 'Station A',
+      price: '0.2500000',
+      unit: 'session' as const,
+      sessionDurationSeconds: 30,
+    };
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        body = String(init?.body);
+        return jsonResponse({
+          id: 'totem_1',
+          name: input.name,
+          resource: '/power-totem/totem_1/session',
+          price: input.price,
+          unit: input.unit,
+          sessionDurationSeconds: input.sessionDurationSeconds,
+          status: 'draft',
+          qrSlug: 'station-a-totem-1',
+          metadata: {},
+          createdAt: '2026-05-18T20:00:00Z',
+          updatedAt: '2026-05-18T20:00:00Z',
+        });
+      },
+    });
+
+    const totem = await client.createPowerTotem(input);
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/power-totems');
+    expect(JSON.parse(body)).toEqual(input);
+    expect(totem.resource).toBe('/power-totem/totem_1/session');
+  });
+
+  it('creates Power Totem pairing tokens without exposing service secrets', async () => {
+    let requestedUrl = '';
+    let method = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        return jsonResponse({
+          gateway: {
+            id: 'gateway_1',
+            totemId: 'totem_1',
+            name: 'Station A gateway',
+            tokenPreview: 'kgw_...1234',
+            pairingTokenPreview: 'kpair_...5678',
+            status: 'pairing',
+            adapter: 'simulator',
+            metadata: {},
+            createdAt: '2026-05-18T20:00:00Z',
+            updatedAt: '2026-05-18T20:00:00Z',
+          },
+          gatewayToken: 'kgw_secret_token',
+        });
+      },
+    });
+
+    const result = await client.createPowerTotemPairingToken('totem_1');
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/power-totems/totem_1/pairing-token');
+    expect(method).toBe('POST');
+    expect(result.gatewayToken).toBe('kgw_secret_token');
+    expect(result).not.toHaveProperty('serviceRoleKey');
+    expect(result).not.toHaveProperty('serviceRoleSecret');
+  });
+
+  it('downloads the Power Totem Docker bundle through the gateway export route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let body = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        body = String(init?.body ?? '');
+        return new Response(new Blob(['PK bundle']), {
+          status: 201,
+          headers: { 'Content-Type': 'application/zip' },
+        });
+      },
+    });
+
+    const bundle = await client.downloadPowerTotemGatewayBundle('totem_1', {
+      adapter: 'raspberry',
+      name: 'RJ Power Totem Gateway',
+    });
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/power-totems/totem_1/gateway-bundle');
+    expect(method).toBe('POST');
+    expect(JSON.parse(body)).toEqual({
+      adapter: 'raspberry',
+      name: 'RJ Power Totem Gateway',
+    });
+    expect(bundle.type).toBe('application/zip');
+  });
+
+  it('lists real Gateway records through the operator API route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        return jsonResponse([
+          {
+            id: 'gateway_1',
+            totemId: 'totem_1',
+            name: 'Station A gateway',
+            tokenPreview: 'kgw_...1234',
+            pairingTokenPreview: 'kpair_...5678',
+            status: 'online',
+            adapter: 'raspberry',
+            lastSeenAt: '2026-05-19T20:00:00Z',
+            metadata: {},
+            createdAt: '2026-05-19T19:00:00Z',
+            updatedAt: '2026-05-19T20:00:00Z',
+          },
+        ]);
+      },
+    });
+
+    const gateways = await client.listGateways();
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/gateways');
+    expect(method).toBe('GET');
+    expect(gateways[0].status).toBe('online');
+    expect(gateways[0]).not.toHaveProperty('gatewayToken');
+  });
+
+  it('starts Power Session checkout through the documented API route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        return jsonResponse({
+          session: {
+            id: 'sess_1',
+            totemId: 'totem_1',
+            gatewayId: 'gateway_1',
+            resource: '/power-totem/totem_1/session',
+            amount: '0.2500000',
+            asset: 'USDC:GTEST',
+            durationSeconds: 30,
+            status: 'payment_required',
+            x402Nonce: 'nonce_1',
+            expiresAt: '2026-05-18T20:10:00Z',
+            events: [],
+            createdAt: '2026-05-18T20:00:00Z',
+            updatedAt: '2026-05-18T20:01:00Z',
+          },
+          checkoutResource: '/power-totem/totem_1/session',
+          challenge: {
+            status: 402,
+            resource: '/power-totem/totem_1/session',
+            scheme: 'stellar',
+            network: 'testnet',
+            payTo: 'GDESTINATION',
+            amount: '0.2500000',
+            asset: 'USDC:GTEST',
+            maxTimeout: 300,
+            nonce: 'nonce_1',
+            requiredHeader: 'scheme=stellar,nonce=nonce_1',
+          },
+        });
+      },
+    });
+
+    const checkout = await client.startPowerSessionCheckout('sess_1');
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/power-sessions/sess_1/start-checkout');
+    expect(method).toBe('POST');
+    expect(checkout.session.status).toBe('payment_required');
+    expect(checkout.checkoutResource).toBe('/power-totem/totem_1/session');
+    expect(checkout.challenge.nonce).toBe('nonce_1');
+  });
+
+  it('starts Power Totem checkout and pays the returned x402 nonce', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        session: { id: 'ps_1', status: 'payment_required' },
+        checkoutResource: '/power-totem/pt_1/session',
+        challenge: { nonce: 'nonce_1', amount: '0.10', asset: 'USDC' },
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        status: 200,
+        paymentHeader: 'x402 pay_1',
+        stellarHash: 'hash_1',
+        stellarLedger: 123,
+        data: { authorized: true },
+      }));
+
+    const client = createKivoClient({ baseUrl: 'https://api.example.test', fetcher });
+    const checkout = await client.startPowerSessionCheckout('ps_1');
+    const paid = await client.payX402Challenge(checkout.challenge.nonce, 'signed-xdr');
+
+    expect(checkout.checkoutResource).toBe('/power-totem/pt_1/session');
+    expect(paid.paymentHeader).toBe('x402 pay_1');
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it('sends gateway events with the gateway token header', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let gatewayToken = '';
+    let body = '';
+    const input = {
+      sessionId: 'session_1',
+      eventType: 'relay.closed',
+      payload: { watts: 1200 },
+    };
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        gatewayToken = new Headers(init?.headers).get('x-gateway-token') ?? '';
+        body = String(init?.body);
+        return jsonResponse({
+          id: 'event_1',
+          gatewayId: 'gw_1',
+          totemId: 'totem_1',
+          sessionId: input.sessionId,
+          eventType: input.eventType,
+          payload: input.payload,
+          createdAt: '2026-05-18T20:00:00Z',
+        });
+      },
+    });
+
+    const event = await client.createGatewayEvent('gw_1', 'kivo_gateway_secret', input);
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/gateways/gw_1/events');
+    expect(method).toBe('POST');
+    expect(gatewayToken).toBe('kivo_gateway_secret');
+    expect(JSON.parse(body)).toEqual(input);
+    expect(event.eventType).toBe(input.eventType);
   });
 
   it('proxies Etherfuse quote creation through the Kivo API', async () => {
@@ -217,6 +466,124 @@ describe('HttpKivoApiClient', () => {
     }
 
     expect(errorMessage).toBe('valid Supabase JWT or Kivo API key is required');
+  });
+
+  it('creates Studio solution intents through the real API route', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let body = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        body = String(init?.body ?? '');
+        return jsonResponse({
+          id: 'intent_power_api',
+          prompt: 'Quero cobrar por uma API de dados',
+          surface: 'digital',
+          interactionModel: 'M2M',
+          recommendedGatewayMode: 'api_guard',
+          createdAt: '2026-05-19T12:00:00Z',
+        });
+      },
+    });
+
+    const intent = await client.createStudioIntent({
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+    });
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/studio/intents');
+    expect(method).toBe('POST');
+    expect(JSON.parse(body)).toEqual({
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+    });
+    expect(intent.recommendedGatewayMode).toBe('api_guard');
+  });
+
+  it('creates Studio flows with the full intent payload because intents are not persisted yet', async () => {
+    let requestedUrl = '';
+    let method = '';
+    let body = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        body = String(init?.body ?? '');
+        return jsonResponse({
+          id: 'flow_power_api',
+          intentId: 'intent_power_api',
+          name: 'Quero cobrar por uma API de dados',
+          surface: 'digital',
+          interactionModel: 'M2M',
+          gatewayMode: 'api_guard',
+          resourceName: 'Protected API',
+          price: '0.1000000',
+          asset: 'USDC:testnet',
+          accessRule: 'Require a valid x402 payment before releasing the protected resource.',
+          status: 'needs_setup',
+          createdAt: '2026-05-19T12:00:00Z',
+          updatedAt: '2026-05-19T12:00:00Z',
+        });
+      },
+    });
+
+    const flow = await client.createStudioFlow({
+      id: 'intent_power_api',
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+      interactionModel: 'M2M',
+      recommendedGatewayMode: 'api_guard',
+      createdAt: '2026-05-19T12:00:00Z',
+    });
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/studio/flows');
+    expect(method).toBe('POST');
+    expect(JSON.parse(body)).toEqual({
+      intentId: 'intent_power_api',
+      prompt: 'Quero cobrar por uma API de dados',
+      surface: 'digital',
+      interactionModel: 'M2M',
+      gatewayMode: 'api_guard',
+    });
+    expect(flow.name).toBe('Quero cobrar por uma API de dados');
+  });
+
+  it('starts validation runs without returning fabricated success', async () => {
+    let requestedUrl = '';
+    let method = '';
+    const client = createKivoClient({
+      baseUrl: 'https://api.kivo.example',
+      fetcher: async (inputUrl, init) => {
+        requestedUrl = String(inputUrl);
+        method = init?.method ?? 'GET';
+        return jsonResponse({
+          id: 'val_1',
+          flowId: 'flow_1',
+          status: 'needs_connection',
+          steps: [
+            {
+              id: 'gateway',
+              label: 'Gateway',
+              status: 'needs_connection',
+              message: 'Conecte um Gateway antes de validar',
+            },
+          ],
+          createdAt: '2026-05-19T12:00:00Z',
+          updatedAt: '2026-05-19T12:00:00Z',
+        });
+      },
+    });
+
+    const validation = await client.startStudioValidation('flow_1');
+
+    expect(requestedUrl).toBe('https://api.kivo.example/v1/studio/flows/flow_1/validation-runs');
+    expect(method).toBe('POST');
+    expect(validation.status).toBe('needs_connection');
+    expect(validation.status).not.toBe('passed');
   });
 });
 

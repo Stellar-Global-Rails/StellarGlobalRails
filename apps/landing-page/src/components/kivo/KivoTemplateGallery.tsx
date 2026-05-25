@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 interface Template {
   id: string;
   name: string;
+  status: 'functional' | 'roadmap';
   description: string;
   icon: string;
   useCase: string;
@@ -11,89 +12,93 @@ interface Template {
   steps: string[];
   actors: string;
   codeExample: string;
-  savings: string;
+  impact: string;
 }
 
 const templates: Template[] = [
   {
-    id: 'ev-charging',
-    name: 'EV Charging Network',
-    description: 'Vehicles paying for energy in real-time',
-    icon: 'solar:car-2-linear',
-    useCase: 'Electric vehicle at charging station',
-    fullDescription:
-      'Enable autonomous electric vehicles to pay for electricity as they charge. The payment is conditional on energy delivered, ensuring fair settlement for both parties.',
-    steps: [
-      'EV device detects charging station location',
-      'Device initiates payment with condition: "Pay when 10 kWh delivered"',
-      'Smart meter confirms energy delivery in real-time',
-      'Payment executes automatically on Stellar',
-      'Vehicle receives confirmation and continues driving'
-    ],
-    actors: 'Electric Vehicle (Payer) ↔ Charging Station (Payee)',
-    codeExample: `const charging = await kivo.createPayment({
-  from_device: 'EV-001',
-  to_device: 'charger-05',
-  amount: 2.50,
-  condition: 'energy_delivered_kwh:10',
-  timeout: 3600
-});
-
-// Settlement confirms delivery
-const result = await charging.execute();`,
-    savings: 'Save up to 75% on payment processing'
-  },
-  {
-    id: 'energy-trading',
-    name: 'Energy Trading P2P',
-    description: 'Neighbors selling solar energy directly',
+    id: 'power-totem',
+    name: 'Kivo EV Charge',
+    status: 'functional',
+    description: 'Template funcional do hackathon para vender sessoes de recarga EV com pagamento x402.',
     icon: 'solar:bolt-circle-linear',
-    useCase: 'House with solar panels selling to neighbor',
+    useCase: 'Raspberry Pi + tela + QR + EVSE/OCPP',
     fullDescription:
-      'Peer-to-peer energy trading without intermediaries. Homeowners with solar panels can sell excess energy to neighbors in real-time with instant settlement.',
+      'Kivo EV Charge mostra o Gateway no mundo fisico: uma tela na estacao exibe o QR, o checkout exige pagamento x402, Kivo valida Stellar/Etherfuse e o gateway autoriza uma sessao curta de recarga no controlador seguro.',
     steps: [
-      'House A (solar producer) offers energy on P2P network',
-      'House B (consumer) receives smart meter signal: "2.5 kWh available at $0.30"',
-      'House B initiates payment with condition for delivery',
-      'Smart meters execute energy transfer and payment atomically',
-      'Both parties receive instant confirmation on Stellar'
+      'Operador cria a estacao EV Charge no Kivo',
+      'Gateway no Raspberry Pi pareia com o flow',
+      'Motorista escaneia o QR na tela da estacao',
+      'Checkout x402 solicita pagamento',
+      'Kivo valida Stellar e mostra contexto Etherfuse',
+      'Gateway autoriza a sessao EVSE/OCPP e registra health/recibo'
     ],
-    actors: 'House A (Solar Producer) ↔ House B (Consumer)',
-    codeExample: `const energyTrade = await kivo.createPayment({
-  from_device: 'smartmeter-b123',
-  to_device: 'solar-panel-a456',
-  amount: 0.75, // 2.5 kWh × $0.30
-  condition: 'energy_delivered_kwh:2.5',
-  timeout: 1800
-});`,
-    savings: 'Real-time settlement, zero middleman fees'
-  },
-  {
-    id: 'ai-agents',
-    name: 'Autonomous AI Agents',
-    description: 'Agents paying for computational services',
-    icon: 'solar:cpu-bolt-linear',
-    useCase: 'AI agent paying for API and compute resources',
-    fullDescription:
-      'Autonomous AI agents can negotiate and pay for services without human intervention. Perfect for microservices and computational resources on-demand.',
-    steps: [
-      'AI agent identifies need for service (API call, compute resource)',
-      'Agent queries MCP to find available provider',
-      'Agent creates conditional payment: "Pay when service executed"',
-      'Service provider executes and returns result',
-      'Payment confirms automatically on Stellar'
-    ],
-    actors: 'AI Agent (Payer) ↔ Service Provider (Receiver)',
-    codeExample: `const servicePayment = await kivo.mcp.createPayment({
-  from_agent: 'analysis-bot-v2',
-  to_service: 'compute-provider-api',
-  amount: 5.00,
-  condition: 'service_completed',
-  timeout: 300
+    actors: 'Motorista -> Checkout Kivo -> Stellar/Etherfuse -> Raspberry Gateway -> EVSE',
+    codeExample: `import { KivoGateway } from '@kivo/gateway';
+
+const gateway = new KivoGateway({
+  flowId: 'power-totem-rj-01',
+  mode: 'physical',
+  output: { type: 'gpio', pin: 17 }
 });
 
-const result = await servicePayment.execute();`,
-    savings: 'Zero human intervention, instant payments'
+await gateway.start();`,
+    impact: 'Caso de uso real para estacionamento, condominio e hospitality'
+  },
+  {
+    id: 'api-toll',
+    name: 'API Toll',
+    status: 'roadmap',
+    description: 'Gateway digital para cobrar acesso a endpoints e respostas premium.',
+    icon: 'solar:programming-linear',
+    useCase: 'API protegida por x402 antes de responder',
+    fullDescription:
+      'API Toll sera um template para times que querem vender acesso a endpoints, dados ou automacoes sem criar billing do zero.',
+    steps: [
+      'Usuario descreve endpoint e politica no Studio',
+      'AI agents geram middleware com SDK TypeScript',
+      'Gateway digital intercepta a requisicao',
+      'x402 exige pagamento antes da resposta',
+      'Kivo valida e libera a chamada',
+      'Mainnet privada exige billing Kivo'
+    ],
+    actors: 'Cliente API -> Gateway digital -> Kivo -> API privada',
+    codeExample: `import { requireKivoAccess } from '@kivo/sdk/http';
+
+export const GET = requireKivoAccess({
+  resource: 'premium-weather-api',
+  price: '0.05',
+  asset: 'USDC'
+})(handler);`,
+    impact: 'Roadmap pos-hackathon'
+  },
+  {
+    id: 'agent-tool-paywall',
+    name: 'Agent Tool Paywall',
+    status: 'roadmap',
+    description: 'Agentes de IA pagando por tools, compute, dados e automacoes.',
+    icon: 'solar:cpu-bolt-linear',
+    useCase: 'Tool call liberada somente apos pagamento',
+    fullDescription:
+      'Agent Tool Paywall sera o caminho para agentes autonomos consumirem recursos pagos com autorizacao verificavel.',
+    steps: [
+      'Studio modela a tool e o preco',
+      'SDK gera wrapper da ferramenta',
+      'Agente recebe requisito x402',
+      'Pagamento e validado',
+      'Tool executa com recibo',
+      'Uso privado em mainnet passa por billing'
+    ],
+    actors: 'AI Agent -> Kivo tool gateway -> Provider',
+    codeExample: `import { paidTool } from '@kivo/sdk/agents';
+
+export const enrichLead = paidTool({
+  name: 'enrich_lead',
+  price: '0.10',
+  asset: 'USDC',
+  handler: enrichLeadHandler
+});`,
+    impact: 'Roadmap para economia de agentes'
   }
 ];
 
@@ -111,11 +116,10 @@ export default function KivoTemplateGallery() {
           className="mb-16"
         >
           <h2 className="text-5xl lg:text-6xl font-bricolage font-bold text-white mb-6">
-            Ready-to-Use Templates
+            EV Charge e roadmap de templates
           </h2>
           <p className="text-xl text-white/60 max-w-3xl">
-            Start building M2M payment solutions with pre-configured templates. Each template includes
-            architecture diagrams, code examples, and real-world scenarios.
+            O produto e Kivo Gateway + Kivo Studio. Templates sao aceleradores: EV Charge funciona no hackathon; os demais entram depois como blueprints reutilizaveis.
           </p>
         </motion.div>
 
@@ -130,7 +134,7 @@ export default function KivoTemplateGallery() {
             >
               <motion.button
                 onClick={() => setExpanded(expanded === template.id ? null : template.id)}
-                className="w-full text-left h-full p-8 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-emerald-500/50 transition-all duration-300 group flex flex-col"
+                className="relative w-full text-left h-full p-8 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-emerald-500/50 transition-all duration-300 group flex flex-col"
                 whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', borderColor: 'rgba(16, 185, 129, 0.5)' }}
               >
                 {/* Icon */}
@@ -140,6 +144,13 @@ export default function KivoTemplateGallery() {
                 </div>
 
                 {/* Content */}
+                <span className={`inline-flex w-fit rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest ${
+                  template.status === 'functional'
+                    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/20'
+                    : 'bg-white/5 text-white/40 border border-white/10'
+                }`}>
+                  {template.status === 'functional' ? 'Funcional agora' : 'Roadmap'}
+                </span>
                 <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-emerald-400 transition-colors">
                   {template.name}
                 </h3>
@@ -220,7 +231,7 @@ export default function KivoTemplateGallery() {
                         </ol>
                       </div>
 
-                      {/* Actors & Savings */}
+                      {/* Actors & Impact */}
                       <div className="space-y-6">
                         <div className="p-6 rounded-xl bg-white/5 border border-white/10">
                           <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">
@@ -233,11 +244,11 @@ export default function KivoTemplateGallery() {
                           <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">
                             Impact
                           </p>
-                          <p className="text-white font-medium">{template.savings}</p>
+                          <p className="text-white font-medium">{template.impact}</p>
                         </div>
 
                         <a
-                          href={`/doc/ai/kivopay#template-${template.id}`}
+                          href={`/doc/ai/kivo#template-${template.id}`}
                           className="block p-6 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-500/50 transition-all group"
                         >
                           <p className="text-white font-medium group-hover:text-emerald-400 transition-colors flex items-center gap-2">
@@ -268,11 +279,11 @@ export default function KivoTemplateGallery() {
                     {/* CTA */}
                     <div className="flex gap-4">
                       <motion.a
-                        href={`/doc/ai/kivopay#template-${template.id}`}
+                        href={`/doc/ai/kivo#template-${template.id}`}
                         whileHover={{ scale: 1.05 }}
                         className="px-6 py-3 rounded-lg bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition-colors"
                       >
-                        Read Full Guide →
+                        Read Full Guide -&gt;
                       </motion.a>
                       <motion.button
                         onClick={() => setExpanded(null)}

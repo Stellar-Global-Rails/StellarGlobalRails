@@ -1,37 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import MagneticButton from '../ui/MagneticButton';
 import { useTranslation } from '../../hooks/useTranslation';
 
 export default function CoreSimulator({ slug, color }: { slug?: string, color: string }) {
-  if (slug === 'kivopay' || slug === 'kivo') return <KivoPaySimulator color={color} />;
+  if (slug === 'kivopay' || slug === 'kivo') return <KivoGatewaySimulator color={color} />;
   if (slug === 'socialpay') return <SocialPaySimulator color={color} />;
   return <ContractEaseSimulator color={color} />;
 }
 
-// 1. KIVO PAY: O Radar de Liquidação & Roteamento
-function KivoPaySimulator({ color }: { color: string }) {
-  const { t } = useTranslation();
+// 1. KIVO: Gateway access flow
+function KivoGatewaySimulator({ color }: { color: string }) {
   const [active, setActive] = useState(false);
-  const [status, setStatus] = useState('IDLE');
-  const [detectedPaths, setDetectedPaths] = useState<any[]>([]);
+  const [activeStage, setActiveStage] = useState(0);
+
+  const stages = [
+    'Resource locked',
+    'x402 required',
+    'Stellar proof',
+    'Etherfuse rail',
+    'Gateway release'
+  ];
 
   const startSimulation = () => {
     setActive(true);
-    setStatus('SCANNING_NODES');
-    setDetectedPaths([]);
-    
-    // Simulate finding nodes
-    setTimeout(() => {
-      setDetectedPaths([
-        { x: 40, y: -80, label: 'STELLAR_NODE', time: '2s' },
-        { x: -100, y: 30, label: 'PIX_GATEWAY', time: '1s' },
-      ]);
-    }, 1000);
+    setActiveStage(0);
 
-    setTimeout(() => setStatus('RE_ROUTING'), 2500);
-    setTimeout(() => setStatus('SETTLED'), 4500);
-    setTimeout(() => { setActive(false); setStatus('IDLE'); setDetectedPaths([]); }, 7000);
+    stages.forEach((_, index) => {
+      setTimeout(() => setActiveStage(index), index * 900);
+    });
+
+    setTimeout(() => {
+      setActive(false);
+      setActiveStage(0);
+    }, stages.length * 900 + 900);
   };
 
   return (
@@ -41,19 +43,21 @@ function KivoPaySimulator({ color }: { color: string }) {
       <div className="flex flex-col md:flex-row items-center gap-12">
         <div className="flex-1 space-y-6 z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> {t('simulator.kivo.engine_active')}
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Gateway online
           </div>
-          <h3 className="text-3xl font-bricolage text-white">{t('simulator.kivo.title')}</h3>
-          <p className="text-white/50 text-sm leading-relaxed">{t('simulator.kivo.desc')}</p>
+          <h3 className="text-3xl font-bricolage text-white">Gateway Access Flow</h3>
+          <p className="text-white/50 text-sm leading-relaxed">
+            Um recurso fisico ou digital fica bloqueado ate Kivo validar x402, Stellar e Etherfuse. Depois disso, o gateway libera acesso e registra recibo.
+          </p>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl">
-              <div className="text-[10px] text-white/30 uppercase mb-1">{t('simulator.kivo.status_label')}</div>
-              <div className="text-sm font-mono uppercase" style={{ color: active ? color : '#333' }}>{status}</div>
+              <div className="text-[10px] text-white/30 uppercase mb-1">Current stage</div>
+              <div className="text-sm font-mono uppercase" style={{ color: active ? color : '#555' }}>{stages[activeStage]}</div>
             </div>
             <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl">
-              <div className="text-[10px] text-white/30 uppercase mb-1">{t('simulator.kivo.latency_label')}</div>
-              <div className="text-sm font-mono text-white">{active ? (status === 'SETTLED' ? '2.1s' : '12ms') : '--'}</div>
+              <div className="text-[10px] text-white/30 uppercase mb-1">Receipt</div>
+              <div className="text-sm font-mono text-white">{activeStage === stages.length - 1 && active ? 'RECORDED' : '--'}</div>
             </div>
           </div>
 
@@ -79,13 +83,13 @@ function KivoPaySimulator({ color }: { color: string }) {
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full"
                   />
-                  <span>{t('simulator.kivo.processing')}</span>
+                  <span>Validando acesso</span>
                 </>
               ) : (
                 <>
                   {/* @ts-ignore */}
                   <iconify-icon icon="solar:bolt-bold" width="24"></iconify-icon>
-                  <span>{t('simulator.kivo.cta')}</span>
+                  <span>Simular acesso pago</span>
                 </>
               )}
             </div>
@@ -95,71 +99,66 @@ function KivoPaySimulator({ color }: { color: string }) {
           </MagneticButton>
         </div>
 
-        <div className="flex-1 relative aspect-square w-full flex items-center justify-center bg-black/40 rounded-full border border-white/5 overflow-hidden">
-          {/* Technical Radar Grid */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none" 
-               style={{ backgroundImage: `radial-gradient(${color} 1px, transparent 1px)`, backgroundSize: '30px 30px' }} />
-          
-          {/* Distance Rings */}
-          {[1, 0.75, 0.5, 0.25].map((scale, i) => (
-            <div key={i} className="absolute rounded-full border border-white/5" 
-                 style={{ width: `${scale * 100}%`, height: `${scale * 100}%` }} />
-          ))}
-
-          {/* Sweep Line */}
-          <motion.div 
-            animate={{ rotate: 360 }} 
-            transition={{ duration: 4, repeat: Infinity, ease: "linear" }} 
-            className="absolute inset-0 z-20 origin-center" 
-            style={{ background: `conic-gradient(from 0deg, ${color}30, transparent 90deg)` }} 
+        <div className="flex-1 relative aspect-square w-full flex items-center justify-center bg-black/40 rounded-[2rem] border border-white/5 overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-10 pointer-events-none"
+            style={{
+              backgroundImage: `linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`,
+              backgroundSize: '36px 36px'
+            }}
           />
-          
-          {/* Central Node */}
-          <div className="w-20 h-20 rounded-full border-2 bg-black flex items-center justify-center z-40 relative shadow-[0_0_50px_rgba(0,0,0,0.8)]" style={{ borderColor: color }}>
-             <motion.div animate={{ scale: active ? [1, 1.2, 1] : 1 }} transition={{ duration: 0.5, repeat: active ? Infinity : 0 }} className="absolute inset-0 rounded-full opacity-20" style={{ backgroundColor: color }} />
-             {/* @ts-ignore */}
-             <iconify-icon icon="solar:radar-2-bold" width="32" style={{ color }}></iconify-icon>
+
+          <div className="relative z-10 w-full max-w-[280px] space-y-3">
+            {stages.map((stage, index) => {
+              const isComplete = active && index < activeStage;
+              const isCurrent = active && index === activeStage;
+              const isFinal = index === stages.length - 1;
+
+              return (
+                <motion.div
+                  key={stage}
+                  animate={{
+                    borderColor: isCurrent || isComplete ? color : 'rgba(255,255,255,0.08)',
+                    backgroundColor: isCurrent ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)'
+                  }}
+                  className="relative flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-sm"
+                >
+                  {index < stages.length - 1 && (
+                    <div className="absolute left-[26px] top-[42px] h-4 w-px bg-white/10" />
+                  )}
+                  <motion.div
+                    animate={{
+                      scale: isCurrent ? [1, 1.18, 1] : 1,
+                      backgroundColor: isCurrent || isComplete ? color : '#1f2937'
+                    }}
+                    transition={{ duration: 0.7, repeat: isCurrent ? Infinity : 0 }}
+                    className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                  >
+                    {isComplete || (isFinal && isCurrent) ? (
+                      // @ts-ignore
+                      <iconify-icon icon="solar:check-circle-bold" width="14" className="text-black"></iconify-icon>
+                    ) : (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
+                    )}
+                  </motion.div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] text-white/30 uppercase tracking-widest">Step {index + 1}</div>
+                    <div className="text-sm font-mono text-white truncate">{stage}</div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
 
-          {/* Detected Paths Blips */}
           <AnimatePresence>
-            {detectedPaths.map((blip, i) => (
+            {activeStage === stages.length - 1 && active && (
               <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-                className="absolute z-30 flex items-start gap-2"
-                style={{ transform: `translate(${blip.x}px, ${blip.y}px)` }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-[10px] text-emerald-300 font-mono z-50 backdrop-blur-xl"
               >
-                 <div className="w-2 h-2 rounded-full shadow-[0_0_10px_white] animate-pulse" style={{ backgroundColor: color }} />
-                 <div className="flex flex-col">
-                    <span className="text-[6px] font-mono text-white/60 font-bold">{blip.label}</span>
-                    <span className="text-[5px] font-mono text-emerald-500">{blip.time}</span>
-                 </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-
-          {/* Rerouting Alert */}
-          <AnimatePresence>
-            {status === 'RE_ROUTING' && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0 }} 
-                className="absolute top-12 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-500/20 border border-red-500/50 rounded-lg text-[10px] text-red-400 font-mono z-50 backdrop-blur-xl"
-              >
-                {t('simulator.kivo.alert_latency')}
-              </motion.div>
-            )}
-            {status === 'SETTLED' && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.8 }} 
-                animate={{ opacity: 1, scale: 1 }} 
-                className="absolute bottom-12 left-1/2 -translate-x-1/2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-[10px] text-emerald-400 font-mono z-50 backdrop-blur-xl"
-              >
-                {t('simulator.kivo.alert_optimized')}
+                ACCESS_RELEASED
               </motion.div>
             )}
           </AnimatePresence>

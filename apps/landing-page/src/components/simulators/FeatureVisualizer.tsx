@@ -36,13 +36,13 @@ export default function FeatureVisualizer({ id, type, icon, color }: { id: strin
   if (id === 'multi-sig-workflow') return <MultiSigVisualizer color={color} />;
   if (id === 'immutability-motor') return <ImmutabilityVisualizer color={color} />;
 
-  // 5. Kivo Pay Agents
+  // 5. Kivo Agents
   if (id === 'settlement') return <H2MVisualizer color={color} />; // H2M
   if (id === 'autonomous') return <M2MVisualizer color={color} variant="agent" />; // M2M Agent
   if (id === 'compliance') return <ComplianceVisualizer color={color} />;
   if (id === 'fraud-predictor') return <RadarVisualizer color={color} title="Fraud Predictor" variant="neural" />;
 
-  // 6. Kivo Pay Features
+  // 6. Kivo Features
   if (id === 'cross-border') return <CrossBorderVisualizer color={color} />;
   if (id === 'mass-disbursements') return <MassDisbursementVisualizer color={color} />;
   if (id === 'social-fundraising') return <FundraisingVisualizer color={color} />;

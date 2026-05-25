@@ -2,31 +2,21 @@ import { Icon } from '@iconify/react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { advancedTools } from '@/data/advancedTools';
 import { useUIStore } from '@/stores';
 
-const advancedCommands = advancedTools.map((tool) => ({
-  label: tool.title,
-  path: tool.route,
-  icon: tool.icon,
-  keywords: `advanced ${tool.keywords}`,
-}));
-
 const commands = [
-  { label: 'Home', path: '/dashboard', icon: 'solar:home-angle-bold-duotone', keywords: 'home personas workspace' },
-  { label: 'Criar flow', path: '/create-flow', icon: 'solar:add-circle-bold-duotone', keywords: 'create flow monetizar template kivo' },
-  { label: 'Flows', path: '/flows', icon: 'solar:bolt-circle-bold-duotone', keywords: 'flows recursos monetizados devices apis data feeds' },
-  { label: 'Pagamentos', path: '/payments', icon: 'solar:wallet-money-bold-duotone', keywords: 'payment payments stellar usdc' },
-  { label: 'Checkout real', path: '/checkout', icon: 'solar:card-transfer-bold-duotone', keywords: 'payer usuario payment required checkout x402' },
-  { label: 'Integracoes', path: '/advanced', icon: 'solar:settings-bold-duotone', keywords: 'advanced x402 etherfuse mcp webhooks deploy diagnosticos tecnicos' },
-  { label: 'Operacao M2M', path: '/operations', icon: 'solar:devices-bold-duotone', keywords: 'operator devices health sessions' },
-  { label: 'Hub de integracao', path: '/integrations', icon: 'solar:code-square-bold-duotone', keywords: 'builder api webhooks mcp templates' },
-  { label: 'Financeiro', path: '/finance', icon: 'solar:chart-square-bold-duotone', keywords: 'recebiveis conciliacao settlement receita' },
-  { label: 'Saude dos flows', path: '/health', icon: 'solar:heart-pulse-bold-duotone', keywords: 'health saude flows recursos setup falhas' },
+  { label: 'Home', path: '/dashboard', icon: 'solar:home-2-bold-duotone', keywords: 'home ev charge workspace' },
+  { label: 'Kivo Studio', path: '/studio', icon: 'solar:stars-line-duotone', keywords: 'flow solucao arquitetura sdk ai agents' },
+  { label: 'Marketplace', path: '/marketplace', icon: 'solar:widget-linear', keywords: 'templates ev charge adquirir comunidade roadmap' },
+  { label: 'Biblioteca', path: '/library', icon: 'solar:folder-with-files-linear', keywords: 'templates adquiridos instalar docker ev charge' },
+  { label: 'Kivo EV Charge', path: '/templates/power-totem', icon: 'solar:electric-refueling-bold-duotone', keywords: 'template recarga ev raspberry x402 etherfuse' },
+  { label: 'Kivo Gateway', path: '/gateway', icon: 'solar:server-square-cloud-linear', keywords: 'runtime fisico digital raspberry proxy' },
+  { label: 'SDK TypeScript', path: '/sdk', icon: 'solar:code-square-linear', keywords: 'download adapter x402 gateway' },
+  { label: 'Validacao testnet', path: '/validation', icon: 'solar:shield-check-linear', keywords: 'x402 etherfuse stellar gateway' },
+  { label: 'Pagamento x402', path: '/checkout', icon: 'solar:card-transfer-bold-duotone', keywords: 'payer usuario payment required checkout x402' },
+  { label: 'Launch', path: '/launch', icon: 'solar:rocket-linear', keywords: 'mainnet privado template publico' },
   { label: 'Status do Kivo', path: '/status', icon: 'solar:pulse-2-bold-duotone', keywords: 'status sistema kivo plataforma disponibilidade' },
-  { label: 'Time e escala', path: '/team', icon: 'solar:users-group-rounded-bold-duotone', keywords: 'workspace roles solo team enterprise' },
-  { label: 'Ferramentas avancadas', path: '/ops-dashboard', icon: 'solar:widget-5-bold-duotone', keywords: 'metrics health dashboard advanced' },
-  ...advancedCommands,
+  { label: 'Ajustes', path: '/settings', icon: 'solar:settings-bold-duotone', keywords: 'conta workspace ambiente conexoes' },
 ];
 
 export default function CommandPalette() {
@@ -71,7 +61,7 @@ export default function CommandPalette() {
           >
             <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
               <Icon icon="solar:magnifer-linear" className="text-xl text-neutral-500" />
-              <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar flow, pagamento ou integracao..." className="w-full bg-transparent text-white outline-none placeholder:text-neutral-600" />
+              <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar Studio, Gateway, SDK ou pagamento..." className="w-full bg-transparent text-white outline-none placeholder:text-neutral-600" />
               <span className="rounded bg-white/5 px-2 py-1 text-[10px] text-neutral-500">ESC</span>
             </div>
             <div className="max-h-[50vh] overflow-y-auto p-2">
