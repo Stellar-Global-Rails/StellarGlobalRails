@@ -105,7 +105,15 @@ export default function Navigation() {
           <a href="/#products" className="hover:text-white transition-colors">
             {t('nav.products')}
           </a>
-          
+          <a
+            href="/contractease"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/15 hover:text-emerald-300 transition-all"
+          >
+            {/* @ts-ignore */}
+            <iconify-icon icon="solar:document-text-bold-duotone" width="14"></iconify-icon>
+            ContractEase
+          </a>
+
           <div className="h-4 w-px bg-white/10 mx-2"></div>
           
           <div className="flex bg-black/50 p-1 rounded-full border border-white/5">
