@@ -13,14 +13,7 @@
 
 Sign documents, generate SHA-256 hashes, issue on-chain certificates, and enable trustless escrow via Stellar Claimable Balances. Any party can verify authenticity through a public URL — no middlemen.
 
-- SHA-256 document hashing → anchored on Stellar ledger
-- Claimable Balance escrow with conditional release
-- Public verification page + QR Code
-- Digital signature flow with Supabase Auth
-
-```
-apps/contractease/   → React + Vite + TypeScript
-```
+> **Moved to its own repository:** [LucasVital08/contractease](https://github.com/LucasVital08/contractease) — includes the React app and the Soroban smart contracts (formerly `apps/contractease/` and `soroban-contracts/` here).
 
 ---
 
@@ -61,7 +54,6 @@ apps/kivo/           → React/Vite product front + Supabase Edge API
 ```
 StellarGlobalRails/
 ├── apps/
-│   ├── contractease/          # React + Vite frontend
 │   ├── socialpay/             # Next.js app
 │   └── kivo/                  # Kivo React/Vite front
 ├── supabase/functions/kivo-api/ # Kivo Supabase Edge API
@@ -79,7 +71,6 @@ StellarGlobalRails/
 
 | Layer | Technology |
 |---|---|
-| Frontend (ContractEase) | React 18 + Vite + TypeScript + Tailwind |
 | Frontend (SocialPay) | Next.js 15 + Supabase client |
 | Backend API (Kivo) | Supabase Edge Functions + TypeScript |
 | Auth | Supabase Auth (all 3 products) |
@@ -121,12 +112,8 @@ npm run dev        # http://localhost:4321
 ```
 
 ### ContractEase
-```bash
-cd apps/contractease
-npm install
-cp .env.example .env   # add Supabase + Stellar keys
-npm run dev
-```
+
+Now lives in its own repository: [LucasVital08/contractease](https://github.com/LucasVital08/contractease)
 
 ### SocialPay
 ```bash
